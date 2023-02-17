@@ -1,0 +1,52 @@
+@font-face {
+    font-family: 'charlevoix';
+    src: url('../../font/CharlevoixPro-Regular.otf');
+    src: url('../../font/CharlevoixPro-Regular.woff2') format('woff2'),
+         url('../../font/CharlevoixPro-Regular.woff') format('woff'),
+         url('../../font/CharlevoixPro-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+:root {
+    //white theme
+    --main: #14202C;
+    --background: #FFFFFF;
+    --light-line: #EDF0F2;
+
+    //size
+    --button-radius: 6px;
+    --button-height: 40px;
+}
+body {
+  background: rgb(214,226,230);
+  background: linear-gradient(313deg, rgba(214,226,230,1) 0%, rgba(248,250,250,1) 100%);
+  min-width: 100%;
+  min-height: 100vh;
+}
+button {
+  position: relative;
+}
+
+.buttonLabel {
+  position: absolute;
+  z-index: 10;
+  top: -5px;
+  color: var(--main);
+  font-size: 7px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding-left: 2px;
+  padding-right: 2px;
+  user-select: none;
+  &:before {
+    position: absolute;
+    content: "";
+    z-index: -1;
+    top: 4px;
+    left: 0px;
+    width: 100%;
+    height: 1px;
+    background-color: var(--background);
+  }
+}

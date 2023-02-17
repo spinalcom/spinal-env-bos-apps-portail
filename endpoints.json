@@ -1,0 +1,8 @@
+{
+  "water" : "Eau globale",
+  "sanitary_water" : "Eau sanitaire",
+  "people_number" : "Nombre de personnes",
+  "energy" : "Energie globale",
+  "lighting" : "Eclairage",
+  "heating" : "Chauffage"
+}
