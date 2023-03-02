@@ -25,7 +25,7 @@ with this file. If not, see
 <template>
   <div class="headerSelect"
        v-if="portofolios">
-    <space-selector ref="space-selector"
+    <!-- <space-selector ref="space-selector"
                     :open.sync="openSpaceSelector"
                     :maxDepth="0"
                     :GetChildrenFct="onSpaceSelectOpen"
@@ -33,7 +33,7 @@ with this file. If not, see
                     :value="selectedZone"
                     :isMobile="isMobile">
 
-    </space-selector>
+    </space-selector> -->
   </div>
 </template>
 

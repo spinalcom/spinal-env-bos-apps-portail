@@ -46,8 +46,7 @@ with this file. If not, see
           <v-icon class="btnIcon">
             mdi-file-upload-outline
           </v-icon>
-
-          uploader un fichier .xls
+          importer un fichier .xls
         </v-btn>
 
         <v-btn class="button"
@@ -73,6 +72,15 @@ with this file. If not, see
                     :items="searchedApps"
                     item-key="name">
 
+        <template slot="no-data">
+          <tr>
+            <td :colspan="4"
+                style="text-align: center;">
+              Aucune Application à afficher
+            </td>
+          </tr>
+        </template>
+
         <template v-slot:header>
           <thead>
             <tr>
@@ -82,14 +90,14 @@ with this file. If not, see
                 </v-card>
               </th>
               <th class="tableHeader">
-                Nom De l'application
+                Nom de l'application
               </th>
               <th class="tableHeader">
                 Tags
               </th>
 
               <th class="tableHeader">
-                Categorie/groupe
+                Categories/groupes
               </th>
 
               <th class="tableHeader">
@@ -211,7 +219,7 @@ class AppList extends Vue {
   }
 
   get title(): string {
-    if (!this.category || !this.category.name) return "Liste d'application";
+    if (!this.category || !this.category.name) return "Liste d'applications";
     return "Liste d'" + this.category.name.toLowerCase();
   }
 }
@@ -269,8 +277,9 @@ export default AppList;
       flex-wrap: wrap;
       .button {
         color: #fff;
-        max-width: 270px;
+        max-width: 290px;
         margin-right: 5px;
+        font-size: 0.8em;
         .btnIcon {
           width: 30px;
           margin-right: 5px;

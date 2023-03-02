@@ -24,9 +24,9 @@ with this file. If not, see
 <template>
   <v-container class="appContainer"
                fluid>
-    <div class="header">
+    <div class="my_header">
       <div class="description">
-        <p>Consultez toutes les données de vos bâtiments connectés.</p>
+        <p>Consultez toutes les données de votre bâtiment connecté.</p>
         <p>
           Vous pouvez garder en favoris une visualisation en cliquant sur
           <v-btn outlined
@@ -70,10 +70,11 @@ with this file. If not, see
       <v-flex style="overflow: auto">
         <GridComponent :groups="groups"
                        :categories="categoriesDisplayed"
+                       :isMobile="isMobile"
+                       :favoriteApps="favoriteApps"
                        @goToApp="goToApp"
                        @exploreApp="exploreApp"
-                       @addAppToFavoris="addAppToFavoris"
-                       :isMobile="isMobile" />
+                       @addAppToFavoris="addAppToFavoris" />
       </v-flex>
     </v-layout>
   </v-container>
@@ -196,14 +197,22 @@ export default Vue.extend({
 
     exploreApp(item) {},
 
-    addAppToFavoris(item) {
-      console.log("addAppToFavoris", item);
+    addAppToFavoris({ item, isFavorite }) {
+      const ids = [item.id];
+      if (isFavorite)
+        return this.$store.dispatch(`appDataStore/deleteFavoriteApps`, ids);
+      this.$store.dispatch(`appDataStore/addToFavoriteApps`, ids);
     },
   },
   computed: {
-    ...mapState("appDataStore", ["appsFormatted"]),
+    ...mapState("appDataStore", ["appsFormatted", "favoriteApps"]),
   },
   watch: {
+    // favoriteApps() {
+    //   this.favoriteApps.forEach((el) => {
+    //     this.favoriteAppsObj[el.id] = el;
+    //   });
+    // },
     appsFormatted({ data, groups }) {
       this.formatData({ data, groups });
     },
@@ -227,14 +236,14 @@ $md-screen: 960px;
   height: 100%;
   padding: 0px;
 
-  .header {
+  .my_header {
     @media (max-width: $md-screen) {
       width: 100%;
     }
     width: 50%;
     display: flex;
     flex-direction: column;
-    height: 200px;
+    height: 150px;
 
     .description {
       margin-bottom: 20px;

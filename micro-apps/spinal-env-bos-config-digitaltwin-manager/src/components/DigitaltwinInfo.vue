@@ -79,7 +79,7 @@ export default {
     };
     return {
       errorCreation: false,
-      state: this.steps.edit,
+      state: this.steps.info,
     };
   },
   mounted() {},

@@ -26,7 +26,11 @@ import {
     getUserProfile,
     getBuildingApp,
     getAdminApp,
-    getTokenData
+    getTokenData,
+    addAppToFavorite,
+    addAppToFavorite,
+    removeAppFromFavorite,
+    getFavoriteApps
 } from "../requests/userData";
 
 export const SET_USER_APPS = "SET_USER_APPS";
@@ -36,10 +40,13 @@ export const SET_AND_FORMAT_APPS = "SET_AND_FORMAT_APPS";
 export const SET_SELECTED_APP = "SET_SELECTED_APP";
 export const SET_PORTOFOLIO = "SET_PORTOFOLIO";
 export const SELECT_PORTOFOLIO = "SELECT_PORTOFOLIO";
+export const ADD_FAVORITE_APP = "ADD_FAVORITE_APP";
+export const SET_FAVORITE_APP = "SET_FAVORITE_APP";
+export const DELETE_FAVORITE_APP = "DELETE_FAVORITE_APP";
 
 const names = {
     "apps": "Applications",
-    "adminApps": "Administration"
+    // "adminApps": "Administration"
 }
 
 
@@ -52,21 +59,26 @@ function classifyByCategory(apps: any[]): { name: string, id: string, apps: any[
         obj[categoryId].apps.push(data)
     });
 
-    return Array.from(Object.values(obj));
+    return Array.from(Object.values(obj)); // [{name , id, apps : []}]
 }
 
-function classifyByCategoryAndGroup(apps: any[]) {
+function classifyByCategoryAndGroup(apps: any[], favoriteApps: any[] = []) {
     let categories = classifyByCategory(apps);
-    const groups: { [ke: string]: { name: string; id: string } } = {};
+
+    categories.unshift({ name: "Favoris", id: "favoris", apps: favoriteApps }) // Ajouter la categorie favorites
+
+    const groups: { [key: string]: { name: string; id: string } } = {};
 
     const data = categories.map(({ name, id, apps }) => {
         let t: { [key: string]: any } = { name, id };
 
         apps.forEach(el => {
-            const groupId = el.groupName.toLowerCase();
+            // const groupId = el.groupName.toLowerCase();
+            const groupId = "Applications";
             if (!t[groupId]) {
                 t[groupId] = [];
-                groups[groupId] = { name: el.groupName, id: groupId }
+                // groups[groupId] = { name: el.groupName, id: groupId }
+                groups[groupId] = { name: "Applications", id: groupId }
             }
 
             t[groupId].push(el);
@@ -76,6 +88,17 @@ function classifyByCategoryAndGroup(apps: any[]) {
     })
 
     return { groups: Array.from(Object.values(groups)), data }
+}
+
+function reinitFavoris(old_list: any[], newList: any[]) {
+    if (!newList || !old_list) return []
+    // re-init favorites
+    return old_list.map(el => {
+        if (el.value === 'favoris') {
+            el.Applications = newList;
+        }
+        return el;
+    })
 }
 
 const appsFormattedMap = new Map();
@@ -93,7 +116,8 @@ export const appDataStore = {
         bos: [],
         appsFormatted: undefined,
         userInfo: {},
-        _privateData: { userInfoIsSet: false, appsIsSet: false }
+        _privateData: { userInfoIsSet: false, appsIsSet: false },
+        favoriteApps: []
     },
     mutations: {
         [SELECT_PORTOFOLIO](state: any, playload) {
@@ -101,17 +125,14 @@ export const appDataStore = {
         },
         [SET_PORTOFOLIO](state: any, playload) {
 
-            state.portofolios = ["adminApps", "apps"].reduce((liste: any[], key) => {
-                if (playload[key]) {
-                    liste.push({
-                        id: key,
-                        name: names[key],
-                        apps: playload[key]
-                    })
-                }
-
-                return liste;
-            }, []);
+            state.portofolios = [{
+                id: "apps",
+                name: "Applications",
+                apps: [
+                    ...(playload["adminApps"] || []),
+                    ...(playload["apps"] || []),
+                ]
+            }]
         },
 
 
@@ -127,7 +148,27 @@ export const appDataStore = {
 
         [SET_SELECTED_APP](state: any, playload: any) {
             state.appSelected = playload;
-        }
+        },
+
+        [ADD_FAVORITE_APP](state: any, playload: any) {
+            state.favoriteApps = [...state.favoriteApps, ...playload];
+            // re-init favorites
+            if (state.appsFormatted?.data) state.appsFormatted.data = reinitFavoris(state.appsFormatted.data, state.favoriteApps);
+        },
+
+        [SET_FAVORITE_APP](state: any, playload: any) {
+            state.favoriteApps = playload;
+            // re-init favorites
+            if (state.appsFormatted?.data) state.appsFormatted.data = reinitFavoris(state.appsFormatted.data, state.favoriteApps);
+        },
+
+        [DELETE_FAVORITE_APP](state: any, playload: any) {
+            const obj = {};
+            playload.forEach(el => obj[el.id] = el);
+
+            state.favoriteApps = state.favoriteApps.filter(el => !obj[el.id]);
+            if (state.appsFormatted?.data) state.appsFormatted.data = reinitFavoris(state.appsFormatted.data, state.favoriteApps);
+        },
     },
     actions: {
         async getPortofolios({ commit, dispatch, state }: any) {
@@ -139,8 +180,6 @@ export const appDataStore = {
 
             }
         },
-
-
 
         getProfileId() {
             if (localStorage.getItem("profileId")) return Promise.resolve(localStorage.getItem("profileId"));
@@ -165,44 +204,65 @@ export const appDataStore = {
                 await dispatch("getPortofolios")
             }
 
-            let apps = []
-            const portofolio = state.portofolios.find(el => el.id === data.portofolioId);
-            if (portofolio && !data.buildingId) {
-                apps = portofolio.apps.map(el => {
-                    el.parent = {
-                        portofolioId: data.portofolioId,
-                        buildingId: data.buildingId,
-                    };
-                    return el;
-                });
-                state.spaceSelected = data.portofolioId;
-            } else if (portofolio && data.buildingId) {
-                const building = portofolio.buildings.find(el => el.id === data.buildingId);
-                if (building) {
-                    state.spaceSelected = data.buildingId;
-                    apps = building.apps.map(el => {
-                        el.parent = {
-                            portofolioId: data.portofolioId,
-                            buildingId: data.buildingId,
-                        };
-                        return el;
-                    });
-                }
-            }
+            console.log(state.portofolios);
 
-            let appsFormatted = classifyByCategoryAndGroup(apps);
+            // let apps = []
+            const portofolio = state.portofolios.find(el => el.id === "apps");
+            // const portofolio = state.portofolios.find(el => el.id === data.portofolioId);
+            // if (portofolio && !data.buildingId) {
+            let apps = portofolio.apps.map(el => {
+                el.parent = {
+                    // portofolioId: data.portofolioId,
+                    portofolioId: "apps",
+                    buildingId: data?.buildingId,
+                };
+                return el;
+            });
+
+            state.spaceSelected = "apps";
+
+            // state.spaceSelected = data.portofolioId;
+            // } else if (portofolio && data.buildingId) {
+            //     const building = portofolio.buildings.find(el => el.id === data.buildingId);
+            //     if (building) {
+            //         state.spaceSelected = data.buildingId;
+            //         apps = building.apps.map(el => {
+            //             el.parent = {
+            //                 portofolioId: data.portofolioId,
+            //                 buildingId: data.buildingId,
+            //             };
+            //             return el;
+            //         });
+            //     }
+            // }
+
+            let appsFormatted = classifyByCategoryAndGroup(apps, state.favoriteApps);
             // console.log(appsFormatted)
 
-            // let appsFormatted: any = [];
-            // if (appsFormattedMap.get(state.spaceSelected)) appsFormatted = appsFormattedMap.get(state.spaceSelected);
-            // else {
-            // appsFormatted = classifyByCategoryAndGroup(apps);
-            //     appsFormattedMap.set(state.spaceSelected, appsFormatted);
-            // }
+            // // let appsFormatted: any = [];
+            // // if (appsFormattedMap.get(state.spaceSelected)) appsFormatted = appsFormattedMap.get(state.spaceSelected);
+            // // else {
+            // // appsFormatted = classifyByCategoryAndGroup(apps);
+            // //     appsFormattedMap.set(state.spaceSelected, appsFormatted);
+            // // }
 
             commit(SET_AND_FORMAT_APPS, { apps, appsFormatted });
 
-
         },
+
+        async addToFavoriteApps({ commit }: any, appIds: string[]) {
+            const apps = await addAppToFavorite(appIds);
+            commit(ADD_FAVORITE_APP, apps);
+        },
+
+        async getFavoriteApps({ commit }) {
+            const apps = await getFavoriteApps();
+            commit(SET_FAVORITE_APP, apps);
+        },
+
+        async deleteFavoriteApps({ commit }, appIds) {
+            const apps = await removeAppFromFavorite(appIds);
+            commit(DELETE_FAVORITE_APP, apps);
+        }
     }
 }

@@ -26,7 +26,7 @@
 import axios from "axios";
 import { SERVER_BASE_URL } from ".";
 
-const endpoint = "/api/v2";
+const endpoint = "/api/v1";
 const host = (SERVER_BASE_URL || "").replace(`/\/$/`, el => "");
 const baseURL = host.match(new RegExp(endpoint)) ? host : host + endpoint;
 
@@ -58,6 +58,30 @@ export function getTokenData(token: string) {
         return result.data;
     }).catch((err) => {
         return { code: 401, message: "error" }
+    });
+}
+
+export function addAppToFavorite(appIds) {
+    return axios.post(`${baseURL}/add_app_to_favoris`, { appIds }).then((result) => {
+        return result.data;
+    }).catch((err) => {
+        return []
+    });
+}
+
+export function removeAppFromFavorite(appIds) {
+    return axios.post(`${baseURL}/remove_app_from_favoris`, { appIds }).then((result) => {
+        return result.data;
+    }).catch((err) => {
+        return []
+    });
+}
+
+export function getFavoriteApps() {
+    return axios.get(`${baseURL}/get_favorite_apps`).then((result) => {
+        return result.data;
+    }).catch((err) => {
+        return []
     });
 }
 

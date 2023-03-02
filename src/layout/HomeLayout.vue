@@ -63,10 +63,15 @@ export default {
       "getBos",
       "getUserInfo",
       "selectSpace",
+      "getFavoriteApps",
     ]),
 
     init() {
-      return Promise.all([this.getPortofolios(), this.getUserInfo()]);
+      return Promise.all([
+        this.getPortofolios(),
+        this.getUserInfo(),
+        this.getFavoriteApps(),
+      ]);
     },
 
     closeSelect() {

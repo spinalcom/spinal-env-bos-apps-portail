@@ -35,7 +35,7 @@ with this file. If not, see
                 :style="getWidth">
 
     <template v-slot:body="{ items }">
-      <tr v-show="!isMobile"
+      <tr v-show="!isMobile && displayRow(item)"
           v-for="(item, index) in items"
           class="categoriesRows"
           :key="item.id + '_' + index">
@@ -52,6 +52,7 @@ with this file. If not, see
                :key="applicationData.id"
                :style="cardStyle">
             <ApplicationCard :data="applicationData"
+                             :isFavorite="isFavorite(applicationData)"
                              @goToApp="goToApp"
                              @exploreApp="exploreApp"
                              @addAppToFavoris="addAppToFavoris" />
@@ -65,7 +66,7 @@ with this file. If not, see
       //////////////////////////////////////////////////
       -->
 
-      <tr v-show="isMobile"
+      <tr v-show="isMobile && displayRow(item)"
           v-for="(item, index) in items"
           class="categoriesRows"
           :key="index + '_' + item.id">
@@ -87,6 +88,7 @@ with this file. If not, see
                  class="">
 
               <ApplicationCard :data="applicationData"
+                               :isFavorite="isFavorite(applicationData)"
                                @goToApp="goToApp"
                                @exploreApp="exploreApp"
                                @addAppToFavoris="addAppToFavoris" />
@@ -143,17 +145,29 @@ export default {
     groups: { default: () => [] },
     categories: { default: () => [] },
     isMobile: { type: Boolean, default: false },
+    favoriteApps: { default: () => [] },
   },
   data() {
     return {
       headers: [],
       mobileHeaders: [],
+      favoriteObj: {},
     };
   },
   mounted() {
     this.headers = this.formatHeaders(this.groups);
   },
   methods: {
+    displayRow(item) {
+      if (
+        (item.value === "favoris" || item.id === "favoris") &&
+        (!item.Applications || item.Applications.length === 0)
+      )
+        return false;
+
+      return true;
+    },
+
     formatHeaders(headers) {
       if (this.isMobile) {
         this.mobileHeaders = headers.map((el) => el.id || el.value || el.name);
@@ -181,12 +195,16 @@ export default {
       this.$emit("exploreApp", item);
     },
 
-    addAppToFavoris(item) {
-      this.$emit("addAppToFavoris", item);
+    addAppToFavoris(data) {
+      this.$emit("addAppToFavoris", data);
     },
 
     goToApp(data) {
       this.$emit("goToApp", data);
+    },
+
+    isFavorite(applicationData) {
+      return this.favoriteObj[applicationData.id] ? true : false;
     },
   },
   computed: {
@@ -208,20 +226,15 @@ export default {
         "margin-right": "10px",
       };
     },
-    // firstColumnStyle() {
-    //   return {
-    //     width: "150px",
-    //     background: "yellow",
-    //   };
-    // },
-    // cardStyle() {
-    //   return {
-    //     width: `calc(${100 / this.groups.length}% - 100px)`,
-    //     background: "yellow !important",
-    //   };
-    // },
   },
   watch: {
+    favoriteApps() {
+      const obj = {};
+      this.favoriteApps.forEach((el) => {
+        obj[el.id] = el;
+      });
+      this.favoriteObj = obj;
+    },
     isMobile() {
       this.headers = this.formatHeaders(this.groups);
     },

@@ -119,7 +119,7 @@ class HomeComponent extends Vue {
       showConfirmButton: false,
       timer: 3000,
       icon: isSuccess ? "success" : "error",
-      text: isSuccess ? "profile ajouté" : "oups, une erreur s'est produite !",
+      text: isSuccess ? "profil ajouté" : "oups, une erreur s'est produite !",
     });
   }
 

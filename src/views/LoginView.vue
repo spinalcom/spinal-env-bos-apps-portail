@@ -24,6 +24,9 @@ with this file. If not, see
 <template>
   <v-container class="loginAppContainer"
                fluid>
+    <for-got-password :dialog="forgotPassword"
+                      @close="() => forgotPassword = false" />
+
     <form @submit.prevent="login">
       <v-card class="loginCard"
               elevation="4">
@@ -71,7 +74,8 @@ with this file. If not, see
           </v-text-field>
 
           <v-btn x-small
-                 text> mot de passe oublié ? </v-btn>
+                 text
+                 @click="forgotPassword = true"> mot de passe oublié ? </v-btn>
         </v-card-text>
 
         <v-card-actions class="loginCardAction">
@@ -87,12 +91,17 @@ with this file. If not, see
 import Vue from "vue";
 import { mapActions, mapState } from "vuex";
 import logoSvg from "../../assets/img/logo.jpg";
+import ForGotPassword from "./password-forgot.vue";
 // import logoSvg from "../assets/logo.jpg";
 
 export default Vue.extend({
   name: "Login",
+  components: {
+    ForGotPassword,
+  },
   data() {
     return {
+      forgotPassword: false,
       logoSvg,
       showPassword: false,
       showError: false,
