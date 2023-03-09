@@ -91,17 +91,11 @@ export default Vue.extend({
         this.showError = true;
       }
 
-      this.$swal({
-        toast: true,
-        position: "bottom-end",
-        showConfirmButton: false,
-        timer: 3000,
-        icon: isSuccess ? "success" : "error",
-        text: isSuccess
-          ? "Plateforme ajoutée"
-          : "oups, une erreur s'est produite !",
-      });
+      const message = isSuccess
+        ? "Plateforme ajoutée"
+        : "oups, une erreur s'est produite !";
 
+      this.alertNotification(isSuccess, message);
       this.page = isSuccess ? this.pages.info : this.pages.creation;
     },
 
@@ -123,17 +117,11 @@ export default Vue.extend({
         const isSuccess = await this.deleteAuthPlatform();
 
         if (isSuccess) this.page = this.pages.creation;
+        const message = isSuccess
+          ? "Plateforme supprimée"
+          : "oups, une erreur s'est produite !";
 
-        this.$swal({
-          toast: true,
-          position: "bottom-end",
-          showConfirmButton: false,
-          timer: 3000,
-          icon: isSuccess ? "success" : "error",
-          text: isSuccess
-            ? "Plateforme supprimée"
-            : "oups, une erreur s'est produite !",
-        });
+        this.alertNotification(isSuccess, message);
       });
     },
 
@@ -147,18 +135,24 @@ export default Vue.extend({
         isSuccess = false;
       }
 
+      const message = isSuccess
+        ? "Mis à jour envoyée"
+        : "oups, une erreur s'est produite !";
+
+      this.alertNotification(isSuccess, message);
+
+      this.page = this.pages.info;
+    },
+
+    alertNotification(isSuccess, message) {
       this.$swal({
         toast: true,
         position: "bottom-end",
         showConfirmButton: false,
         timer: 3000,
         icon: isSuccess ? "success" : "error",
-        text: isSuccess
-          ? "Mis à jour envoyée"
-          : "oups, une erreur s'est produite !",
+        text: message,
       });
-
-      this.page = this.pages.info;
     },
   },
   computed: {

@@ -31,7 +31,7 @@ with this file. If not, see
                 color="success">mdi-checkbox-marked-circle-outline</v-icon>
 
         <div class="message">
-          Une plateforme d'authentification a dejà été enregistée
+          Une plateforme d'authentification a été enregistée
         </div>
       </div>
 

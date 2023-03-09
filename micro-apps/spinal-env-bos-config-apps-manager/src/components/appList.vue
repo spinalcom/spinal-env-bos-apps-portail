@@ -72,16 +72,8 @@ with this file. If not, see
                     :items="searchedApps"
                     item-key="name">
 
-        <template slot="no-data">
-          <tr>
-            <td :colspan="4"
-                style="text-align: center;">
-              Aucune Application à afficher
-            </td>
-          </tr>
-        </template>
-
-        <template v-slot:header>
+        <template v-slot:header
+                  v-if="searchedApps.length > 0">
           <thead>
             <tr>
               <th class="firstHeader">
@@ -137,6 +129,12 @@ with this file. If not, see
               </v-btn>
             </td>
           </tr>
+        </template>
+
+        <template slot="no-data">
+          <h6 class="no-data">
+            Aucune Application à afficher
+          </h6>
         </template>
       </v-data-table>
     </div>

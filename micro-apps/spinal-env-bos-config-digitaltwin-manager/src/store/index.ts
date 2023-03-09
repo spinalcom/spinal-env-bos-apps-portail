@@ -70,9 +70,11 @@ export default new Vuex.Store({
   },
   actions: {
     async addDigitalTwin({ commit }, data: any) {
-
       const digitalTwin = await addDigitalTwinRequest(data);
-      if (digitalTwin) commit(ADD_DIGITALTWIN, digitalTwin);
+      if (digitalTwin) {
+        commit(ADD_DIGITALTWIN, digitalTwin);
+        if (data.set_as_actual_digitaltwin) commit(SET_ACTUAL_DIGITALTWIN, digitalTwin);
+      }
 
     },
 

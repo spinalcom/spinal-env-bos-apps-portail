@@ -113,14 +113,10 @@ class HomeComponent extends Vue {
 
     this.goToHomePage();
 
-    this.$swal({
-      toast: true,
-      position: "bottom-end",
-      showConfirmButton: false,
-      timer: 3000,
-      icon: isSuccess ? "success" : "error",
-      text: isSuccess ? "profil ajouté" : "oups, une erreur s'est produite !",
-    });
+    const message = isSuccess
+      ? "profil ajouté"
+      : "oups, une erreur s'est produite !";
+    this.alertNotification(isSuccess, message);
   }
 
   async editProfile({ data, profileId }: any) {
@@ -133,14 +129,11 @@ class HomeComponent extends Vue {
       isSuccess = false;
     }
     this.goToHomePage();
-    this.$swal({
-      toast: true,
-      position: "bottom-end",
-      showConfirmButton: false,
-      timer: 3000,
-      icon: isSuccess ? "success" : "error",
-      text: isSuccess ? "profil modifié" : "oups, une erreur s'est produite !",
-    });
+
+    const message = isSuccess
+      ? "profil modifié"
+      : "oups, une erreur s'est produite !";
+    this.alertNotification(isSuccess, message);
   }
 
   goToCreationPage() {
@@ -188,17 +181,22 @@ class HomeComponent extends Vue {
           isSuccess = false;
         }
 
-        this.$swal({
-          toast: true,
-          position: "bottom-end",
-          showConfirmButton: false,
-          timer: 3000,
-          icon: isSuccess ? "success" : "error",
-          text: isSuccess
-            ? "profil supprimé"
-            : "oups, une erreur s'est produite !",
-        });
+        const message = isSuccess
+          ? "profil supprimé"
+          : "oups, une erreur s'est produite !";
+        this.alertNotification(isSuccess, message);
       }
+    });
+  }
+
+  alertNotification(isSuccess, message) {
+    this.$swal({
+      toast: true,
+      position: "bottom-end",
+      showConfirmButton: false,
+      timer: 3000,
+      icon: isSuccess ? "success" : "error",
+      text: message,
     });
   }
 }

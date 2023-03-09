@@ -35,10 +35,11 @@ with this file. If not, see
                                :actualDigitalTwin="actualDigitalTwin"
                                @create="goToCreationPage"
                                @change="updateDigitalTwin"
+                               @delete="_deleteDigitalTwin"
                                @cancel="cancelEdit" />
 
     <CreateDigitalTwin v-show="state === steps.creation"
-                       @cancel="cancelEdit"
+                       @cancel="cancelCreation"
                        @create="createDigitalTwin"
                        :error="errorCreation"
                        @reset="errorCreation = false" />
@@ -84,7 +85,11 @@ export default {
   },
   mounted() {},
   methods: {
-    ...mapActions(["addDigitalTwin", "setAsActualDigitalTwin"]),
+    ...mapActions([
+      "addDigitalTwin",
+      "setAsActualDigitalTwin",
+      "deleteDigitalTwin",
+    ]),
 
     goToEditPage() {
       this.state = this.steps.edit;
@@ -94,8 +99,27 @@ export default {
       this.state = this.steps.info;
     },
 
+    cancelCreation() {
+      this.state = this.steps.edit;
+    },
+
     goToCreationPage() {
       this.state = this.steps.creation;
+    },
+
+    async _deleteDigitalTwin(id) {
+      try {
+        this.state = this.steps.loading;
+        await this.deleteDigitalTwin(id);
+        this.state = this.steps.edit;
+        this.alertNotification(true, "Jumeau numerique supprimé avec succès");
+      } catch (error) {
+        this.alertNotification(
+          false,
+          "Une erreur s'est produite veuillez réessayer"
+        );
+        this.state = this.steps.edit;
+      }
     },
 
     updateDigitalTwin(digitalTwin) {
@@ -119,14 +143,12 @@ export default {
       this.state = this.steps.loading;
       this.addDigitalTwin(info)
         .then((digital) => {
-          this.$store.commit(SET_ACTUAL_DIGITALTWIN, digital);
-          this.state = this.steps.info;
-          this.this.alertNotification(
-            true,
-            "Jumeau numerique ajouté avec success"
-          );
+          // this.$store.commit(SET_ACTUAL_DIGITALTWIN, digital);
+          this.state = this.steps.edit;
+          this.alertNotification(true, "Jumeau numerique ajouté avec success");
         })
-        .catch(() => {
+        .catch((err) => {
+          console.error(err);
           // this.errorCreation = true;
           this.alertNotification(
             false,
@@ -157,7 +179,7 @@ export default {
   }
   width: 700px;
   max-width: 800px;
-  height: 320px;
+  min-height: 320px;
   padding: 10px;
   background: transparent !important;
 

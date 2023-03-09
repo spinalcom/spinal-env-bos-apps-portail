@@ -110,7 +110,7 @@ export default {
 <style lang="scss" scoped>
 .creation_container {
   width: 100%;
-  height: 100%;
+  height: 300px;
 
   ._title {
     width: 100%;

@@ -43,7 +43,6 @@ export function addDigitalTwinRequest(data) {
     }
     const query = data.set_as_actual_digitaltwin ? "?set_as_actual_digitaltwin=true" : "";
 
-    console.log(query)
     return http.post(`${baseURL}/add_digitaltwin${query}`, body).then((result) => {
         return result.data;
     })

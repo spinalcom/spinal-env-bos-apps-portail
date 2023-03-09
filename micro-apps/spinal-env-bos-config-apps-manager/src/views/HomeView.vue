@@ -32,9 +32,9 @@ with this file. If not, see
                       @upload="uploadApp"
                       @edit="goToCreationPage"
                       @delete="deleteApp"
-                      v-show="page === pages.list" />
+                      v-if="page === pages.list" />
 
-    <CreationComponent v-show="page === pages.creation"
+    <CreationComponent v-else-if="page === pages.creation"
                        @create="createApp"
                        @edit="editApp"
                        @cancel="cancelCreation"
@@ -42,7 +42,7 @@ with this file. If not, see
                        :title="title"
                        :appSelected="appSelected" />
 
-    <LoadingComponent v-show="page === pages.loading" />
+    <LoadingComponent v-else-if="page === pages.loading" />
   </v-container>
 </template>
 
@@ -165,16 +165,12 @@ class HomeView extends Vue {
     }
 
     this.page = this.pages.list;
-    this.$swal({
-      toast: true,
-      position: "bottom-end",
-      showConfirmButton: false,
-      timer: 3000,
-      icon: isSuccess ? "success" : "error",
-      text: isSuccess
-        ? "application ajoutée"
-        : "oups, une erreur s'est produite !",
-    });
+    const message = isSuccess
+      ? "application ajoutée"
+      : "oups, une erreur s'est produite !";
+
+    this.alertNotification(isSuccess, message);
+
     sendEventToParent("reload_portofolio");
   }
 
@@ -227,19 +223,18 @@ class HomeView extends Vue {
     }
 
     this.page = this.pages.list;
-    this.$swal({
-      toast: true,
-      position: "bottom-end",
-      showConfirmButton: false,
-      timer: 3000,
-      icon: isSuccess ? "success" : "error",
-      text: isSuccess ? "fichier ajouté" : "oups, une erreur s'est produite !",
-    });
+    const message = isSuccess
+      ? "fichier ajouté"
+      : "oups, une erreur s'est produite !";
+    this.alertNotification(isSuccess, message);
 
     sendEventToParent("reload_portofolio");
   }
 
   async editApp(app: IApp) {
+    if (typeof app.icon !== "string" && (<any>app.icon).name)
+      app.icon = `mdi-${(<any>app.icon).name}`;
+
     const id: any = this.appSelected.id;
     let isSuccess;
     try {
@@ -260,16 +255,11 @@ class HomeView extends Vue {
     }
 
     this.page = this.pages.list;
-    this.$swal({
-      toast: true,
-      position: "bottom-end",
-      showConfirmButton: false,
-      timer: 3000,
-      icon: isSuccess ? "success" : "error",
-      text: isSuccess
-        ? "application modifiée"
-        : "oups, une erreur s'est produite !",
-    });
+    const message = isSuccess
+      ? "application modifiée"
+      : "oups, une erreur s'est produite !";
+
+    this.alertNotification(isSuccess, message);
 
     sendEventToParent("reload_portofolio");
   }
@@ -309,16 +299,11 @@ class HomeView extends Vue {
 
         this.page = this.pages.list;
 
-        this.$swal({
-          toast: true,
-          position: "bottom-end",
-          showConfirmButton: false,
-          timer: 3000,
-          icon: isSuccess ? "success" : "error",
-          text: isSuccess
-            ? "Application supprimée"
-            : "oups, une erreur s'est produite !",
-        });
+        const message = isSuccess
+          ? "Application supprimée"
+          : "oups, une erreur s'est produite !";
+
+        this.alertNotification(isSuccess, message);
         sendEventToParent("reload_portofolio");
       }
     });
@@ -358,6 +343,17 @@ class HomeView extends Vue {
     ) {
       this.apps = this.adminApps;
     }
+  }
+
+  alertNotification(isSuccess, message) {
+    this.$swal({
+      toast: true,
+      position: "bottom-end",
+      showConfirmButton: false,
+      timer: 3000,
+      icon: isSuccess ? "success" : "error",
+      text: message,
+    });
   }
 }
 

@@ -205,7 +205,13 @@ class CreationComponent extends Vue {
 
   mounted() {
     if (this.edit) {
+      const icon = this.icons.find(
+        (el) => `mdi-${el.name}` === this.appSelected.icon
+      );
+
       this.appInfo = Object.assign({}, this.appSelected);
+      console.log(icon);
+      this.appInfo.icon = icon || this.appSelected.icon;
     }
   }
 

@@ -100,14 +100,11 @@ class TableComponent extends Vue {
       isSuccess = false;
     }
 
-    this.$swal({
-      toast: true,
-      position: "bottom-end",
-      showConfirmButton: false,
-      timer: 3000,
-      icon: isSuccess ? "success" : "error",
-      text: isSuccess ? "fichier ajouté" : "oups, une erreur s'est produite !",
-    });
+    const message = isSuccess
+      ? "fichier ajouté"
+      : "oups, une erreur s'est produite !";
+
+    this.alertNotification(isSuccess, message);
   }
 
   selectCategory(item: { name: string; id: string }) {
@@ -142,17 +139,11 @@ class TableComponent extends Vue {
       if (!isConfirmed) return;
 
       const isSuccess = await this.removeCallback(items);
+      const message = isSuccess
+        ? "api(s) supprimée(s)"
+        : "oups, une erreur s'est produite !";
 
-      this.$swal({
-        toast: true,
-        position: "bottom-end",
-        showConfirmButton: false,
-        timer: 3000,
-        icon: isSuccess ? "success" : "error",
-        text: isSuccess
-          ? "api(s) supprimée(s)"
-          : "oups, une erreur s'est produite !",
-      });
+      this.alertNotification(isSuccess, message);
     });
   }
 
@@ -178,6 +169,17 @@ class TableComponent extends Vue {
     }
 
     return isSuccess;
+  }
+
+  alertNotification(isSuccess, message) {
+    this.$swal({
+      toast: true,
+      position: "bottom-end",
+      showConfirmButton: false,
+      timer: 3000,
+      icon: isSuccess ? "success" : "error",
+      text: message,
+    });
   }
 
   @Watch("bosApis")

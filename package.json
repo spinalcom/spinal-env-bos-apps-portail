@@ -1,6 +1,6 @@
 {
   "name": "spinal-env-bos-apps-portail",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "scripts": {
     "watch": "rm -rf dist && parcel watch index.html micro-apps/*/index.html --dist-dir dist/",
@@ -11,9 +11,11 @@
   "dependencies": {
     "@mdi/font": "^7.0.96",
     "dateformat": "^5.0.3",
+    "http-server": "^14.1.1",
     "moment": "^2.29.4",
     "spinal-components": "git+https://github.com/spinalcom/spinal-components.git",
     "spinal-viewer-event-manager": "git+https://github.com/spinalcom/spinal-viewer-event-manager.git",
+    "vue-multiselect": "^2.1.7",
     "vue-sweetalert2": "^5.0.5",
     "vuex-class": "^0.3.2"
   },
