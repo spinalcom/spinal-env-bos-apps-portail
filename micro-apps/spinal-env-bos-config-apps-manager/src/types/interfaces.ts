@@ -25,7 +25,7 @@
 export interface IApp {
     id?: string;
     name: string;
-    icon: string;
+    icon: { id: string; name: string } | string;
     description: string;
     tags: string[];
     categoryName: string;
@@ -34,6 +34,7 @@ export interface IApp {
     packageName?: string;
     isExternalApp?: boolean;
     link?: string;
+    documentationLink: string;
 }
 
 

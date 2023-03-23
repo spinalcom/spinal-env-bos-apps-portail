@@ -59,15 +59,27 @@ with this file. If not, see
 
         <div class="actions">
           <div>
-            <v-btn class="favorisBtn"
-                   title="add to favorite"
+            <!-- class="favorisBtn" -->
+            <v-btn icon
+                   class="favorisBtn"
                    outlined
-                   small
+                   title="ajouter aux favoris"
                    :class="{'isFavorite' : isFavorite}"
                    @click.stop="addAppToFavoris">
               <v-icon>mdi-star</v-icon>
               <!-- <v-icon>mdi-cards-diamond</v-icon> -->
             </v-btn>
+
+            <v-btn class="favorisBtn"
+                   icon
+                   outlined
+                   title="Aller à la documentation"
+                   v-if="data.documentationLink"
+                   @click.stop="goToDocumentation">
+              <!-- <v-icon>mdi-notebook-outline</v-icon> -->
+              <v-icon>mdi-information-variant</v-icon>
+            </v-btn>
+
             <v-btn icon
                    @click.stop="show = !show">
               <v-icon>{{ show ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
@@ -116,6 +128,10 @@ export default {
         item: this.data,
         isFavorite: this.isFavorite,
       });
+    },
+    goToDocumentation() {
+      if (this.data.documentationLink)
+        return window.open(this.data.documentationLink, "_blank");
     },
   },
   computed: {

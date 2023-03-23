@@ -108,6 +108,13 @@ with this file. If not, see
                           outlined></v-text-field>
           </v-col>
 
+          <v-col cols="12">
+            <v-text-field v-model="appInfo.documentationLink"
+                          label="Lien vers la documentation de l'application"
+                          :hide-details="true"
+                          outlined></v-text-field>
+          </v-col>
+
         </v-row>
 
         <v-row>
@@ -177,7 +184,7 @@ with this file. If not, see
 </template>
   
   <script lang="ts">
-import { IApp } from "@/types/interfaces";
+import { IApp } from "../types/interfaces";
 import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import icons from "../store/icons";
 
@@ -201,6 +208,7 @@ class CreationComponent extends Vue {
     packageName: "",
     isExternalApp: false,
     link: "",
+    documentationLink: "",
   };
 
   mounted() {
@@ -210,8 +218,8 @@ class CreationComponent extends Vue {
       );
 
       this.appInfo = Object.assign({}, this.appSelected);
-      console.log(icon);
       this.appInfo.icon = icon || this.appSelected.icon;
+      if (!this.appInfo.documentationLink) this.appInfo.documentationLink = "";
     }
   }
 
