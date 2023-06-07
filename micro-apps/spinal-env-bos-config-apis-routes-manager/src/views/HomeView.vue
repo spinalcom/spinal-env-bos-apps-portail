@@ -23,33 +23,32 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="_container"
-               fluid>
+  <v-container class="_container" fluid>
     <!-- <div class="header"> 
        <Select @selected="selectCategory" /> 
      </div> -->
 
-    <v-card class="myCard"
-            elevation="4">
-      <Home :headers="headers"
-            :apis="apis"
-            @upload="uploadFile"
-            @delete="deleteItems" />
+    <v-card class="myCard" elevation="4">
+      <Home
+        :headers="headers"
+        :apis="apis"
+        @upload="uploadFile"
+        @delete="deleteItems"
+      />
     </v-card>
   </v-container>
 </template>
 
-
 <script lang="ts">
-import Vue from "vue";
-import { Component, Watch } from "vue-property-decorator";
-import Select from "../components/select.vue";
-import Home from "../components/Home.vue";
-import categories from "../store/categories";
-import { Action, Getter, State } from "vuex-class";
-import { IApiRoute } from "../interfaces";
+import Vue from 'vue';
+import {Component, Watch} from 'vue-property-decorator';
+import Select from '../components/select.vue';
+import Home from '../components/Home.vue';
+import categories from '../store/categories';
+import {Action, Getter, State} from 'vuex-class';
+import {IApiRoute} from '../interfaces';
 
-type updateFunc = (param: { id: string; data: IApiRoute }) => Promise<void>;
+type updateFunc = (param: {id: string; data: IApiRoute}) => Promise<void>;
 
 @Component({
   components: {
@@ -69,9 +68,9 @@ class TableComponent extends Vue {
   @Action uploadBosSwaggerFile!: (data: FormData) => Promise<void>;
 
   headers = [
-    { text: "Nom", value: "name" },
-    { text: "Scope", value: "scope" },
-    { text: "Methodes", value: "method" },
+    {text: 'Nom', value: 'name'},
+    {text: 'Scope', value: 'scope'},
+    {text: 'Méthodes', value: 'method'},
   ];
 
   apis: any[] = [];
@@ -101,13 +100,13 @@ class TableComponent extends Vue {
     }
 
     const message = isSuccess
-      ? "fichier ajouté"
+      ? 'fichier ajouté'
       : "oups, une erreur s'est produite !";
 
     this.alertNotification(isSuccess, message);
   }
 
-  selectCategory(item: { name: string; id: string }) {
+  selectCategory(item: {name: string; id: string}) {
     this.categorySelected = item;
     switch (item.id) {
       case categories.building.id:
@@ -125,22 +124,22 @@ class TableComponent extends Vue {
 
   async deleteItems(items: IApiRoute[]) {
     return this.$swal({
-      title: "Supprimer",
+      title: 'Supprimer',
       text: `Êtes-vous sûre de vouloir supprimer ${items.length} routes ?`,
-      type: "warning",
+      type: 'warning',
       showCancelButton: true,
-      confirmButtonClass: "successBtn",
-      cancelButtonClass: "errorBtn",
-      confirmButtonText: "Oui",
-      cancelButtonText: "Annuler",
+      confirmButtonClass: 'successBtn',
+      cancelButtonClass: 'errorBtn',
+      confirmButtonText: 'Oui',
+      cancelButtonText: 'Annuler',
       buttonsStyling: false,
-      icon: "warning",
-    }).then(async ({ isConfirmed }) => {
+      icon: 'warning',
+    }).then(async ({isConfirmed}) => {
       if (!isConfirmed) return;
 
       const isSuccess = await this.removeCallback(items);
       const message = isSuccess
-        ? "api(s) supprimée(s)"
+        ? 'api(s) supprimée(s)'
         : "oups, une erreur s'est produite !";
 
       this.alertNotification(isSuccess, message);
@@ -174,15 +173,15 @@ class TableComponent extends Vue {
   alertNotification(isSuccess, message) {
     this.$swal({
       toast: true,
-      position: "bottom-end",
+      position: 'bottom-end',
       showConfirmButton: false,
       timer: 3000,
-      icon: isSuccess ? "success" : "error",
+      icon: isSuccess ? 'success' : 'error',
       text: message,
     });
   }
 
-  @Watch("bosApis")
+  @Watch('bosApis')
   watchBosApis() {
     if (
       this.categorySelected &&

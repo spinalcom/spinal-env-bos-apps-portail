@@ -23,9 +23,8 @@ with this file. If not, see
 -->
 
 <template>
-  <form class="creation_container"
-        @submit.prevent="save">
-    <div class="_title">Ajouter un jumeau numerique</div>
+  <form class="creation_container" @submit.prevent="save">
+    <div class="_title">Ajouter un jumeau numérique</div>
     <div class="creation_content">
       <!-- <v-alert dense
                outlined
@@ -35,43 +34,46 @@ with this file. If not, see
       </v-alert> -->
 
       <div class="textField">
-        <v-text-field label="Nom du jumeau numerique"
-                      outlined
-                      required
-                      hide-details="true"
-                      @input="resetError"
-                      v-model="data.name"></v-text-field>
+        <v-text-field
+          label="Nom du jumeau numérique"
+          outlined
+          required
+          hide-details="true"
+          @input="resetError"
+          v-model="data.name"
+        ></v-text-field>
       </div>
 
       <div class="textField">
-        <v-text-field label="chemin du dossier du jumeau numerique"
-                      outlined
-                      placeholder="/__users__/username/dossier"
-                      required
-                      hide-details="true"
-                      @input="resetError"
-                      v-model="data.url"></v-text-field>
+        <v-text-field
+          label="chemin du dossier du jumeau numérique"
+          outlined
+          placeholder="/__users__/username/dossier"
+          required
+          hide-details="true"
+          @input="resetError"
+          v-model="data.url"
+        ></v-text-field>
       </div>
 
       <div>
-        <v-checkbox v-model="data.set_as_actual_digitaltwin"
-                    label="Utiliser ce jumeau numerique par defaut">
+        <v-checkbox
+          v-model="data.set_as_actual_digitaltwin"
+          label="Utiliser ce jumeau numérique par defaut"
+        >
         </v-checkbox>
       </div>
     </div>
     <div class="actions">
-      <v-btn depressed
-             large
-             color="error"
-             @click="cancel">
-        Annuler
-      </v-btn>
+      <v-btn depressed large color="error" @click="cancel"> Annuler </v-btn>
 
-      <v-btn depressed
-             large
-             color="#14202c"
-             style="color: #fff; margin-left: 10px;"
-             type="submit">
+      <v-btn
+        depressed
+        large
+        color="#14202c"
+        style="color: #fff; margin-left: 10px"
+        type="submit"
+      >
         Enregistrer
       </v-btn>
     </div>
@@ -81,27 +83,27 @@ with this file. If not, see
 <script>
 export default {
   props: {
-    error: { type: Boolean, default: false },
+    error: {type: Boolean, default: false},
   },
   data() {
     return {
       data: {
-        name: "",
-        url: "",
+        name: '',
+        url: '',
         set_as_actual_digitaltwin: true,
       },
     };
   },
   methods: {
     cancel() {
-      this.$emit("cancel");
+      this.$emit('cancel');
     },
     save() {
-      this.$emit("create", this.data);
+      this.$emit('create', this.data);
     },
 
     resetError() {
-      this.$emit("reset");
+      this.$emit('reset');
     },
   },
 };

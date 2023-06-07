@@ -23,43 +23,47 @@ with this file. If not, see
 -->
 
 <template>
-  <v-card elevation="4"
-          class="digitaltwin_container">
+  <v-card elevation="4" class="digitaltwin_container">
+    <ActualDigitalTwinInfo
+      v-show="state === steps.info"
+      :digitalTwin="actualDigitalTwin"
+      @edit="goToEditPage"
+    />
 
-    <ActualDigitalTwinInfo v-show="state === steps.info"
-                           :digitalTwin="actualDigitalTwin"
-                           @edit="goToEditPage" />
+    <EditActualDigitalTwinInfo
+      v-show="state === steps.edit"
+      :digitaltwins="digitalTwins"
+      :actualDigitalTwin="actualDigitalTwin"
+      @create="goToCreationPage"
+      @change="updateDigitalTwin"
+      @delete="_deleteDigitalTwin"
+      @cancel="cancelEdit"
+    />
 
-    <EditActualDigitalTwinInfo v-show="state === steps.edit"
-                               :digitaltwins="digitalTwins"
-                               :actualDigitalTwin="actualDigitalTwin"
-                               @create="goToCreationPage"
-                               @change="updateDigitalTwin"
-                               @delete="_deleteDigitalTwin"
-                               @cancel="cancelEdit" />
+    <CreateDigitalTwin
+      v-show="state === steps.creation"
+      @cancel="cancelCreation"
+      @create="createDigitalTwin"
+      :error="errorCreation"
+      @reset="errorCreation = false"
+    />
 
-    <CreateDigitalTwin v-show="state === steps.creation"
-                       @cancel="cancelCreation"
-                       @create="createDigitalTwin"
-                       :error="errorCreation"
-                       @reset="errorCreation = false" />
-
-    <div class="loading"
-         v-show="state === steps.loading">
-      <v-progress-circular :size="70"
-                           color="primary"
-                           indeterminate></v-progress-circular>
+    <div class="loading" v-show="state === steps.loading">
+      <v-progress-circular
+        :size="70"
+        color="primary"
+        indeterminate
+      ></v-progress-circular>
     </div>
-
   </v-card>
 </template>
 
 <script>
-import ActualDigitalTwinInfo from "./info.vue";
-import EditActualDigitalTwinInfo from "./edit.vue";
-import CreateDigitalTwin from "./creation.vue";
-import { mapActions } from "vuex";
-import { SET_ACTUAL_DIGITALTWIN } from "../store/mutations";
+import ActualDigitalTwinInfo from './info.vue';
+import EditActualDigitalTwinInfo from './edit.vue';
+import CreateDigitalTwin from './creation.vue';
+import {mapActions} from 'vuex';
+import {SET_ACTUAL_DIGITALTWIN} from '../store/mutations';
 
 export default {
   props: {
@@ -86,9 +90,9 @@ export default {
   mounted() {},
   methods: {
     ...mapActions([
-      "addDigitalTwin",
-      "setAsActualDigitalTwin",
-      "deleteDigitalTwin",
+      'addDigitalTwin',
+      'setAsActualDigitalTwin',
+      'deleteDigitalTwin',
     ]),
 
     goToEditPage() {
@@ -112,7 +116,7 @@ export default {
         this.state = this.steps.loading;
         await this.deleteDigitalTwin(id);
         this.state = this.steps.edit;
-        this.alertNotification(true, "Jumeau numerique supprimé avec succès");
+        this.alertNotification(true, 'Jumeau numérique supprimé avec succès');
       } catch (error) {
         this.alertNotification(
           false,
@@ -127,11 +131,11 @@ export default {
 
       this.setAsActualDigitalTwin(digitalTwin.id)
         .then((result) => {
-          console.log("result", result);
+          console.log('result', result);
 
           this.state = this.steps.info;
           this.$store.commit(SET_ACTUAL_DIGITALTWIN, digitalTwin);
-          this.alertNotification(true, "Jumeau numerique modifié avec success");
+          this.alertNotification(true, 'Jumeau numérique modifié avec success');
         })
         .catch((err) => {
           this.alertNotification(false, "oups ! une erreur s'est produite");
@@ -145,7 +149,7 @@ export default {
         .then((digital) => {
           // this.$store.commit(SET_ACTUAL_DIGITALTWIN, digital);
           this.state = this.steps.edit;
-          this.alertNotification(true, "Jumeau numerique ajouté avec success");
+          this.alertNotification(true, 'Jumeau numérique ajouté avec success');
         })
         .catch((err) => {
           console.error(err);
@@ -161,10 +165,10 @@ export default {
     alertNotification(isSuccess, message) {
       this.$swal({
         toast: true,
-        position: "bottom-end",
+        position: 'bottom-end',
         showConfirmButton: false,
         timer: 3000,
-        icon: isSuccess ? "success" : "error",
+        icon: isSuccess ? 'success' : 'error',
         text: message,
       });
     },

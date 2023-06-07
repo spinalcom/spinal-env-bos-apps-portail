@@ -32,50 +32,50 @@ with this file. If not, see
 
     </div> -->
 
-    <v-card class="cardContent"
-            elevation="4">
-
-      <v-tabs class="tabsHeader"
-              v-model="tab"
-              background-color="transparent"
-              color="primary"
-              grow>
-
-        <v-tab v-for="item in tabItems"
-               :key="item">
+    <v-card class="cardContent" elevation="4">
+      <v-tabs
+        class="tabsHeader"
+        v-model="tab"
+        background-color="transparent"
+        color="primary"
+        grow
+      >
+        <v-tab v-for="item in tabItems" :key="item">
           {{ item }}
         </v-tab>
       </v-tabs>
 
-      <v-tabs-items v-model="tab"
-                    class="tabsItems">
+      <v-tabs-items v-model="tab" class="tabsItems">
         <v-tab-item>
-          <app-list-component :apps="buildingApps"
-                              @create="createApp"
-                              @upload="uploadApp"
-                              @edit="editApp"
-                              @delete="deleteApp" />
+          <app-list-component
+            :apps="buildingApps"
+            @create="createApp"
+            @upload="uploadApp"
+            @edit="editApp"
+            @delete="deleteApp"
+          />
         </v-tab-item>
 
         <v-tab-item>
-          <app-list-component :apps="adminApps"
-                              @create="createApp"
-                              @upload="uploadApp"
-                              @edit="editApp"
-                              @delete="deleteApp" />
+          <app-list-component
+            :apps="adminApps"
+            @create="createApp"
+            @upload="uploadApp"
+            @edit="editApp"
+            @delete="deleteApp"
+          />
         </v-tab-item>
       </v-tabs-items>
-
     </v-card>
   </div>
 </template>
-  
-  <script lang="ts">
-import { IApp } from "../types/interfaces";
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
-import AppListComponent from "../components/appList.vue";
-import Select from "../components/select.vue";
-import categories from "../store/data";
+
+<script lang="ts">
+import {IApp} from '../types/interfaces';
+import {Component, Prop, Vue, Watch} from 'vue-property-decorator';
+import AppListComponent from '../components/appList.vue';
+import Select from '../components/select.vue';
+import categories from '../store/data';
 
 @Component({
   components: {
@@ -89,37 +89,37 @@ class HomeView extends Vue {
 
   categories: any = categories;
 
-  categorySelected: { name: string; id: string } = categories.bos;
+  categorySelected: {name: string; id: string} = categories.bos;
 
   tabsObject = Object.freeze({
-    Batiments: "Applications de Batiment",
+    Batiments: 'Applications de Bâtiment',
     Adminstration: "Applications d'adminstration",
   });
 
   tabItems: string[] = Object.values(this.tabsObject);
   tab = this.tabsObject.Batiments;
 
-  selectCategory(item: { name: string; id: string }) {
-    this.$emit("select", item);
+  selectCategory(item: {name: string; id: string}) {
+    this.$emit('select', item);
   }
 
   createApp() {
-    this.$emit("create", { categorySelected: this.categorySelected });
+    this.$emit('create', {categorySelected: this.categorySelected});
   }
 
   uploadApp() {
-    this.$emit("upload", { categorySelected: this.categorySelected });
+    this.$emit('upload', {categorySelected: this.categorySelected});
   }
 
   editApp(app: IApp) {
-    this.$emit("edit", { app, categorySelected: this.categorySelected });
+    this.$emit('edit', {app, categorySelected: this.categorySelected});
   }
 
   deleteApp(app: IApp) {
-    this.$emit("delete", { app, categorySelected: this.categorySelected });
+    this.$emit('delete', {app, categorySelected: this.categorySelected});
   }
 
-  @Watch("tab")
+  @Watch('tab')
   watchTab() {
     switch (this.tabItems[this.tab]) {
       case this.tabsObject.Batiments:
@@ -135,9 +135,9 @@ class HomeView extends Vue {
 
 export default HomeView;
 </script>
-  
-  <!-- Add "scoped" attribute to limit CSS to this component only -->
-  <style lang="scss">
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style lang="scss">
 $header-height: 60px;
 $header-margin: 10px;
 $card-background: #f8f9f9;
@@ -181,4 +181,3 @@ $card-background: #f8f9f9;
   }
 }
 </style>
-  

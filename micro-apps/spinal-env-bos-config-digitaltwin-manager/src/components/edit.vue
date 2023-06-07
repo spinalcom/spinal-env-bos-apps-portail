@@ -25,63 +25,80 @@ with this file. If not, see
 <template>
   <div class="setDigitalTwin">
     <div class="header">
-      <v-btn depressed
-             large
-             color="#14202c"
-             style="color: #fff"
-             @click="create">
-        Ajouter un nouveau jumeau numerique
+      <v-btn
+        depressed
+        large
+        color="#14202c"
+        style="color: #fff"
+        @click="create"
+      >
+        Ajouter un nouveau jumeau numérique
       </v-btn>
     </div>
 
     <div class="content">
-
-      <div class="_title">Selectionner le jumeau numerique par defaut et
-        enregistrer</div>
+      <div class="_title"
+        >Selectionner le jumeau numérique par defaut et enregistrer</div
+      >
       <div class="search">
-        <v-text-field v-model="searchText"
-                      label="Rechercher"
-                      outlined
-                      dense
-                      filled
-                      rounded
-                      append-icon="mdi-magnify"
-                      required></v-text-field>
+        <v-text-field
+          v-model="searchText"
+          label="Rechercher"
+          outlined
+          dense
+          filled
+          rounded
+          append-icon="mdi-magnify"
+          required
+        ></v-text-field>
       </div>
       <div class="listContent">
-        <v-list style="background-color: transparent !important;"
-                v-if="digitaltwins.length > 0">
-          <v-list-item-group v-model="selected"
-                             color="green">
-            <v-list-item two-line
-                         v-for="digitaltwin in searched"
-                         :key="digitaltwin.id"
-                         :value="digitaltwin">
+        <v-list
+          style="background-color: transparent !important"
+          v-if="digitaltwins.length > 0"
+        >
+          <v-list-item-group v-model="selected" color="green">
+            <v-list-item
+              two-line
+              v-for="digitaltwin in searched"
+              :key="digitaltwin.id"
+              :value="digitaltwin"
+            >
               <v-list-item-content>
-                <v-list-item-title>{{digitaltwin.name}}</v-list-item-title>
-                <v-list-item-subtitle>{{ digitaltwin.url }}</v-list-item-subtitle>
+                <v-list-item-title>{{ digitaltwin.name }}</v-list-item-title>
+                <v-list-item-subtitle>{{
+                  digitaltwin.url
+                }}</v-list-item-subtitle>
               </v-list-item-content>
 
               <v-list-item-action>
-                <v-btn v-if="actualDigitalTwin && actualDigitalTwin.id === digitaltwin.id"
-                       icon>
+                <v-btn
+                  v-if="
+                    actualDigitalTwin && actualDigitalTwin.id === digitaltwin.id
+                  "
+                  icon
+                >
                   <v-icon color="green">mdi-check</v-icon>
                 </v-btn>
 
-                <v-btn v-if="!actualDigitalTwin || actualDigitalTwin.id !== digitaltwin.id"
-                       icon
-                       @click.stop="deleteDigitalTwin(digitaltwin.id)">
+                <v-btn
+                  v-if="
+                    !actualDigitalTwin ||
+                    actualDigitalTwin.id !== digitaltwin.id
+                  "
+                  icon
+                  @click.stop="deleteDigitalTwin(digitaltwin.id)"
+                >
                   <v-icon color="error">mdi-delete</v-icon>
                 </v-btn>
               </v-list-item-action>
             </v-list-item>
           </v-list-item-group>
-
         </v-list>
       </div>
 
       <!-- <multiselect v-model="selected"
-                     placeholder="Selectionner le jumeau numerique par defaut"
+                     placeholder="Selectionner le jumeau numérique par defaut"
                      track-by="id"
                      label="name"
                      :options="digitaltwins"
@@ -95,22 +112,18 @@ with this file. If not, see
             </div>
           </template>
         </multiselect> -->
-
     </div>
 
     <div class="actions">
-      <v-btn depressed
-             large
-             color="error"
-             @click="cancel">
-        Annuler
-      </v-btn>
+      <v-btn depressed large color="error" @click="cancel"> Annuler </v-btn>
 
-      <v-btn depressed
-             large
-             color="#14202c"
-             style="color: #fff; margin-left: 10px;"
-             @click="save">
+      <v-btn
+        depressed
+        large
+        color="#14202c"
+        style="color: #fff; margin-left: 10px"
+        @click="save"
+      >
         Enregistrer
       </v-btn>
     </div>
@@ -118,7 +131,7 @@ with this file. If not, see
 </template>
 
 <script>
-import Multiselect from "vue-multiselect";
+import Multiselect from 'vue-multiselect';
 
 export default {
   props: {
@@ -130,7 +143,7 @@ export default {
   },
   data() {
     return {
-      searchText: "",
+      searchText: '',
       selected: this.actualDigitalTwin,
       searched: [],
     };
@@ -140,33 +153,33 @@ export default {
   },
   methods: {
     create() {
-      this.$emit("create");
+      this.$emit('create');
     },
 
     save() {
-      if (this.selected) this.$emit("change", this.selected);
+      if (this.selected) this.$emit('change', this.selected);
     },
 
     cancel() {
-      this.$emit("cancel");
+      this.$emit('cancel');
     },
 
     deleteDigitalTwin(id) {
       return this.$swal({
-        title: "Supprimer",
-        text: `Êtes-vous sûre de vouloir supprimer cet jumeau numerique ?`,
-        type: "warning",
+        title: 'Supprimer',
+        text: `Êtes-vous sûre de vouloir supprimer cet jumeau numérique ?`,
+        type: 'warning',
         showCancelButton: true,
-        confirmButtonClass: "successBtn",
-        cancelButtonClass: "errorBtn",
-        confirmButtonText: "Oui",
-        cancelButtonText: "Annuler",
+        confirmButtonClass: 'successBtn',
+        cancelButtonClass: 'errorBtn',
+        confirmButtonText: 'Oui',
+        cancelButtonText: 'Annuler',
         buttonsStyling: false,
-        icon: "warning",
-      }).then(async ({ isConfirmed }) => {
+        icon: 'warning',
+      }).then(async ({isConfirmed}) => {
         if (!isConfirmed) return;
 
-        this.$emit("delete", id);
+        this.$emit('delete', id);
       });
     },
     setSearchedItems() {

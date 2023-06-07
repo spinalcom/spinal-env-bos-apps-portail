@@ -22,49 +22,41 @@ with this file. If not, see
 <http://resources.spinalcom.com/licenses.pdf>.
 -->
 
-
-
 <template>
-
   <div class="digital_Info">
     <div class="description">
       <div class="digitaltwin_div">
         <div class="icon">
-          <v-icon size="100px"
-                  color="success">mdi-checkbox-marked-circle-outline</v-icon>
+          <v-icon size="100px" color="success"
+            >mdi-checkbox-marked-circle-outline</v-icon
+          >
 
-          <div class="message">
-            Jumeau numerique utilisé
-          </div>
+          <div class="message"> Jumeau numérique utilisé </div>
         </div>
 
         <div class="item-list">
+          <ListItem
+            :title="'Nom du jumeau numérique'"
+            :subTitle="digitalTwin.name"
+          />
 
-          <ListItem :title="'Nom du jumeau numerique'"
-                    :subTitle="digitalTwin.name" />
-
-          <ListItem :title="'URL du jumeau numerique'"
-                    :subTitle="digitalTwin.url" />
-
+          <ListItem
+            :title="'URL du jumeau numérique'"
+            :subTitle="digitalTwin.url"
+          />
         </div>
       </div>
-
     </div>
     <div class="actions">
-      <v-btn depressed
-             large
-             color="#14202c"
-             style="color: #fff"
-             @click="edit">
+      <v-btn depressed large color="#14202c" style="color: #fff" @click="edit">
         Changer
       </v-btn>
     </div>
   </div>
-
 </template>
 
 <script>
-import ListItem from "./listItem.vue";
+import ListItem from './listItem.vue';
 
 export default {
   components: {
@@ -75,7 +67,7 @@ export default {
   },
   methods: {
     edit() {
-      this.$emit("edit");
+      this.$emit('edit');
     },
   },
 };

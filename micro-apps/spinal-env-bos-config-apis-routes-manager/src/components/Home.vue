@@ -23,8 +23,7 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="container"
-               fluid>
+  <v-container class="container" fluid>
     <!-- <div class="header">
       <v-card class="btnCard">
 
@@ -35,50 +34,48 @@ with this file. If not, see
     <div class="tableCard">
       <div class="toolbar">
         <div class="left">
-          <div class="_title">liste des apis </div>
+          <div class="_title">liste des api </div>
           <div class="searchDiv">
-            <v-text-field solo
-                          prepend-inner-icon="mdi-magnify"
-                          flat
-                          label="rechercher"
-                          hide-details="auto"
-                          dense
-                          v-model.trim="searchQuery"></v-text-field>
+            <v-text-field
+              solo
+              prepend-inner-icon="mdi-magnify"
+              flat
+              label="rechercher"
+              hide-details="auto"
+              dense
+              v-model.trim="searchQuery"
+            ></v-text-field>
           </div>
         </div>
 
         <div class="right">
-          <v-btn class="button"
-                 @click="uploadApiFile"
-                 color="#14202c">
-            <v-icon class="btnIcon">
-              mdi-file-upload
-            </v-icon>
+          <v-btn class="button" @click="uploadApiFile" color="#14202c">
+            <v-icon class="btnIcon"> mdi-file-upload </v-icon>
 
-            Upload Swagger File
+            Importer un fichier swagger
           </v-btn>
         </div>
-
       </div>
       <v-divider></v-divider>
 
       <div class="table-container">
-        <table-component :items="searchedData"
-                         :headers="headers"
-                         @delete="deleteItems"></table-component>
+        <table-component
+          :items="searchedData"
+          :headers="headers"
+          @delete="deleteItems"
+        ></table-component>
       </div>
-
     </div>
   </v-container>
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import { Component, Prop, Watch } from "vue-property-decorator";
-import TableComponent from "./tableComponent.vue";
-import { Getter, Action } from "vuex-class";
-import Fuse from "fuse.js";
-import { IApiRoute } from "@/interfaces";
+import Vue from 'vue';
+import {Component, Prop, Watch} from 'vue-property-decorator';
+import TableComponent from './tableComponent.vue';
+import {Getter, Action} from 'vuex-class';
+import Fuse from 'fuse.js';
+import {IApiRoute} from '@/interfaces';
 
 @Component({
   components: {
@@ -86,12 +83,12 @@ import { IApiRoute } from "@/interfaces";
   },
 })
 class HomeComponent extends Vue {
-  @Prop() headers!: { text: string; value: string }[];
+  @Prop() headers!: {text: string; value: string}[];
   @Prop() apis!: any;
 
   searchedData: any[] = [];
   fuseSearch: any;
-  searchQuery: string = "";
+  searchQuery: string = '';
   debounce: any = undefined;
 
   async mounted() {
@@ -104,30 +101,30 @@ class HomeComponent extends Vue {
 
   uploadApiFile() {
     const maxSize = 25000000;
-    const input = document.createElement("input");
-    input.type = "file";
+    const input = document.createElement('input');
+    input.type = 'file';
     input.multiple = false;
     input.click();
     input.addEventListener(
-      "change",
+      'change',
       (event: any) => {
         const [file] = event.target.files;
 
         if (file.size >= maxSize) {
           alert(
-            "The selected file is too large. The maximum size must not exceed 25 MB"
+            'The selected file is too large. The maximum size must not exceed 25 MB'
           );
           return;
         }
 
         if (!/.*\.json$/.test(file.name)) {
-          alert("The selected file must be a json file");
+          alert('The selected file must be a json file');
           return;
         }
 
         var formData = new FormData();
-        formData.append("file", file);
-        this.$emit("upload", formData);
+        formData.append('file', file);
+        this.$emit('upload', formData);
 
         // const reader = new FileReader();
 
@@ -144,10 +141,10 @@ class HomeComponent extends Vue {
   }
 
   deleteItems(items: IApiRoute[]) {
-    this.$emit("delete", items);
+    this.$emit('delete', items);
   }
 
-  @Watch("searchQuery")
+  @Watch('searchQuery')
   watchSearchText(value: string) {
     clearTimeout(this.debounce);
     this.debounce = setTimeout(() => {
@@ -160,7 +157,7 @@ class HomeComponent extends Vue {
     }, 400);
   }
 
-  @Watch("apis")
+  @Watch('apis')
   watchApis() {
     this.searchedData = this.filterApisData(this.searchQuery);
   }
