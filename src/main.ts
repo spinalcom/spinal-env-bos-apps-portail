@@ -23,19 +23,27 @@
  */
 import 'core-js/stable';
 import Vue from 'vue';
-import { vuetifyInit, vuetify } from './plugins/vuetify';
-import { routerInit, router } from './router';
+import {vuetifyInit, vuetify} from './plugins/vuetify';
+import {routerInit, router} from './router';
 import store from './store';
-import { initAxios } from './requests';
+import {initAxios} from './requests';
 import VueCookie from 'vue-cookie';
 import App from './App.vue';
 
-import "./events/iframeEventBus";
+import './events/iframeEventBus';
 import '../assets/css/basic/reset.css';
 import '../assets/css/basic/main.less';
 import '../assets/css/component/navPickerApp.css';
 import 'material-design-icons-iconfont';
+import {listenMessage} from './utils';
 
+// window.addEventListener(
+//   'load',
+//   () => {
+listenMessage();
+// },
+// false
+// );
 
 vuetifyInit(Vue);
 routerInit(Vue);
@@ -44,7 +52,6 @@ initAxios();
 
 Vue.config.productionTip = false;
 Vue.use(VueCookie);
-
 
 new Vue({
   router,
