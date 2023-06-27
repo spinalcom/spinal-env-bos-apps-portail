@@ -25,6 +25,7 @@
 export function saveToLocalStorage(data: any) {
   const profileId =
     data.profile.userProfileBosConfigId || data.profile.profileId;
+
   const token = data.token;
   const user = btoa(JSON.stringify(data.userInfo));
 
@@ -37,11 +38,31 @@ export function clearLocalStorage() {
   localStorage.clear();
 }
 
-export function listenMessage() {
-  window.addEventListener('message', (event) => {
-    const data = event.data;
-    if (data?.from?.toLowerCase() !== 'pam') return;
-    localStorage.setItem('token', data.token);
-    window.location.reload();
-  });
+export function checkIfItComeFromPam(to) {
+  const decoded = atob(<string>to.query.data);
+  let params = decoded && JSON.parse(decoded);
+  if ((params.from = 'PAM')) {
+    let token = params.data.token;
+    let userInfo = params.data.userInfo;
+
+    return {token, userInfo};
+  }
+
+  return;
 }
+
+// export function listenMessage() {
+//   window.addEventListener('message', async (event) => {
+//     const eventData = event.data;
+//     if (eventData?.from?.toLowerCase() !== 'pam') return;
+
+//     const {token, userInfo} = eventData.data;
+//     localStorage.setItem('token', token);
+//     const log = await isAuthenticate();
+
+//     if (!log) setTimeout(() => router.resolve({name: 'Error'}), 2000);
+
+//     console.log(log);
+//     // window.location.reload();
+//   });
+// }

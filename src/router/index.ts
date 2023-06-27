@@ -22,11 +22,15 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { isAuthenticate } from '../middleware/auth';
-import VueRouter, { RouteConfig } from 'vue-router';
+import {isAuthenticate} from '../middleware/auth';
+import {checkIfItComeFromPam} from '../utils';
+import VueRouter, {RouteConfig} from 'vue-router';
+
 // import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue';
+import ErrorView from '../views/Error.vue';
 import HomeLayout from '../layout/HomeLayout.vue';
+import {userInfo} from 'os';
 
 export function routerInit(vue: any) {
   vue.use(VueRouter);
@@ -42,6 +46,11 @@ const routes: Array<RouteConfig> = [
     path: '/login',
     name: 'Login',
     component: LoginView,
+  },
+  {
+    path: '/error',
+    name: 'Error',
+    component: ErrorView,
   },
   {
     path: '/app',
@@ -69,10 +78,24 @@ const router = new VueRouter({
 });
 
 router.beforeEach(async (to, from, next) => {
-  const auth = await isAuthenticate();
-  if (to.name === 'Login' && auth) return next({ name: 'Home' });
-  if (!auth && to.name !== 'Login') return next({ name: 'Login' });
+  if (to.name === 'Error') return next();
+
+  let token, userInfo;
+
+  if (to.name === 'Home' && to.query.data) {
+    const d = checkIfItComeFromPam(to);
+    token = d?.token;
+    userInfo = d?.userInfo;
+  }
+
+  let comeFromPam = token ? true : false;
+
+  const auth = await isAuthenticate(token, userInfo);
+
+  if (!auth && comeFromPam) return next({name: 'Error'});
+  if (to.name === 'Login' && auth) return next({name: 'Home'});
+  if (!auth && to.name !== 'Login') return next({name: 'Login'});
   return next();
 });
 
-export { router };
+export {router};

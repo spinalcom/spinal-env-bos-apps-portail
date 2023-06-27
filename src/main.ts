@@ -35,15 +35,6 @@ import '../assets/css/basic/reset.css';
 import '../assets/css/basic/main.less';
 import '../assets/css/component/navPickerApp.css';
 import 'material-design-icons-iconfont';
-import {listenMessage} from './utils';
-
-// window.addEventListener(
-//   'load',
-//   () => {
-listenMessage();
-// },
-// false
-// );
 
 vuetifyInit(Vue);
 routerInit(Vue);
