@@ -23,12 +23,12 @@
  */
 
 export function saveToLocalStorage(data: any) {
-  const profileId =
-    data.profile.userProfileBosConfigId || data.profile.profileId;
+
+  const profileId = data.profile.userProfileBosConfigId || data.profile.profileId;
 
   const token = data.token;
   const user = btoa(JSON.stringify(data.userInfo));
-
+  
   localStorage.setItem('profileId', profileId);
   localStorage.setItem('token', token);
   localStorage.setItem('user', user);

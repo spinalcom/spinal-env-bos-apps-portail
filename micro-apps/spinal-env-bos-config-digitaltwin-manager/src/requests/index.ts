@@ -22,18 +22,21 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import axios from "axios";
+// import axios from "axios";
 
-const endpoint = "/api/v1";
-const host = (process.env.SPINAL_API_URL || "").replace(`/\/$/`, el => "");
-const baseURL = host.match(new RegExp(endpoint)) ? host : host + endpoint;
+// const endpoint = "/api/v1";
+// const host = (process.env.SPINAL_API_URL || "").replace(`/\/$/`, el => "");
+// const baseURL = host.match(new RegExp(endpoint)) ? host : host + endpoint;
 
-const http = axios.create({ baseURL });
-http.interceptors.request.use((request: any) => {
-    const t = localStorage.getItem('token');
-    if (t) request.headers.common.Authorization = `Bearer ${t}`;
-    return request;
-});
+// const http = axios.create({ baseURL });
+// http.interceptors.request.use((request: any) => {
+//     const t = localStorage.getItem('token');
+//     if (t) request.headers.common.Authorization = `Bearer ${t}`;
+//     return request;
+// });
+
+import { SpinalAPI } from "~/common_data/requests/SpinalAPI";
+const baseURL = "/api/v1";
 
 
 export function addDigitalTwinRequest(data) {
@@ -42,39 +45,50 @@ export function addDigitalTwinRequest(data) {
         url: data.url
     }
     const query = data.set_as_actual_digitaltwin ? "?set_as_actual_digitaltwin=true" : "";
-
-    return http.post(`${baseURL}/add_digitaltwin${query}`, body).then((result) => {
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/add_digitaltwin${query}`);
+    return spinalAPI.post(url, body).then((result) => {
         return result.data;
     })
 }
 
 
 export function getAllDigitalTwinRequest() {
-    return http.get(`${baseURL}/get_all_digitaltwins`).then((result) => {
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/get_all_digitaltwins`);
+    return spinalAPI.get(url).then((result) => {
         return result.data;
     })
 }
 
 export function getActualDigitalTwinRequest() {
-    return http.get(`${baseURL}/get_actual_digitaltwin`).then((result) => {
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/get_actual_digitaltwin`);
+    return spinalAPI.get(url).then((result) => {
         return result.data;
     })
 }
 
 export function getDigitalTwinRequest(id) {
-    return http.get(`${baseURL}/get_digitaltwin/${id}`).then((result) => {
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/get_digitaltwin/${id}`);
+    return spinalAPI.get(url).then((result) => {
         return result.data;
     })
 }
 
 export function deleteDigitalTwinRequest(id) {
-    return http.delete(`${baseURL}/delete_digitaltwin/${id}`).then((result) => {
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/delete_digitaltwin/${id}`);
+    return spinalAPI.delete(url).then((result) => {
         return result.data;
     })
 }
 
 export function setAsActualDigitalTwinRequest(id) {
-    return http.put(`${baseURL}/set_as_actual_digitaltwin/${id}`).then((result) => {
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/set_as_actual_digitaltwin/${id}`);
+    return spinalAPI.put(url).then((result) => {
         return result.data;
     })
 }

@@ -21,12 +21,14 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
+
+import * as dotenv from 'dotenv';
 import 'core-js/stable';
 import Vue from 'vue';
 import {vuetifyInit, vuetify} from './plugins/vuetify';
 import {routerInit, router} from './router';
 import store from './store';
-import {initAxios} from './requests';
+// import {initAxios} from './requests';
 import VueCookie from 'vue-cookie';
 import App from './App.vue';
 
@@ -39,7 +41,7 @@ import 'material-design-icons-iconfont';
 vuetifyInit(Vue);
 routerInit(Vue);
 
-initAxios();
+// initAxios();
 
 Vue.config.productionTip = false;
 Vue.use(VueCookie);

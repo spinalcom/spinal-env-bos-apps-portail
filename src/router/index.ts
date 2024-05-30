@@ -71,7 +71,7 @@ const routes: Array<RouteConfig> = [
   },
 ];
 
-const router = new VueRouter({
+const router : any = new VueRouter({
   mode: 'history',
   // base: process.env.BASE_URL,
   routes,
@@ -97,5 +97,13 @@ router.beforeEach(async (to, from, next) => {
   if (!auth && to.name !== 'Login') return next({name: 'Login'});
   return next();
 });
+
+
+router.customReplace = function(path, query) {
+  this.replace({ path, query });
+};
+
+(window as any).router = router;
+(window as any).routerFunction = router;
 
 export {router};

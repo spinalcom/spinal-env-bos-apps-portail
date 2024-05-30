@@ -22,31 +22,42 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import axios from "axios";
+// import axios from "axios";
 
-const endpoint = "/api/v1";
-const host = (process.env.SPINAL_API_URL || "").replace(`/\/$/`, el => "");
-const baseURL = host.match(new RegExp(endpoint)) ? host : host + endpoint;
+// const endpoint = "/api/v1";
+// const host = (process.env.SPINAL_API_URL || "").replace(`/\/$/`, el => "");
+// const baseURL = host.match(new RegExp(endpoint)) ? host : host + endpoint;
 
-export const http = axios.create({ baseURL });
-http.interceptors.request.use((request: any) => {
-    const t = localStorage.getItem('token');
-    if (t) request.headers.common.Authorization = `Bearer ${t}`;
-    return request;
-});
+// export const http = axios.create({ baseURL });
+// http.interceptors.request.use((request: any) => {
+//     const t = localStorage.getItem('token');
+//     if (t) request.headers.common.Authorization = `Bearer ${t}`;
+//     return request;
+// });
+
+import { SpinalAPI } from "~/common_data/requests/SpinalAPI";
+const baseURL = "/api/v1";
 
 export function getRegisteredAuthPlatformRequest() {
-    return http.get("/get_bos_to_auth_credential");
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/get_bos_to_auth_credential`);
+    return spinalAPI.get(url);
 }
 
 export function registerAuthPlatformRequest(data: any) {
-    return http.post("/register_admin", data);
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/register_admin`);
+    return spinalAPI.post(url, data);
 }
 
 export function updateAuthPlatformRequest() {
-    return http.put("/update_data");
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/update_data`);
+    return spinalAPI.put(url);
 }
 
 export function deleteAuthPlatformRequest() {
-    return http.delete("/delete_admin");
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/delete_admin`);
+    return spinalAPI.delete(url);
 }

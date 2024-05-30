@@ -21,76 +21,125 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
-import axios from "axios";
-const endpoint = "/api/v1";
-const host = (process.env.SPINAL_API_URL || "").replace(`/\/$/`, el => "");
-const baseURL = host.match(new RegExp(endpoint)) ? host : host + endpoint;
+// import axios from "axios";
+// const endpoint = "/api/v1";
+// const host = (process.env.SPINAL_API_URL || "").replace(`/\/$/`, el => "");
+// const baseURL = host.match(new RegExp(endpoint)) ? host : host + endpoint;
 
-export const HTTP = axios.create({ baseURL });
-HTTP.interceptors.request.use((request: any) => {
-    const t = localStorage.getItem('token');
-    if (t) request.headers.common.Authorization = `Bearer ${t}`;
-    return request;
-});
+// export const HTTP = axios.create({ baseURL });
+// HTTP.interceptors.request.use((request: any) => {
+//     const t = localStorage.getItem('token');
+//     if (t) request.headers.common.Authorization = `Bearer ${t}`;
+//     return request;
+// });
+
+import { SpinalAPI } from "~/common_data/requests/SpinalAPI";
+
+const baseURL = "/api/v1";
 
 //////////////////////////////////////////
 //              BOS                     //
 //////////////////////////////////////////
 export function createBosApiRouteRequest(data: any) {
-    return HTTP.post(`/create_bos_api_route`, data);
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/create_bos_api_route`);
+    return spinalAPI.post(url, data);
+    
 }
 
 export function updateBosApiRouteRequest(id: string, newData: any) {
-    return HTTP.put(`/update_bos_api_route/${id}`, newData);
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/update_bos_api_route/${id}`);
+    return spinalAPI.put(url, newData);
+    
 }
 
 export function getBosApiRouteByIdRequest(id: string) {
-    return HTTP.get(`/get_bos_api_route/${id}`);
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/get_bos_api_route/${id}`);
+    return spinalAPI.get(url);
+    
 }
 
 export function getAllBosApiRouteRequest() {
-    return HTTP.get(`/get_all_bos_api_route`);
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/get_all_bos_api_route`);
+    return spinalAPI.get(url);
+    
 }
 
 export function deleteBosApiRouteRequest(id: string) {
-    return HTTP.delete(`/delete_bos_api_route/${id}`);
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/delete_bos_api_route/${id}`);
+    return spinalAPI.delete(url);
+    
 }
 
 export function uploadBosApisFile(fileData: any) {
-    return HTTP.post(`/upload_bos_apis_routes`, fileData, {
-        headers: {
-            'Content-Type': 'multipart/form-data'
-        }
-    })
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/upload_bos_apis_routes`);
+    return spinalAPI.post(url, fileData,  { headers: { 'Content-Type': 'multipart/form-data' }});
+    
 }
 
 //////////////////////////////////////////
 //              PORTOFOLIO              //
 //////////////////////////////////////////
 export function createPortofolioApiRouteRequest(data: any) {
-    return HTTP.post(`/create_portofolio_api_route`, data);
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/create_portofolio_api_route`);
+
+
+    return spinalAPI.post(url, data);
+
+    
 }
 
 export function updatePortofolioApiRouteRequest(id: string, newData: any) {
-    return HTTP.put(`/update_portofolio_api_route/${id}`, newData);
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/update_portofolio_api_route/${id}`);
+
+    return spinalAPI.put(url, newData);
+
+    
 }
 
 export function getPortofolioApiRouteByIdRequest(id: string) {
-    return HTTP.get(`/get_portofolio_api_route/${id}`);
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/get_portofolio_api_route/${id}`);
+
+    return spinalAPI.get(url);
+
+    
 }
 
 export function getAllPortofolioApiRouteRequest() {
-    return HTTP.get(`/get_all_portofolio_api_route`);
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/get_all_portofolio_api_route`);
+
+    return spinalAPI.get(url);
+
+    
 }
 
 export function deletePortofolioApiRouteRequest(id: string) {
-    return HTTP.delete(`/delete_portofolio_api_route/${id}`);
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/delete_portofolio_api_route/${id}`);
+
+    return spinalAPI.delete(url);
+
+    
 }
 
 export function uploadPortofolioApisFile(fileData: any) {
-    return HTTP.post(`/upload_portofolio_apis_routes`, fileData, {
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/upload_portofolio_apis_routes`);
+
+    return spinalAPI.post(url, fileData, {
         headers: {
             'Content-Type': 'multipart/form-data'
         }
     })
+
+    
 }

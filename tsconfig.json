@@ -20,6 +20,9 @@
       "scripthost"
     ],
     "strictPropertyInitialization": false,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "paths": {
+      "~/common_data/*": ["./common_data"],
+    }
   }
 }

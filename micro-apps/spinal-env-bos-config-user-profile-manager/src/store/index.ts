@@ -87,7 +87,6 @@ export default new Vuex.Store({
   actions: {
     async getAllUserProfiles({ commit }: any) {
       const { data } = await getAllUserProfilesRequest();
-      console.log(data)
       commit(SET_PROFILE_LIST, data);
     },
 

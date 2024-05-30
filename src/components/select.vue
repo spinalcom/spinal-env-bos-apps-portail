@@ -40,7 +40,7 @@ with this file. If not, see
 <script>
 import { SELECT_PORTOFOLIO } from "../store/appDataStore";
 import { mapState } from "vuex";
-import { SpaceSelector } from "./SpaceSelector";
+import { SpaceSelector } from "~/common_data/components/SpaceSelector";
 
 export default {
   components: {

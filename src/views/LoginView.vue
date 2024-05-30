@@ -120,6 +120,7 @@ export default Vue.extend({
       this.hide = false;
       const logged = await this.logUser(this.credential);
       this.showError = !logged;
+
       if (logged) {
         this.storeCookie(this.$cookie);
         this.$router.push("/home");

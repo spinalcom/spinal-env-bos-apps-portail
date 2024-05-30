@@ -177,7 +177,6 @@ class TableComponent extends TableComponentProps {
   }
 
   _selectItemsOnEdit(itemToSelect: any) {
-    console.log(itemToSelect);
     const obj: any = {};
     for (const { tag, id } of itemToSelect) {
       if (obj[tag]) obj[tag][id] = id;

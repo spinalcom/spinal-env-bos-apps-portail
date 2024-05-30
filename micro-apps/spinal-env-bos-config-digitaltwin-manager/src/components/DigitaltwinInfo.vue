@@ -131,7 +131,6 @@ export default {
 
       this.setAsActualDigitalTwin(digitalTwin.id)
         .then((result) => {
-          console.log('result', result);
 
           this.state = this.steps.info;
           this.$store.commit(SET_ACTUAL_DIGITALTWIN, digitalTwin);

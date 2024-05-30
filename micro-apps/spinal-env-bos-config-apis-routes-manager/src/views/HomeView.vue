@@ -24,10 +24,6 @@ with this file. If not, see
 
 <template>
   <v-container class="_container" fluid>
-    <!-- <div class="header"> 
-       <Select @selected="selectCategory" /> 
-     </div> -->
-
     <v-card class="myCard" elevation="4">
       <Home
         :headers="headers"
@@ -42,7 +38,6 @@ with this file. If not, see
 <script lang="ts">
 import Vue from 'vue';
 import {Component, Watch} from 'vue-property-decorator';
-import Select from '../components/select.vue';
 import Home from '../components/Home.vue';
 import categories from '../store/categories';
 import {Action, Getter, State} from 'vuex-class';
@@ -52,7 +47,6 @@ type updateFunc = (param: {id: string; data: IApiRoute}) => Promise<void>;
 
 @Component({
   components: {
-    Select,
     Home,
   },
 })

@@ -22,16 +22,7 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import {
-    getUserProfile,
-    getBuildingApp,
-    getAdminApp,
-    getTokenData,
-    addAppToFavorite,
-    addAppToFavorite,
-    removeAppFromFavorite,
-    getFavoriteApps
-} from "../requests/userData";
+import { getUserProfile, addAppToFavorite, removeAppFromFavorite, getFavoriteApps } from "~/common_data/requests/users";
 
 export const SET_USER_APPS = "SET_USER_APPS";
 export const SET_USER_BOS = "SET_USER_BOS";
@@ -203,8 +194,6 @@ export const appDataStore = {
             if (!state.portofolios) {
                 await dispatch("getPortofolios")
             }
-
-            console.log(state.portofolios);
 
             // let apps = []
             const portofolio = state.portofolios.find(el => el.id === "apps");

@@ -22,134 +22,117 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import axios from "axios";
-const endpoint = "/api/v1";
-const host = (process.env.SPINAL_API_URL || "").replace(`/\/$/`, el => "");
-const baseURL = host.match(new RegExp(endpoint)) ? host : host + endpoint;
+// import axios from "axios";
+// const endpoint = "/api/v1";
+// const host = (process.env.SPINAL_API_URL || "").replace(`/\/$/`, el => "");
+// const baseURL = host.match(new RegExp(endpoint)) ? host : host + endpoint;
 
-export const HTTP = axios.create({ baseURL });
-HTTP.interceptors.request.use((request: any) => {
-    const t = localStorage.getItem('token');
-    if (t) request.headers.common.Authorization = `Bearer ${t}`;
-    return request;
-});
+// export const HTTP = axios.create({ baseURL });
+// HTTP.interceptors.request.use((request: any) => {
+//     const t = localStorage.getItem('token');
+//     if (t) request.headers.common.Authorization = `Bearer ${t}`;
+//     return request;
+// });
 
-// create
 
-// export function createPortofolioAppsRequest(data: any) {
-//     return HTTP.post("/create_portofolio_app", data);
-// }
+import { SpinalAPI } from "~/common_data/requests/SpinalAPI";
+const baseURL = "/api/v1";
+
 
 export function createBuildingAppsRequest(data: any) {
-    return HTTP.post("/create_building_app", data);
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/create_building_app`);
+    return spinalAPI.post(url, data);
 }
 
 export function createAdminAppsRequest(data: any) {
-    return HTTP.post("/create_admin_app", data);
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/create_admin_app`);
+    return spinalAPI.post(url, data);
 }
 
 
 
-//get All
-// export function getAllPortofolioAppsRequest() {
-//     try {
-//         return HTTP.get("/get_all_portofolio_apps");
-//     } catch (error) {
-//         return [];
-//     }
-// }
-
-export function getAllBuildingAppsRequest() {
+export async function getAllBuildingAppsRequest() {
     try {
-        return HTTP.get("/get_all_building_apps");
+        const spinalAPI = SpinalAPI.getInstance();
+        const url = spinalAPI.createUrl(`${baseURL}/get_all_building_apps`);
+        const result = await spinalAPI.get(url);
+        return result;
     } catch (error) {
         return [];
     }
 }
 
-export function getAllAdminAppsRequest() {
+export async function getAllAdminAppsRequest() {
     try {
-        return HTTP.get("/get_all_admin_apps");
+        const spinalAPI = SpinalAPI.getInstance();
+        const url = spinalAPI.createUrl(`${baseURL}/get_all_admin_apps`);
+        const result = await spinalAPI.get(url);
+        return result;
     } catch (error) {
         return [];
     }
 }
 
 
-// get By Id
-// export function getPortofolioAppRequest(appId: string) {
-//     try {
-//         return HTTP.get(`/get_portofolio_app/${appId}`);
-//     } catch (error) {
-//         return undefined;
-//     }
-// }
-
-export function getBuildingAppRequest(appId: string) {
+export async function getBuildingAppRequest(appId: string) {
     try {
-        return HTTP.get(`/get_building_app/${appId}`);
+        const spinalAPI = SpinalAPI.getInstance();
+        const url = spinalAPI.createUrl(`${baseURL}/get_building_app/${appId}`);
+        const result = await spinalAPI.get(url);
+        return result;
     } catch (error) {
         return undefined;
     }
 }
 
-export function getAdminAppRequest(appId: string) {
+export async function getAdminAppRequest(appId: string) {
     try {
-        return HTTP.get(`/get_admin_app/${appId}`);
+        const spinalAPI = SpinalAPI.getInstance();
+        const url = spinalAPI.createUrl(`${baseURL}/get_admin_app/${appId}`);
+        const result = await spinalAPI.get(url);
+        return result;
     } catch (error) {
         return undefined;
     }
 }
 
-// delete 
-// export function deletePortofolioAppRequest(appId: string) {
-//     return HTTP.delete(`/delete_portofolio_app/${appId}`);
-// }
 
 export function deleteBuildingAppRequest(appId: string) {
-    return HTTP.delete(`/delete_building_app/${appId}`);
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/delete_building_app/${appId}`);
+    return spinalAPI.delete(url);
 }
 
 export function deleteAdminAppRequest(appId: string) {
-    return HTTP.delete(`/delete_admin_app/${appId}`);
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/delete_admin_app/${appId}`);
+    return spinalAPI.delete(url);
 }
 
-// update
-
-// export function updatePortofolioAppRequest(appId: string, newData: any) {
-//     return HTTP.put(`/update_portofolio_app/${appId}`, newData);
-// }
 
 export function updateBuildingAppRequest(appId: string, newData: any) {
-    return HTTP.put(`/update_building_app/${appId}`, newData);
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/update_building_app/${appId}`);
+    return spinalAPI.put(url, newData);
 }
 
 export function updateAdminAppRequest(appId: string, newData: any) {
-    return HTTP.put(`/update_admin_app/${appId}`, newData);
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/update_admin_app/${appId}`);
+    return spinalAPI.put(url, newData);
 }
 
-// uploadFile
-
-// export function uploadPortofolioFileRequest(fileData: any) {
-//     return HTTP.post(`/upload_portofolio_apps`, fileData, {
-//         headers: {
-//             'Content-Type': 'multipart/form-data'
-//         }
-//     })
-// }
 
 export function uploadAdminFileRequest(fileData: any) {
-    return HTTP.post(`/upload_admin_apps`, fileData, {
-        headers: {
-            'Content-Type': 'multipart/form-data'
-        }
-    })
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/upload_admin_apps`);
+    return spinalAPI.post(url, fileData, { headers: { 'Content-Type': 'multipart/form-data' }})
 }
 
 export function uploadBuildingFileRequest(fileData: any) {
-    return HTTP.post(`/upload_building_apps`, fileData, {
-        headers: {
-            'Content-Type': 'multipart/form-data'
-        }
-    })
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/upload_building_apps`);
+    return spinalAPI.post(url, fileData, { headers: { 'Content-Type': 'multipart/form-data' }})
 }

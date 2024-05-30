@@ -22,52 +22,67 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import axios from 'axios';
+// import axios from 'axios';
 
-const endpoint = '/api/v1/pam';
-const host = (process.env.SPINAL_API_URL || '').replace(`/\/$/`, (el) => '');
-const baseURL = host.match(new RegExp(endpoint)) ? host : host + endpoint;
+// const endpoint = '/api/v1/pam';
+// const host = (process.env.SPINAL_API_URL || '').replace(`/\/$/`, (el) => '');
+// const baseURL = host.match(new RegExp(endpoint)) ? host : host + endpoint;
 
-export const http = axios.create({baseURL});
-http.interceptors.request.use((request: any) => {
-  const t = localStorage.getItem('token');
-  if (t) request.headers.common.Authorization = `Bearer ${t}`;
-  return request;
-});
+// export const http = axios.create({baseURL});
+// http.interceptors.request.use((request: any) => {
+//   const t = localStorage.getItem('token');
+//   if (t) request.headers.common.Authorization = `Bearer ${t}`;
+//   return request;
+// });
+
+import { SpinalAPI } from "~/common_data/requests/SpinalAPI";
+const baseURL = "/api/v1";
 
 export async function getWebsocketStateRequest() {
-  return http.get(`/websocket/get_websocket_state`);
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrl(`${baseURL}/websocket/get_websocket_state`);
+  return spinalAPI.get(url);
 }
 
 export async function getWebsocketClientCountRequest() {
-  return http.get(`/websocket/get_client_connected_count`);
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrl(`${baseURL}/websocket/get_client_connected_count`);
+  return spinalAPI.get(url);
 }
 
 export async function readWebsocketLogsRequest(
   begin: number = new Date().setHours(0, 0, 0, 0),
   end: number = Date.now()
 ) {
-  return http.get(`/websocket_log/read/${begin}/${end}`);
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrl(`${baseURL}/websocket_log/read/${begin}/${end}`);
+  return spinalAPI.get(url);
 }
 
 export async function readCurrentWeekLogsRequest() {
-  return http.get(`/websocket_log/read_current_week`);
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrl(`${baseURL}/websocket_log/read_current_week`);
+  return spinalAPI.get(url);
 }
 
 export async function readCurrentYearLogsRequest() {
-  return http.get(`/websocket_log/read_current_year`);
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrl(`${baseURL}/websocket_log/read_current_year`);
+  return spinalAPI.get(url);
 }
 
 export async function readLast24hLogsRequest() {
-  return http.get(`/websocket_log/read_from_last_24h`);
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrl(`${baseURL}/websocket_log/read_from_last_24h`);
+  return spinalAPI.get(url);
 }
 
 export function getPortofoliosRequest(profileId: string | null) {
   if (!profileId) throw new Error('no profileId found');
 
-  return http
-    .get(`${baseURL}/user_profile/get_authorized_portofolio/${profileId}`)
-    .then((result) => {
-      return result.data;
-    });
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrl(`${baseURL}/user_profile/get_authorized_portofolio/${profileId}`);
+  return spinalAPI.get(url).then((result) => {
+    return result.data;
+  });
 }

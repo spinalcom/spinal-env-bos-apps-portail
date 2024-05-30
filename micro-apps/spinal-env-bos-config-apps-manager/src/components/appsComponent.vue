@@ -24,13 +24,6 @@ with this file. If not, see
 
 <template>
   <div class="_content">
-    <!-- <div class="app_header">
-
-      <div class="head">
-        <Select @selected="selectCategory" />
-      </div> 
-
-    </div> -->
 
     <v-card class="cardContent" elevation="4">
       <v-tabs
@@ -74,13 +67,11 @@ with this file. If not, see
 import {IApp} from '../types/interfaces';
 import {Component, Prop, Vue, Watch} from 'vue-property-decorator';
 import AppListComponent from '../components/appList.vue';
-import Select from '../components/select.vue';
 import categories from '../store/data';
 
 @Component({
   components: {
-    AppListComponent,
-    Select,
+    AppListComponent
   },
 })
 class HomeView extends Vue {

@@ -23,7 +23,7 @@
  */
 
 import { clearLocalStorage, saveToLocalStorage } from "../utils";
-import { loginRequest } from "../requests/login";
+import { loginRequest } from "~/common_data/requests/users";
 
 
 

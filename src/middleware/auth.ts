@@ -22,22 +22,20 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import {getTokenData} from '../requests/userData';
+import { getTokenData } from '~/common_data/requests/users';
 import {saveToLocalStorage, clearLocalStorage} from '../utils';
 
-export async function isAuthenticate(
-  argToken?: string,
-  userInfo?: any
-): Promise<any> {
+export async function isAuthenticate(argToken?: string, userInfo?: any ): Promise<any> {
   const token = argToken || localStorage.getItem('token');
   if (token) {
     const {code, data} = await getTokenData(token);
+    
 
     if (code == 200) {
       const profileId =
         data.profile?.userProfileBosConfigId || data.profile?.profileId;
       if (!profileId) {
-        clearLocalStorage();
+        // clearLocalStorage();
         return;
       }
 
@@ -47,7 +45,7 @@ export async function isAuthenticate(
     }
   }
 
-  clearLocalStorage();
+  // clearLocalStorage();
 
   return;
 }

@@ -86,7 +86,6 @@ export default new Vuex.Store({
   actions: {
     async getAllAppProfiles({ commit }: any) {
       const { data } = await getAllAppProfilesRequest();
-      console.log(data)
       commit(SET_PROFILE_LIST, data);
     },
 

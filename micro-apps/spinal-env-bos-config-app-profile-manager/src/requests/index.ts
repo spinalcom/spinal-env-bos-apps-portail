@@ -22,22 +22,28 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import axios from "axios";
+// import axios from "axios";
 
-const endpoint = "/api/v1";
-const host = (process.env.SPINAL_API_URL || "").replace(`/\/$/`, el => "");
-const baseURL = host.match(new RegExp(endpoint)) ? host : host + endpoint;
+// const endpoint = "/api/v1";
+// const host = (process.env.SPINAL_API_URL || "").replace(`/\/$/`, el => "");
+// const baseURL = host.match(new RegExp(endpoint)) ? host : host + endpoint;
 
-const http = axios.create({ baseURL });
-http.interceptors.request.use((request: any) => {
-    const t = localStorage.getItem('token');
-    if (t) request.headers.common.Authorization = `Bearer ${t}`;
-    return request;
-});
+// const http = axios.create({ baseURL });
+// http.interceptors.request.use((request: any) => {
+//     const t = localStorage.getItem('token');
+//     if (t) request.headers.common.Authorization = `Bearer ${t}`;
+//     return request;
+// });
 
-export function getAllAppProfilesRequest() {
+import { SpinalAPI } from "~/common_data/requests/SpinalAPI";
+const baseURL = "/api/v1";
+
+export async function getAllAppProfilesRequest() {
     try {
-        return http.get("/app_profile/get_all_profile");
+        const spinalAPI = SpinalAPI.getInstance();
+        const url = spinalAPI.createUrl(`${baseURL}/app_profile/get_all_profile`);
+        const result = await spinalAPI.get(url);
+        return result;
     } catch (error) {
         console.error(error);
         return { data: [] }
@@ -45,32 +51,45 @@ export function getAllAppProfilesRequest() {
 }
 
 export function createAppProfileRequest(data: any) {
-    return http.post("/app_profile/create_profile", data);
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/app_profile/create_profile`);
+    return spinalAPI.post(url, data);
 }
 
 export function getAppProfileRequest(profileId: string) {
-    return http.get(`/app_profile/get_profile/${profileId}`);
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/app_profile/get_profile/${profileId}`);
+    return spinalAPI.get(url);
 }
 
 export function deleteAppProfileRequest(profileId: string) {
-    return http.delete(`/app_profile/delete_profile/${profileId}`);
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/app_profile/delete_profile/${profileId}`);
+    return spinalAPI.delete(url);
 }
 
 
 export function editAppProfileRequest(profileId: string, newData: any) {
-    return http.put(`/app_profile/edit_profile/${profileId}`, newData);
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/app_profile/edit_profile/${profileId}`);
+    return spinalAPI.put(url, newData);
 }
 
 
-export function getAllContextsRequest() {
+export async function getAllContextsRequest() {
     try {
-        return http.get("/get_digitaltwin_contexts");
+        const spinalAPI = SpinalAPI.getInstance();
+        const url = spinalAPI.createUrl(`${baseURL}/get_digitaltwin_contexts`);
+        const result = await spinalAPI.get(url);
+        return result;
     } catch (error) {
         return []
     }
 }
 
 export function getAllApisRequest() {
-    return http.get("/get_all_bos_api_route");
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/get_all_bos_api_route`);
+    return spinalAPI.get(url);
 }
 
