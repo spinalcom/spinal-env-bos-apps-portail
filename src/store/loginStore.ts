@@ -22,7 +22,7 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { clearLocalStorage, saveToLocalStorage } from "../utils";
+import { clearLocalStorage, saveToLocalStorage, deleteAllCookies } from "../utils";
 import { loginRequest } from "~/common_data/requests/users";
 
 
@@ -62,6 +62,10 @@ export const logingStore = {
 
         clearLocalStorage() {
             clearLocalStorage()
+        },
+
+        clearAllCookies() {
+            deleteAllCookies();
         }
     },
 
