@@ -35,29 +35,29 @@
 //     return request;
 // });
 
-import { SpinalAPI } from "~/common_data/requests/SpinalAPI";
-const baseURL = "/api/v1";
+import { SpinalAPI } from 'global-components';
+const baseURL = '/api/v1';
 
 export function getRegisteredAuthPlatformRequest() {
-    const spinalAPI = SpinalAPI.getInstance();
-    const url = spinalAPI.createUrl(`${baseURL}/get_bos_to_auth_credential`);
-    return spinalAPI.get(url);
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrl(`${baseURL}/get_bos_to_auth_credential`);
+  return spinalAPI.get(url);
 }
 
 export function registerAuthPlatformRequest(data: any) {
-    const spinalAPI = SpinalAPI.getInstance();
-    const url = spinalAPI.createUrl(`${baseURL}/register_admin`);
-    return spinalAPI.post(url, data);
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrl(`${baseURL}/register_admin`);
+  return spinalAPI.post(url, data);
 }
 
 export function updateAuthPlatformRequest() {
-    const spinalAPI = SpinalAPI.getInstance();
-    const url = spinalAPI.createUrl(`${baseURL}/update_data`);
-    return spinalAPI.put(url);
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrl(`${baseURL}/update_data`);
+  return spinalAPI.put(url);
 }
 
 export function deleteAuthPlatformRequest() {
-    const spinalAPI = SpinalAPI.getInstance();
-    const url = spinalAPI.createUrl(`${baseURL}/delete_admin`);
-    return spinalAPI.delete(url);
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrl(`${baseURL}/delete_admin`);
+  return spinalAPI.delete(url);
 }

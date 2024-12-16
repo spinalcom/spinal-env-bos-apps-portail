@@ -22,7 +22,9 @@
     "strictPropertyInitialization": false,
     "noImplicitAny": false,
     "paths": {
-      "~/common_data/*": ["./common_data"],
+      "~/common_data/*": [
+        "global-components"
+      ],
     }
   }
 }

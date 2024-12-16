@@ -24,9 +24,13 @@
 
 import * as dotenv from 'dotenv';
 import 'core-js/stable';
+import { SpinalAPI, API_MODE } from 'global-components/requests/SpinalAPI';
+SpinalAPI.setHook(window);
+const api = SpinalAPI.getInstance(process.env.SPINAL_API_URL);
+api.setApiMode(API_MODE.BOS_APP);
 import Vue from 'vue';
-import {vuetifyInit, vuetify} from './plugins/vuetify';
-import {routerInit, router} from './router';
+import { vuetifyInit, vuetify } from './plugins/vuetify';
+import { routerInit, router } from './router';
 import store from './store';
 // import {initAxios} from './requests';
 import VueCookie from 'vue-cookie';

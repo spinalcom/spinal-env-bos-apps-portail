@@ -1,19 +1,19 @@
 /*
  * Copyright 2022 SpinalCom - www.spinalcom.com
- * 
+ *
  * This file is part of SpinalCore.
- * 
+ *
  * Please read all of the following terms and conditions
  * of the Free Software license Agreement ("Agreement")
  * carefully.
- * 
+ *
  * This Agreement is a legally binding contract between
  * the Licensee (as defined below) and SpinalCom that
  * sets forth the terms and conditions that govern your
  * use of the Program. By installing and/or using the
  * Program, you agree to abide by all the terms and
  * conditions stated or referenced herein.
- * 
+ *
  * If you do not agree to abide by these terms and
  * conditions, do not demonstrate your acceptance and do
  * not install or use the Program.
@@ -35,61 +35,64 @@
 //     return request;
 // });
 
-import { SpinalAPI } from "~/common_data/requests/SpinalAPI";
-const baseURL = "/api/v1";
+import { SpinalAPI } from 'global-components';
+const baseURL = '/api/v1';
 
 export async function getAllAppProfilesRequest() {
-    try {
-        const spinalAPI = SpinalAPI.getInstance();
-        const url = spinalAPI.createUrl(`${baseURL}/app_profile/get_all_profile`);
-        const result = await spinalAPI.get(url);
-        return result;
-    } catch (error) {
-        console.error(error);
-        return { data: [] }
-    }
+  try {
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/app_profile/get_all_profile`);
+    const result = await spinalAPI.get(url);
+    return result;
+  } catch (error) {
+    console.error(error);
+    return { data: [] };
+  }
 }
 
 export function createAppProfileRequest(data: any) {
-    const spinalAPI = SpinalAPI.getInstance();
-    const url = spinalAPI.createUrl(`${baseURL}/app_profile/create_profile`);
-    return spinalAPI.post(url, data);
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrl(`${baseURL}/app_profile/create_profile`);
+  return spinalAPI.post(url, data);
 }
 
 export function getAppProfileRequest(profileId: string) {
-    const spinalAPI = SpinalAPI.getInstance();
-    const url = spinalAPI.createUrl(`${baseURL}/app_profile/get_profile/${profileId}`);
-    return spinalAPI.get(url);
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrl(
+    `${baseURL}/app_profile/get_profile/${profileId}`
+  );
+  return spinalAPI.get(url);
 }
 
 export function deleteAppProfileRequest(profileId: string) {
-    const spinalAPI = SpinalAPI.getInstance();
-    const url = spinalAPI.createUrl(`${baseURL}/app_profile/delete_profile/${profileId}`);
-    return spinalAPI.delete(url);
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrl(
+    `${baseURL}/app_profile/delete_profile/${profileId}`
+  );
+  return spinalAPI.delete(url);
 }
-
 
 export function editAppProfileRequest(profileId: string, newData: any) {
-    const spinalAPI = SpinalAPI.getInstance();
-    const url = spinalAPI.createUrl(`${baseURL}/app_profile/edit_profile/${profileId}`);
-    return spinalAPI.put(url, newData);
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrl(
+    `${baseURL}/app_profile/edit_profile/${profileId}`
+  );
+  return spinalAPI.put(url, newData);
 }
 
-
 export async function getAllContextsRequest() {
-    try {
-        const spinalAPI = SpinalAPI.getInstance();
-        const url = spinalAPI.createUrl(`${baseURL}/get_digitaltwin_contexts`);
-        const result = await spinalAPI.get(url);
-        return result;
-    } catch (error) {
-        return []
-    }
+  try {
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrl(`${baseURL}/get_digitaltwin_contexts`);
+    const result = await spinalAPI.get(url);
+    return result;
+  } catch (error) {
+    return [];
+  }
 }
 
 export function getAllApisRequest() {
-    const spinalAPI = SpinalAPI.getInstance();
-    const url = spinalAPI.createUrl(`${baseURL}/get_all_bos_api_route`);
-    return spinalAPI.get(url);
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrl(`${baseURL}/get_all_bos_api_route`);
+  return spinalAPI.get(url);
 }
-

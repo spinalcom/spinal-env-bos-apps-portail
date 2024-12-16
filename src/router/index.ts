@@ -22,15 +22,15 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import {isAuthenticate} from '../middleware/auth';
-import {checkIfItComeFromPam} from '../utils';
-import VueRouter, {RouteConfig} from 'vue-router';
+import { isAuthenticate } from '../middleware/auth';
+import { checkIfItComeFromPam } from '../utils';
+import VueRouter, { RouteConfig } from 'vue-router';
 
 // import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue';
 import ErrorView from '../views/Error.vue';
 import HomeLayout from '../layout/HomeLayout.vue';
-import {userInfo} from 'os';
+// import {userInfo} from 'os';
 
 export function routerInit(vue: any) {
   vue.use(VueRouter);
@@ -71,8 +71,8 @@ const routes: Array<RouteConfig> = [
   },
 ];
 
-const router : any = new VueRouter({
-  mode: 'history',
+const router: any = new VueRouter({
+  // mode: 'history',
   // base: process.env.BASE_URL,
   routes,
 });
@@ -92,18 +92,18 @@ router.beforeEach(async (to, from, next) => {
 
   const auth = await isAuthenticate(token, userInfo);
 
-  if (!auth && comeFromPam) return next({name: 'Error'});
-  if (to.name === 'Login' && auth) return next({name: 'Home'});
-  if (!auth && to.name !== 'Login') return next({name: 'Login'});
+  if (!auth && comeFromPam) return next({ name: 'Error' });
+  if (to.name === 'Login' && auth) return next({ name: 'Home' });
+  if (!auth && to.name !== 'Login') return next({ name: 'Login' });
   return next();
 });
 
-
-router.customReplace = function(path, query) {
+router.customReplace = function (path, query) {
   this.replace({ path, query });
 };
 
 (window as any).router = router;
 (window as any).routerFunction = router;
+(window as any).routerFontion = router;
 
-export {router};
+export { router };

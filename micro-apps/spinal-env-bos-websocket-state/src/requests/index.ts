@@ -35,8 +35,8 @@
 //   return request;
 // });
 
-import { SpinalAPI } from "~/common_data/requests/SpinalAPI";
-const baseURL = "/api/v1";
+import { SpinalAPI } from 'global-components';
+const baseURL = '/api/v1';
 
 export async function getWebsocketStateRequest() {
   const spinalAPI = SpinalAPI.getInstance();
@@ -46,7 +46,9 @@ export async function getWebsocketStateRequest() {
 
 export async function getWebsocketClientCountRequest() {
   const spinalAPI = SpinalAPI.getInstance();
-  const url = spinalAPI.createUrl(`${baseURL}/websocket/get_client_connected_count`);
+  const url = spinalAPI.createUrl(
+    `${baseURL}/websocket/get_client_connected_count`
+  );
   return spinalAPI.get(url);
 }
 
@@ -55,7 +57,9 @@ export async function readWebsocketLogsRequest(
   end: number = Date.now()
 ) {
   const spinalAPI = SpinalAPI.getInstance();
-  const url = spinalAPI.createUrl(`${baseURL}/websocket_log/read/${begin}/${end}`);
+  const url = spinalAPI.createUrl(
+    `${baseURL}/websocket_log/read/${begin}/${end}`
+  );
   return spinalAPI.get(url);
 }
 
@@ -73,7 +77,9 @@ export async function readCurrentYearLogsRequest() {
 
 export async function readLast24hLogsRequest() {
   const spinalAPI = SpinalAPI.getInstance();
-  const url = spinalAPI.createUrl(`${baseURL}/websocket_log/read_from_last_24h`);
+  const url = spinalAPI.createUrl(
+    `${baseURL}/websocket_log/read_from_last_24h`
+  );
   return spinalAPI.get(url);
 }
 
@@ -81,7 +87,9 @@ export function getPortofoliosRequest(profileId: string | null) {
   if (!profileId) throw new Error('no profileId found');
 
   const spinalAPI = SpinalAPI.getInstance();
-  const url = spinalAPI.createUrl(`${baseURL}/user_profile/get_authorized_portofolio/${profileId}`);
+  const url = spinalAPI.createUrl(
+    `${baseURL}/user_profile/get_authorized_portofolio/${profileId}`
+  );
   return spinalAPI.get(url).then((result) => {
     return result.data;
   });

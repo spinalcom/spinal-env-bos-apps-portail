@@ -23,8 +23,7 @@ with this file. If not, see
 -->
 
 <template>
-  <div class="headerSelect"
-       v-if="portofolios">
+  <div class="headerSelect" v-if="portofolios">
     <!-- <space-selector ref="space-selector"
                     :open.sync="openSpaceSelector"
                     :maxDepth="0"
@@ -38,9 +37,9 @@ with this file. If not, see
 </template>
 
 <script>
-import { SELECT_PORTOFOLIO } from "../store/appDataStore";
-import { mapState } from "vuex";
-import { SpaceSelector } from "~/common_data/components/SpaceSelector";
+import { SELECT_PORTOFOLIO } from '../store/appDataStore';
+import { mapState } from 'vuex';
+import { SpaceSelector } from '../../global-components';
 
 export default {
   components: {
@@ -59,8 +58,8 @@ export default {
     //   id: "patrimoine",
     // };
     this.TYPES = {
-      portofolio: "portofolio",
-      building: "building",
+      portofolio: 'portofolio',
+      building: 'building',
     };
     return {
       // data: [this.default],
@@ -118,12 +117,12 @@ export default {
       if (item.type === this.TYPES.portofolio) {
         portofolioId = item.staticId;
       } else if (item.type === this.TYPES.building) {
-        localStorage.setItem("idBuilding", item.staticId);
+        localStorage.setItem('idBuilding', item.staticId);
         portofolioId = item.parents[0];
         buildingId = item.staticId;
       }
 
-      this.$emit("selected", { portofolioId, buildingId });
+      this.$emit('selected', { portofolioId, buildingId });
     },
 
     close() {
@@ -131,28 +130,28 @@ export default {
     },
   },
   computed: {
-    ...mapState("appDataStore", ["selectedPortofolio"]),
+    ...mapState('appDataStore', ['selectedPortofolio']),
   },
   watch: {
     selected() {
-      this.$emit("selected", this.selected);
+      this.$emit('selected', this.selected);
     },
 
     portofolios() {
       const element = this.selectedPortofolio || this.portofolios[0];
       if (Object.keys(this.selectedZone).length === 1 && element) {
         this.selectedZone = {
-          platformId: "",
+          platformId: '',
           name: element.name,
           staticId: element.id || element.staticId,
           categories: [],
-          color: "#FFFFFF",
+          color: '#FFFFFF',
           dynamicId: 0,
           type: this.TYPES.portofolio,
           level: 0,
           isOpen: true,
           loading: false,
-          patrimoineId: "",
+          patrimoineId: '',
           parents: [],
           isLastInGrp: true,
           drawLink: [],
