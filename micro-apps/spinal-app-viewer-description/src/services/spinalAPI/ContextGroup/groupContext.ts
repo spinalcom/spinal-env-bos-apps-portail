@@ -206,7 +206,7 @@ export async function getAttributeListMultiple(buildingId: string, roomIds: stri
     const spinalAPI = SpinalAPI.getInstance();
     const url = spinalAPI.createUrlWithPlatformId(buildingId, '/api/v1/node/attribute_list_multiple');
     try {
-        const response = await spinalAPI.post<IRoomPositionRes[]>(url, roomIds); 
+        const response = await spinalAPI.post<IRoomPositionRes[]>(url, roomIds);
         return response.data;
     } catch (error) {
         console.error('Erreur lors de la récupération des positions des pièces:', error);
@@ -283,6 +283,41 @@ export async function getEquipementPositions(buildingId: string, roomIds: string
         throw error;
     }
 }
+export async function getContextList(buildingId: string): Promise<IRoomPositionRes[]> {
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrlWithPlatformId(buildingId, '/api/v1/context/list');
+    try {
+        let result = await spinalAPI.get<IZoneItem[]>(url); // Envoyer le tableau d'identifiants
+        return result.data;
+    } catch (error) {
+        console.error('Erreur lors de la récupération des positions des pièces:', error);
+        throw error;
+    }
+}
+export async function getContextCategoryList(buildingId: string, contextId: number): Promise<IRoomPositionRes[]> {
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/groupeContext/${contextId}/category_list`);
+    try {
+        let result = await spinalAPI.get<IZoneItem[]>(url); // Envoyer le tableau d'identifiants
+        return result.data;
+    } catch (error) {
+        console.error('Erreur lors de la récupération des positions des pièces:', error);
+        throw error;
+    }
+}
+export async function getContextCategoryGroupList(buildingId: string, contextId: number, categoryDynId: number): Promise<IRoomPositionRes[]> {
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrlWithPlatformId(buildingId, `api/v1/groupeContext/${contextId}/category/${categoryDynId}/group_list`);
+    try {
+        let result = await spinalAPI.get<IZoneItem[]>(url); // Envoyer le tableau d'identifiants
+        return result.data;
+    } catch (error) {
+        console.error('Erreur lors de la récupération des positions des pièces:', error);
+        throw error;
+    }
+}
+
+
 
 export async function getequipementList(patrimoineId: string, buildingId: string, contextDynId: number, categoryDynId: number, groupDynId: number): Promise<IZoneItem[]> {
     const spinalAPI = SpinalAPI.getInstance();
@@ -294,6 +329,7 @@ export async function getequipementList(patrimoineId: string, buildingId: string
     });
     return res;
 }
+
 
 
 

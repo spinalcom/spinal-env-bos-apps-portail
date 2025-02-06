@@ -25,7 +25,7 @@
 import Vue from "vue";
 
 import { EmitterViewerHandler, VIEWER_SPRITE_CLICK, VIEWER_SPRITE_MOUSEOVER } from "spinal-viewer-event-manager";
-
+import { ViewerManager } from './viewerManager'
 interface ISpriteData {
 	color: string;
 	position: THREE.Vector3;
@@ -44,7 +44,9 @@ export class SpriteManager {
 	private _dataVizExtn: any;
 	private _viewableType;
 	private dbIdToViewable: { [key: number | string]: any } = {};
+	private viewableDataMap: { [group: string]: any[] } = {};
 	private label3Ds = [];
+	private cards3Ds = [];
 
 	private constructor() { }
 
@@ -66,37 +68,101 @@ export class SpriteManager {
 			this._viewableType = this.DataVizCore.ViewableType.SPRITE;
 		}
 
-		viewer.addEventListener(this.DataVizCore.MOUSE_CLICK, () =>{/*viewer.clearSelection();*/ this._onSpriteClicked.bind(this); });
+		viewer.addEventListener(this.DataVizCore.MOUSE_CLICK, () => {/*viewer.clearSelection();*/ this._onSpriteClicked.bind(this); });
 		viewer.addEventListener(this.DataVizCore.MOUSE_HOVERING, this._onSpriteHovering.bind(this));
 	}
 
 	public async addComponentAsSprite(viewer: Autodesk.Viewing.Viewer3D, data: ISpriteData | ISpriteData[]) {
-		data = Array.isArray(data) ? data : [data];		
+		data = Array.isArray(data) ? data : [data];
+	
+		for (const d of data) {
+			const VueComponent = Vue.extend(d.component);
+			const vueInstance = new VueComponent({ propsData: d });
+	
+			const label = new Autodesk.Edit3D.Label3D(viewer, d.position, "");
+			label.viewer.container.appendChild(label.container);
+			label.container.style.pointerEvents = "auto";
+			label.container.appendChild(vueInstance.$mount().$el);
+	
+			if (d.data?.z_index != null) {
+				label.container.style.zIndex = d.data.z_index.toString();
+			}
+	
+			const viewable = {
+				dynamicId: d.data.dynamicId,
+				label: label,
+				component: vueInstance,
+				group: d.data.group,
+				z_index: d.data.z_index
+			};
+	
+			this.label3Ds.push(viewable);
+	
+			if (!this.viewableDataMap[d.data.group]) this.viewableDataMap[d.data.group] = [];
+			this.viewableDataMap[d.data.group].push(viewable);
+		}
+	
+		console.log('Map des viewables après ajout :', this.viewableDataMap);
+	}
+	
+	
+
+
+	public removeViewablesByGroup(group: string) {
+		const viewables = this.viewableDataMap[group] || [];
+		viewables.forEach(viewable => {
+			// Supprime le viewable
+			viewable.destroy?.();  // Vérifie si la méthode destroy existe
+		});
+
+		// Supprime le groupe de la map
+		delete this.viewableDataMap[group];
+	}
+
+	public removeSpritesByGroup(group: string) {
+		const viewables = this.viewableDataMap[group] || [];
+		viewables.forEach(viewable => {
+			viewable.label.dtor();
+		});
+		delete this.viewableDataMap[group];
+	}
+
+
+	public async addCardComponent(viewer: Autodesk.Viewing.Viewer3D, data: any | any[]) {
+		data = Array.isArray(data) ? data : [data];
+		const dataMap = new Map();
+		data.forEach(d => dataMap.set(d.dynamicId, d));
 
 		for (const d of data) {
 			if (!d.component) continue;
 			const VueComponent = Vue.extend(d.component);
 			const vueInstance = new VueComponent({ propsData: d });
+
 			const label = new Autodesk.Edit3D.Label3D(viewer, d.position, "");
 			label.viewer.container.appendChild(label.container);
 			label.container.style.pointerEvents = "auto";
+			// viewer.overlays.impl.invalidate(true, true, true);
+
+
 			label.container.appendChild(vueInstance.$mount().$el);
-			this.label3Ds.push(
-				{
+			const exists = this.cards3Ds.some(item => item.dynamicId === d.data.dynamicId);
+			if (!exists) {
+				this.cards3Ds.push({
 					dynamicId: d.data.dynamicId,
 					label: label,
-					component: vueInstance
-				}
-			);
+					component: vueInstance,
+				});
+			}
+
 		}
 	}
 
 	public async selectSprites(dynamicIds: Array<number>) {
-		for(let label of this.label3Ds){
-			if(dynamicIds.includes(label.dynamicId)){
+		for (let label of this.label3Ds) {
+			if (dynamicIds.includes(label.dynamicId)) {
 				label.component._isSelected();
 			}
-			else{
+			else {
 				label.component._isNotSelected();
 			}
 		}
@@ -131,6 +197,11 @@ export class SpriteManager {
 		if (this._dataVizExtn) this.dataVizExtn.removeAllViewables();
 		this.label3Ds.slice().forEach(l => l.label.dtor());
 		this.label3Ds = [];
+	}
+	public removeCards() {
+		if (this._dataVizExtn) this.dataVizExtn.removeAllViewables();
+		this.cards3Ds.slice().forEach(l => l.label.dtor());
+		this.cards3Ds = [];
 	}
 
 	private _addSpriteToObject(modelId: string | number, dbId: number, viewable: any) {

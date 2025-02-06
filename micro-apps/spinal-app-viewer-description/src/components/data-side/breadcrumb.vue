@@ -1,16 +1,20 @@
 <template>
   <v-breadcrumbs v-if="etage" divider=">">
-    <v-breadcrumbs-item v-if="etage" @click="setPosition(id_etage, etage)" class="breadcrumb-item">
-      {{ etage }}
-    </v-breadcrumbs-item>
-
-    <v-breadcrumbs-item v-if="piece" @click="setPosition(id_piece, piece)" class="breadcrumb-item">
-      {{ piece }}
-    </v-breadcrumbs-item>
-
-    <v-breadcrumbs-item v-if="equipement" @click="setPosition('equipement')" class="breadcrumb-item">
-      {{ equipement }}
-    </v-breadcrumbs-item>
+    <div class="breadcrumb-item" @click="setPosition(id_etage, etage)">
+      <v-breadcrumbs-item v-if="etage">
+        {{ etage }}
+      </v-breadcrumbs-item>
+    </div>
+    <div v-if="piece" @click="setPosition(id_piece, piece)" class="breadcrumb-item">
+      <v-breadcrumbs-item >
+        {{ piece }}
+      </v-breadcrumbs-item>
+    </div>
+    <div v-if="equipement" @click="setPosition('equipement')" class="breadcrumb-item">
+      <v-breadcrumbs-item >
+        {{ equipement }}
+      </v-breadcrumbs-item>
+    </div>
   </v-breadcrumbs>
 </template>
 

@@ -27,6 +27,7 @@ import { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
 import { SpinalAPI } from "../../spinalAPI/SpinalAPI";
 import { MutationTypes } from "./mutations";
 import { getEquipments, getBuilding, getFloors, getRooms, getStaticDetails, getStaticDetailsEquipement, getMultipleInventory, getFloorStaticDetails, postBIMObjectInfo, getBuildingInfo, getBuildingStaticDetails, getDocumentation, postDownloadFile, getParent, getAttributListMultiple, getTimeSeriesAsync, getNodeRead, getTicket, getpositionEquipement, getpositionRoom, getFile } from "../../spinalAPI/GeographicContext/geographicContext";
+import { getContextList, getContextCategoryList, getContextCategoryGroupList } from "../../spinalAPI/ContextGroup/groupContext";
 import type { IEquipmentItem, ISpaceSelectorItem, IZoneItem } from "../../../../../../global-components/SpaceSelector";
 import { INodeItem } from "../../../interfaces/INodeItem";
 import { getMultipleReferenceObjects } from "../../spinalAPI/GeographicContext/getObjectList";
@@ -38,16 +39,17 @@ import SpriteManager from "../../../../../../global-components/viewer/manager/sp
 import ViewerManager from "../../../../../../global-components/viewer/manager/viewerManager";
 import { IConfig } from "../../../interfaces/IConfig";
 import { classifyItemByBimFileId } from "./utils/openViewer";
-import { error, log } from "console";
+import { error, log, warn } from "console";
 import { addTicketDoc, createTicket, getProcess, getWorkFlowList, Ticket } from "../../spinalAPI/CreateTicket";
-import { uploadDoc } from "../../spinalAPI/UploadDoc/Doc";
+// import { uploadDoc } from "../../spinalAPI/UploadDoc/Doc";
+import { createAttribut, createCategory, getCategoriesList } from "../../spinalAPI/NodeAttributs/nodeAttributs";
+import { deleteFile, uploadDoc, deleteAttribut, deleteCategoryAttribut, updateCategoryAttribut, updateAttribut } from "../../spinalAPI/UploadDoc/Doc";
 
 const ApiIteratorStore: ApiIteratorStoreType & ApiIteratorStoreRecordStringType & ApiIteratorStoreRecordNumberType = {};
 
 
 
 export const actions = {
-
 
 
 	async [ActionTypes.GET_INVENTORY_MULTIPLE]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number[] }): Promise<any> {
@@ -82,6 +84,33 @@ export const actions = {
 	async [ActionTypes.GET_FILE]({ commit }: AugmentedActionContextAppData, { buildingId, referenceId }: { buildingId: string; referenceId: any }): Promise<any> {
 		try {
 			const result = await getFile(buildingId, referenceId);
+			return result;
+		} catch (error) {
+			console.log('Erreur lors de la récuperation du fichier', error);
+			throw error;
+		}
+	},
+	async [ActionTypes.GET_CONTEXT_LIST]({ commit }: AugmentedActionContextAppData, { buildingId }: { buildingId: string }): Promise<any> {
+		try {
+			const result = await getContextList(buildingId);
+			return result;
+		} catch (error) {
+			console.log('Erreur lors de la récuperation du fichier', error);
+			throw error;
+		}
+	},
+	async [ActionTypes.GET_CONTEXT_CATEGORY_LIST]({ commit }: AugmentedActionContextAppData, { buildingId, contextId }: { buildingId: string; contextId: any }): Promise<any> {
+		try {
+			const result = await getContextCategoryList(buildingId, contextId);
+			return result;
+		} catch (error) {
+			console.log('Erreur lors de la récuperation du fichier', error);
+			throw error;
+		}
+	},
+	async [ActionTypes.GET_CONTEXT_CATEGORY_GROUP_LIST]({ commit }: AugmentedActionContextAppData, { buildingId, contextId, categoryDynId }: { buildingId: string; contextId: any; categoryDynId: any }): Promise<any> {
+		try {
+			const result = await getContextCategoryGroupList(buildingId, contextId, categoryDynId);
 			return result;
 		} catch (error) {
 			console.log('Erreur lors de la récuperation du fichier', error);
@@ -276,6 +305,168 @@ export const actions = {
 			console.error('Erreur lors de l\'ajout d(u)(es) document')
 		}
 	},
+	async [ActionTypes.DELETE_FILE]({ commit }: AugmentedActionContextAppData, { buildingId, referenceId, fileId }: { buildingId: string, referenceId: number, fileId: number }): Promise<any> {
+
+		try {
+			const result = await deleteFile(buildingId, referenceId, fileId)
+			return result;
+
+		} catch (error) {
+			console.error('Erreur lors de la suppression du fichier');
+			throw error;
+		}
+	},
+
+	async [ActionTypes.DELETE_ATTRIBUT]({ commit }: AugmentedActionContextAppData, { buildingId, referenceId, cateId, name }: { buildingId: string, referenceId: number, cateId: number, name: string }): Promise<any> {
+
+		try {
+			const result = await deleteAttribut(buildingId, referenceId, cateId, name)
+			return result;
+
+		} catch (error) {
+			console.error('Erreur lors de la suppression du fichier');
+			throw error;
+		}
+	},
+	async [ActionTypes.UPDATE_ATTRIBUT]({ commit }: AugmentedActionContextAppData, { buildingId, referenceId, cateId, name, item }: { buildingId: string, referenceId: number, cateId: number, name: string, item: object }): Promise<any> {
+
+		try {
+			const result = await updateAttribut(buildingId, referenceId, cateId, name, item)
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la suppression du fichier');
+			throw error;
+		}
+	},
+
+
+
+	async [ActionTypes.DELETE_CATE_ATTRIBUT]({ commit }: AugmentedActionContextAppData, { buildingId, referenceId, cateId }: { buildingId: string, referenceId: number, cateId: number, name: string }): Promise<any> {
+		try {
+			const result = await deleteCategoryAttribut(buildingId, referenceId, cateId)
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la suppression du fichier');
+			throw error;
+		}
+	},
+
+
+	async [ActionTypes.UPDATE_CATE_ATTRIBUT]({ commit }: AugmentedActionContextAppData, { buildingId, referenceId, cateId, item }: { buildingId: string, referenceId: number, cateId: number, name: string, item: object }): Promise<any> {
+		console.warn('11111111111111111 :', referenceId);
+
+		try {
+			const result = await updateCategoryAttribut(buildingId, referenceId, cateId, item)
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la suppression du fichier');
+			throw error;
+		}
+	},
+
+
+	async [ActionTypes.GET_CATEGORIES_LIST]({ commit }: AugmentedActionContextAppData, { buildingId, referenceId }: { buildingId: string; referenceId: number }): Promise<any> {
+		const spinalAPI = SpinalAPI.getInstance();
+		try {
+			const result = await getCategoriesList(buildingId, referenceId);
+			return result;
+		} catch (error) {
+			console.error('Erreur lors de la récupération des catégories:', error);
+			throw error;
+		}
+	},
+
+	async [ActionTypes.ADD_ATTRIBUT]({ commit, dispatch }: AugmentedActionContextAppData, { buildingId, referenceId, formData }: { buildingId: string; referenceId: number; categoryId: number; formData: FormData }): Promise<any> {
+
+		const spinalAPI = SpinalAPI.getInstance();
+		const update = formData.get('update');
+		const str_list = formData.get('categoriesList') as string;
+		const categoryName = formData.get('categoryName') as string;
+
+
+
+		if (str_list !== '') {
+			const categriesList = str_list.split(',');
+			try {
+				const result = await Promise.all(categriesList.map(async (element) => {
+					const category = await createCategory(buildingId, referenceId, element);
+					return category;
+				}))
+
+			} catch (error) {
+				console.error('Erreur lors de la création des catégories:', error);
+				throw error;
+			}
+		}
+		if (update === 'true') {
+
+			try {
+				// Fonction pour récupérer le dynamicId avec des tentatives répétées
+				async function getDynamicIdWithRetry() {
+					const maxRetries = 10; // Nombre maximum de tentatives
+					const delay = 1000; // Délai entre chaque tentative en millisecondes
+
+					for (let attempt = 1; attempt <= maxRetries; attempt++) {
+						const categoriesList = await dispatch(ActionTypes.GET_CATEGORIES_LIST, { buildingId, referenceId });
+						// console.log(`Attempt ${attempt}: categoriesList: `, categoriesList);
+
+						const category = categoriesList.find((element) => element.name === categoryName);
+						if (category && category.dynamicId) {
+							return category.dynamicId;
+						}
+
+						// Attendre avant la prochaine tentative
+						await new Promise(resolve => setTimeout(resolve, delay));
+					}
+
+					throw new Error('Failed to retrieve dynamicId after multiple attempts');
+				}
+
+				// Récupérer le dynamicId avec des tentatives répétées
+				const dynamicId = await getDynamicIdWithRetry();
+
+				// Formater les données
+				const formattedData = new FormData();
+				formData.forEach((value, key) => {
+					if (key !== 'update' && key !== 'categoriesList') {
+						formattedData.append(key, value);
+					}
+				});
+
+
+
+				// Créer l'attribut
+				const result = await createAttribut(buildingId, referenceId, dynamicId, formattedData);
+				return result;
+			} catch (error) {
+				console.error('Erreur lors de la création des attributs:', error);
+				throw error;
+			}
+
+
+		}
+		else {
+			const dynamicId = formData.get('dynamicId');
+			const formattedData = new FormData();
+			formData.forEach((value, key) => {
+				if (key !== 'update' && key !== 'categoriesList') {
+					formattedData.append(key, value);
+				}
+			});
+			const result = await createAttribut(buildingId, referenceId, dynamicId, formattedData);
+			return result;
+
+		}
+		// try {
+		// 	const result = await createAttribut(buildingId, referenceId, categoryId, formattedData);
+		// 	return result;
+		// } catch (error) {
+		// 	console.error('Erreur lors de la création des attributs:', error);
+		// 	throw error;
+
+		// }
+	},
+
 
 	async [ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE]({ commit }: AugmentedActionContextAppData, { buildingId, referenceIds }: { buildingId: string; referenceIds: number[] }): Promise<any> {
 
@@ -462,11 +653,9 @@ export const actions = {
 					forceUpdate: false,
 				})
 
-			
-	// console.log("//////////////////////////////// building", building)
+
 				if (window.parent.router.query.spaceSelectedId != building)
 					window.parent.router.query.spaceSelectedId = building
-				// console.log('///////////////////////////////// le test ');
 
 				const body = {
 					//dynamicId: ids,
@@ -519,13 +708,10 @@ export const actions = {
 	},
 
 	[ActionTypes.HIDE_ITEMS]({ commit, dispatch, state }, playload: any) {
-		console.error('aaaaa', playload);
-
 		ViewerManager.getInstance().hide(playload);
 	},
 
 	[ActionTypes.ISOLATE_ITEMS]({ commit, dispatch, state }, playload: any) {
-		console.log(ViewerManager.getInstance(), 'Linstance : le payload : ', playload);
 
 		let isKeyPresent = false;
 		for (let id of playload.item.parents) {
@@ -572,8 +758,14 @@ export const actions = {
 		return ViewerManager.getInstance().addSprites(items, buildingId);
 	},
 
-	[ActionTypes.ADD_COMPONENT_AS_SPRITES]({ commit, dispatch, state }, { items, buildingId, component }: any) {
-		return ViewerManager.getInstance().addComponentAsSprites(items, buildingId, component);
+	[ActionTypes.ADD_COMPONENT_AS_SPRITES]({ commit, dispatch, state }, { items, buildingId, component, group }: any) {
+		console.warn(group , ' aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+		
+		return ViewerManager.getInstance().addComponentAsSprites(items, buildingId, component, group);
+	},
+
+	[ActionTypes.REMOVE_SPRITES_BY_GROUP]({ commit, dispatch, state }, group: string) {
+		return SpriteManager.getInstance().removeSpritesByGroup(group);
 	},
 
 	[ActionTypes.REMOVE_ALL_SPRITES]({ commit, dispatch, state }) {

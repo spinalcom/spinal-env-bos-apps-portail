@@ -1,7 +1,7 @@
 <template >
           <button 
     class="button-add-ticket" @click="$emit('open-dialog')">
-        <v-icon class="icon">{{ icon }}</v-icon>
+        <v-icon class="icon_add">{{ icon }}</v-icon>
             <div class="text-button">
                 <span class="title-button">{{ name }}</span>
             </div>
@@ -29,7 +29,7 @@ export default {
 </script>
 
 <style>
-    .icon {
+    .icon_add {
         width: 28px !important;
         height: 28px !important;
         background-color: white !important;

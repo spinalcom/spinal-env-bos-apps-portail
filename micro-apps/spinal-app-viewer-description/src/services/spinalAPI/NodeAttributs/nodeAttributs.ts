@@ -19,3 +19,26 @@ export async function updateMultipleAttributes(buildingId: string, formattedData
     }
     
 }
+
+
+export async function getCategoriesList(buildingId: string, referenceId: number): Promise<any> {
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/node/${referenceId}/categoriesList`);
+    const result = await spinalAPI.get(url);
+    return result.data;
+}
+
+
+export async function createAttribut(buildingId, referenceId, categoryId, formattedData: FormData): Promise<any> {
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/node/${referenceId}/category/${categoryId}/attribut/create`);
+    const result = await spinalAPI.post(url, formattedData)
+    return result;
+}
+
+export async function createCategory(buildingId: string, referenceId: number, categoryName: string): Promise<any> {
+    const spinalAPI = SpinalAPI.getInstance();
+    const url = spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/node/${referenceId}/category/create`);
+    const result = await spinalAPI.post(url, { categoryName: categoryName });
+    return result;
+}

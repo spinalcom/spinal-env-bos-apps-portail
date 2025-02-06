@@ -62,7 +62,9 @@ color: #14202C;
 .animation-remove-file {
     animation: delete-file 0.5s linear;
    }
-  
+  .v-select__selection--comma {
+    font-size: 19px !important;
+  }
 /* KeyFrame */
 @keyframes delete-file {
     0% {

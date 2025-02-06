@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex flex-column flex-grow-1 flex-shrink-1" style="height: 0">
+  <div class="d-flex flex-column flex-grow-1 flex-shrink-1" style="height: 400">
       <LineChart :data="lineChartData" :chart-id="'2'" :options="lineChartOptions" class="bar-height" />
     </div>
 </template>
@@ -184,19 +184,15 @@ export default {
               display: false,
             },
             grid: {
-              display: false,
+              display: true,
             },
             ticks: {
-              callback: (v, i) => {
-                if (!(v % this.step || [0, this.labels.length - 1].includes(i)))
-                  return this.labels[i];
-              },
-              font: {
-                family: "Charlevoix Pro",
-                size: 11,
-              },
-              color: "#214353",
-            },
+  font: {
+    family: "Charlevoix Pro",
+    size: 11,
+  },
+  color: "#214353",
+},
           },
         },
         plugins: {
@@ -242,6 +238,7 @@ export default {
   },
 
   created() {
+ 
     const colors =
       this.datasets.length <= 3
         ? defaultColor(3)

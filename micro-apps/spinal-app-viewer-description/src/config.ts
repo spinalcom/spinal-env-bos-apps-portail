@@ -31,11 +31,24 @@ export const config: IConfig = {
 	viewerInfo: { roomRef: true, floorRef: true, equipments: "all" },
 	temporality: [ITemporality.currentValue, ITemporality.day, ITemporality.week, ITemporality.month, ITemporality.year],
 
-	idAppDescription : "eyJuYW1lIjoiZGVzY192MiIsInR5cGUiOiJCdWlsZGluZ0FwcCIsImlkIjoiOTQ1MC1hNzI4LWM2Y2QtMTkzYWFmNjNjZmYiLCJkaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzMzNzQwMTAxOTIwLCJpbmRpcmVjdE1vZGlmaWNhdGlvbkRhdGUiOjE3MzM3NDAwODQ0NzksImljb24iOiIiLCJkZXNjcmlwdGlvbiI6IiIsInRhZ3MiOltdLCJjYXRlZ29yeU5hbWUiOiIiLCJncm91cE5hbWUiOiIiLCJoYXNWaWV3ZXIiOmZhbHNlLCJwYWNrYWdlTmFtZSI6InNwaW5hbC1hcHAtdmlld2VyLWRlc2NyaXB0aW9uX3YyIiwiaXNFeHRlcm5hbEFwcCI6ZmFsc2UsImxpbmsiOiIiLCJkb2N1bWVudGF0aW9uTGluayI6IiIsInJlZmVyZW5jZXMiOnt9LCJwYXJlbnQiOnsicG9ydG9mb2xpb0lkIjoiMzdkZS0wMmI4LWUxOGItMTg1MDY0M2I2OGEiLCJidWlsZGluZ0lkIjoiNTkzMi02MDg2LTllMWEtMTg1MDY0Nzg0NjAifX0",
+	idAppDescription: "eyJuYW1lIjoiRGVzY3JpcHRpb24iLCJ0eXBlIjoiQnVpbGRpbmdBcHAiLCJpZCI6IjBlZGQtNDI2Zi1hZDc2LTE5MzBiOTM3NmRlIiwiZGlyZWN0TW9kaWZpY2F0aW9uRGF0ZSI6MTczMTA2Njc5MTA5OCwiaW5kaXJlY3RNb2RpZmljYXRpb25EYXRlIjoxNzMxMDY2MDMzODg2LCJpY29uIjoibWRpLWJsYWNrLW1lc2EiLCJkZXNjcmlwdGlvbiI6IiIsInRhZ3MiOlsiVmlld2VyIl0sImNhdGVnb3J5TmFtZSI6IiIsImdyb3VwTmFtZSI6IiIsImhhc1ZpZXdlciI6ZmFsc2UsInBhY2thZ2VOYW1lIjoic3BpbmFsLWFwcC12aWV3ZXItZGVzY3JpcHRpb24iLCJpc0V4dGVybmFsQXBwIjpmYWxzZSwibGluayI6IiIsImRvY3VtZW50YXRpb25MaW5rIjoiIiwicmVmZXJlbmNlcyI6e30sInBhcmVudCI6eyJwb3J0b2ZvbGlvSWQiOiIzN2RlLTAyYjgtZTE4Yi0xODUwNjQzYjY4YSIsImJ1aWxkaW5nSWQiOiI1OTMyLTYwODYtOWUxYS0xODUwNjQ3ODQ2MCJ9fQ",
 
 	//DATASIDE vue globale
 	//catégorie d'inventaire cliblé
-	inventory: "Mobilier",
+	inventory: "Typologie",
+
+	inventaire: [
+		{
+			ctx: 'Gestion des équipements',
+			cat: 'Typologie',
+			grp: ['Chaises']
+		},
+		{
+			ctx: 'Gestion des équipements',
+			cat: 'Mobilier',
+			//   grp: ['Tableaux']
+		},
+	],
 
 
 	//plusieur categorie d'attr -> pour les pieces
@@ -104,7 +117,7 @@ export const config: IConfig = {
 			// value: null //si string affiche la donnée voulu sinon affiche tout les attributs
 		},
 
-		
+
 		{
 			name: "bimObjects",
 			value: true
@@ -125,7 +138,7 @@ export const config: IConfig = {
 			categorie: "Command",
 			value: "COMMAND_BLIND" //si string affiche la donnée voulu sinon affiche tout les endpoints
 		},
-		
+
 		{
 			name: "controlEndpoint",
 			categorie: "Command",

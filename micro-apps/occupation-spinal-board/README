@@ -1,0 +1,30 @@
+// Détail des données du fichier config.js : 
+
+config: {
+  contextType: 'type du contexte', // Spécifie le type du contexte ("room" ou "equipment") (type: string)
+  title: 'titre du document', // Titre du document, titre du tableau (type: string)
+  context: 'contexte', // Spécifie le contexte (type: string)
+  groupingCategory: 'catégorie', // Spécifie la catégorie (type: string)
+  bimObjectGroup: 'groupe de BIM objects', // Spécifie le groupe de BIM objects (type: string)
+  enableWebSocket: true ou false, // Active ou désactive le Websocket (true ou false)
+  enableCapacityTab: true ou false, // Active ou désactive la Table des capacités (true ou false)
+  itemPerTable: int, // Nombre d'items par tableau de données (type: int)
+  headers: [ // Spécifie les données du tableau
+    {
+      text: 'nom de la colonne dans le header', // Nom de la colonne dans le header (type: string)
+      value: 'controlePoint ou endpoint voulu', // Spécifie les endpoints (type: string)
+      unit: 'unité de la donnée du tableau', // Ajoute une unité à la donnée du tableau (type: string)
+      sortable: true ou false, // Active ou désactive le tri du tableau (true ou false)
+      filterable: true ou false, // Active ou désactive le filtre dans la colonne souhaitée (true ou false)
+      isBoolean: true ou false, // Spécifie si la valeur est un booléen (true ou false)
+      editBoolean: 'string1/strig2', // Modifie le type booléens avec les deux valeurs souhaitées (type: string , deux string séparé par un "/")
+      colorBoolean: 'color1/color2', // Ajoute une pastille de couleur et spécifie les deux couleurs (type: string" , deux string séparé par un "/")
+      addToCapacityTab: true ou false, // Ajoute la colonne souhaitée au tableau des capacités (true ou false)
+    },
+    // ... autres colonnes du tableau
+  ]
+}
+// * !! pour les values des endpoints pour le moment mettre endpoint/ devant la valeur (exemple : endpoint/Luminosité)
+// * Les booléens non renseignés sont considérés comme étant "false" par défaut (!excépté "sortable").
+// * La value colonnes ajouter au tableau des capacités doivent être de type Booleen
+// * Pour editBoolean et colorBoolean la première string correspond aux valeurs true et la seconde string correspond aux valeurs false

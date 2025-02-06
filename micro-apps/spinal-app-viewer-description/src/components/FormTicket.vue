@@ -16,35 +16,38 @@
         <div class="w-full h-full overflow-hidden overflow-y-auto" >
   
           <div style="width: 100%;  padding: 20px;">
-            <v-row class="row">
+            <v-row class="row" style="padding-inline: 30px">
   
               <v-select
               class="w-1/3 small-select"
-              
+              style="padding: 10px;"
               v-model="workflowId"
               :items="workflowlist"
               item-text="name"
               item-value="dynamicId"
               @change="getProcessList(workflowId)"
               outlined
+              dense
               label="Séléctionner un workflow" >
               
             </v-select>
             <v-select
             v-model="processId"
             class="w-1/3 small-select"
+            style="padding: 10px;"
             :items="process"
             item-text="name"
             item-value="dynamicId"
             outlined
+            dense
             label="Séléctionner un process" >
             
           </v-select>
             </v-row>
     
-          <v-card-title>
+          <!-- <v-card-title>
             <span class="headline"></span>
-          </v-card-title>
+          </v-card-title> -->
   
           <v-card-text style="min-height: 200px;">
             <div class="col">
@@ -69,7 +72,7 @@
               </v-row>
                 <div class="upload-img" style="margin-top: 10px;" >
                   <v-icon>mdi-file-multiple</v-icon>
-                  <span>cliquer ou déposer un fichier</span>
+                  <span>cliquer ou glisser un fichier pour le téléverser</span>
                     <input type="file" name="images" id="" multiple @change="uploadsFile">
                 </div>
               </div>
@@ -81,7 +84,7 @@
                                         <span>{{ item.name }}</span>
                                     </div>
                                     <div >
-                                        <span style="padding-left: 30px;">{{ filesSize(item.size) }}</span>
+                                        <span style="padding-left: 40px;">{{ filesSize(item.size) }}</span>
                                     </div>
                              
                                     <v-icon class="close" @click="removeFile(idx)" >mdi-close</v-icon>
@@ -309,278 +312,6 @@ import getIcon from '../services/function/getIcon';
   };
   </script>
   
-  <style scoped>
-     .content {
-        width: 100%;
-        height: calc(100vh - 200px);
-        background-color: #fff;
-        border-radius: 24px;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: center;
-        position: relative;
-        overflow: hidden;
-        
-    }
-  .small-select {
-  font-size: 5px;
-}
-
-
-.small-select .v-select__control {
-  height: 36px; /* Ajuste la hauteur du champ de sélection */
-}
-
-.small-select .v-select__selections {
-  font-size: 12px; /* Assure que les sélections de texte sont petites aussi */
-}
-.v-select__selection--comma  {
-  font-size: 12px !important;
-}
-    .row {
-      display: flex !important;
-      gap: 20px;
-    }
-    .border {
-      border: 1px solid #14202C;
-    }
-    .w-1\/3 {
-      width: 50% !important;
-    }
-    .w-full {
-      width: 100% !important;
-    }
-    .overflow-hidden{
-      overflow: hidden;
-    }
-    .overflow-y-auto {
-      overflow-y: auto;
-    }
-    .h-full {
-      height: 100% !important;
-    }
-    .w-1\/3 {
-      width: 33.333333% !important;
-    }
-    .h-1\/3 {
-      height: 33.333333% !important;
-    }
-    .col {
-      display: flex !important;
-      flex-direction: column !important;
-      gap: 5px
-    }
-      .py-7 {
-        padding-block: 1.75rem; 
-      }
-      .upload-img {
-        width: calc(100% - 200px);
-        min-height: 100px;
-        height: 100px;
-        border: 1px dashed #14202C;
-        border-radius: 16px;
-        padding: 20px;
-        position: relative;
-        margin: auto;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        gap: 10px;
-        font-size: 16px;
-        align-items: center;
-      }
-      .upload-img input {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        opacity: 0;
-        cursor: pointer;
-      }
-
-      .file-content {
-        margin-top: 10px;
-        height: calc(100% - 10px);
-        width: calc(100% - 150px);
-        min-height: 25px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        overflow: hidden;
-        overflow-y: auto;
-        background-color: rgb(255, 255, 255);
-        margin: auto;
-    }
-
-      .pointer {
-        cursor: pointer;
-      }
-      .flex {
-        display: flex;
-      }
-      .flex-col {
-        flex-direction: column;
-      }
-      .flex-row {
-        flex-direction: row;
-      }
-      .justify-between {
-        justify-content: space-between;
-      }
-      .justify-around {
-        justify-content: space-around;
-      }
-      .justify-start {
-        justify-content: flex-start;
-      }
-      .items-center {
-        align-items: center;
-      }
-      .items-between {
-        align-items: space-between;
-      }
-      .items-start {
-        align-items: flex-start;
-      }
-      .cursor-pointer {
-        cursor: pointer;
-      }
-      .text-lg {
-        font-size: 10px !important;
-      }
-      .v-select {
-          font-size: 14px  !important;
-          overflow: hidden;
-      }
-      .file {
-        width: 100%;
-        min-height: 40px;
-        height:40px;
-        overflow: hidden;
-        border-radius: 16px;
-        border: 1px solid #14202C;
-        padding: 10px;
-        display: flex;
-        font-size: 14px;
-        flex-direction: column;
-        position: relative;
-        color: #14202C;
-
-    }
-      .progress-bar {
-        width: calc(100% - 40px);
-        height: 4px;
-        border-radius: 10px;
-        background-color: rgb(196, 191, 191);
-      }
-      .fill {
-        width: 50%;
-        height: 100%;
-        background-color: #16233077;
-        border-radius: 10px;
-      }
-      .v-dialog:not(.v-dialog--fullscreen) {
-        height: 45% !important;
-        background-color: white !important;
-      }
-      .save-btn {
-        width: max-content;
-        height: max-content;
-        padding: 14px;
-        background-color: #14202C;
-        border-radius: 16px;
-        color: #fff !important;
-        font-weight: 700;
-      }
-      .border-bottom {
-        border-bottom: 1px solid rgba(226, 232, 240, 0.788) ;
-      }
-      .cancel-btn {
-        width: max-content;
-        height: max-content;
-        padding: 16px;
-        border-radius: 16px;
-        background-color: rgb(226 232 240);
-        font-weight: 700;
-      }
-      .text-alert {
-        color: rgba(133, 27, 27, 0.757);
-        font-size: 14px;
-        font-weight: 700;
-        text-align: center;
-        font-family: charlevoix-pro, sans-serif;
-      }
-      .valid_formText {
-    color: rgba(133, 27, 27, 0.757);
-    font-size: 12px;
-    font-weight: 600;
-    margin-top: 10px;
-    margin: auto;
-    text-align: center;
-    font-family: Charlevoix Pro, sans-serif;
-   }
-      .chip{
-        width: 120px;
-        height: 30px;
-        border-radius: 20px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 14px;
-        font-weight: 700;
-        text-transform: capitalize;
-        position: relative;
-        cursor: pointer;
-        user-select: none;
-        border: 1px solid #14202C;
-        background-color: white;
-      }
-      .chip-point {
-        width: 15px;
-        height: 15px;
-        border-radius: 50%;
-        border: 1px solid #14202C;
-        background-color: white;
-        position: absolute;
-        content: '';
-        right: 5px;
-      }
-      .chip:hover {
-        background-color: #14202c5d;
-        color: white;
-      }
-      .icon-check {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background-color: #14202C !important;
-        display: flex;
-        justify-content: center;
-        border: 4px solid white;
-        align-items: center;
-        padding: 10px;
-        color: white !important;
-        font-size: 20px;
-        position: absolute;
-        top: -8px;
-        right: -4px;
-        animation: check-animation 4ms ease-in-out;
-      }
-      .checked {
-        background-color: #14202C;
-        color: white;
-      }
-
-      @keyframes check-animation {
-        0% {
-
-          transform: scale(1.2) translate(0, -10px);
-        }
-        100% {
-          transform: scale(1) translate(0, 0);
-        }
-      }
+  <style scoped src="../assets/formComp.css" >
   </style>
   

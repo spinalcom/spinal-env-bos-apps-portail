@@ -1,6 +1,6 @@
 <template>
 
-<v-dialog class="dialog-content" v-model="show" persistent width="75%" style="display: flex !important;gap: 20px !important; font-size: 12px !important; overflow: hidden; background: white !important; border-radius: 20px !important;">
+<v-dialog class="dialog-content" v-model="show" persistent width="60%" style="display: flex !important;gap: 20px !important; font-size: 12px !important; overflow: hidden; background: white !important; border-radius: 20px !important;">
         <div class="content-form">
                 <form style="width: 100%; height: 100%;" @submit.prevent="uploadDoc">
                     <div class="header">
@@ -16,7 +16,7 @@
                                 <v-icon >
                                     mdi-file-download-outline
                                 </v-icon>
-                                <span>Cliquer ou glisser un fichier pour le téléverser</span>
+                                <span style="text-align: center;">Cliquer ou glisser un fichier pour le téléverser</span>
                                 <input type="file" multiple ref="fileInput" @change="pushFile">
                         </div>
                         <p v-if="isValid" class="valid_formText">{{ valid_message }}</p>
@@ -119,7 +119,7 @@ import getIcon from '../services/function/getIcon';
                 return fileName.match(/\.[0-9a-z]+$/i);
             },
             pushFile(){
-                const files_types = ['png', 'jpg', 'jpeg', 'pdf', 'xls', 'xlsx', 'csv', 'mp4', 'avi', 'webm'];
+                const files_types = ['png', 'jpg', 'jpeg', 'pdf', 'xls', 'xlsx', 'csv', 'json', 'mp4', 'avi', 'webm'];
             
                 const files = this.$refs.fileInput.files;
                 for (let index = 0; index < files.length; index++) {
@@ -166,10 +166,11 @@ import getIcon from '../services/function/getIcon';
 </script>
 
 
-<style>
+<style scoped>
     .content-form {
         width: 100%;
-        height: calc(100vh - 300px);
+        min-height: 400px;
+        padding-bottom: 30px;
         background-color: #ffffff;
         border-radius: 24px;
         display: flex;
@@ -177,6 +178,8 @@ import getIcon from '../services/function/getIcon';
         justify-content: flex-start;
         align-items: center;
         position: relative;
+        overflow: hidden;
+        user-select: none;
         
     }
     .content-form .header {
@@ -195,7 +198,7 @@ import getIcon from '../services/function/getIcon';
     }
     .content-input {
         width: 100%;
-        height: calc(100% - 100px);
+        height: 450px;
         background-color: #ffffff;
         display: flex;
         flex-direction: column;
@@ -203,6 +206,7 @@ import getIcon from '../services/function/getIcon';
         align-items: center;
         padding-top: 10px;
     }
+    
     .content-form .header > div {
         display: flex;
         gap: 10px;
@@ -228,7 +232,7 @@ import getIcon from '../services/function/getIcon';
       }
     .content-form  .upload-img {
         width: calc(100% - 450px);
-        height: calc(100% - 240px);
+        height: 200px;
         border: 2px dashed #14202C;
         border-radius: 16px;
         display: flex;
@@ -239,9 +243,27 @@ import getIcon from '../services/function/getIcon';
         position: relative;
     }
     .file {
-        display: flex;
-        gap: 10px;
-    }
+    width: 100%;
+    min-height: max-content !important;
+    height: max-content !important;
+    overflow: hidden;
+    border-radius: 16px;
+    border: 1px solid #14202C;
+    padding: 10px !important;
+    background-color: white;
+    display: flex;
+    font-size: 14px;
+    flex-direction: column;
+    position: relative;
+    color: #14202C;
+}
+.close {
+    position: absolute !important;
+    top: 50%!important;
+    transform: translateY(-50%);
+    right: 5px !important;
+    cursor: pointer !important;
+}
    
     .content-form .file-content {
         margin-top: 10px;
@@ -250,11 +272,27 @@ import getIcon from '../services/function/getIcon';
         min-height: 25px;
         display: flex;
         flex-direction: column;
+        padding-inline: 5px;
         gap: 10px;
         overflow: hidden;
         overflow-y: auto;
         background-color: rgb(255, 255, 255);
     }
+    .content-form .file-content::-webkit-scrollbar
+    {
+        width: 10px;
+    }
+    .content-form .file-content::-webkit-scrollbar-thumb
+    {
+        background-color: #858484c5;
+        border-radius: 10px;
+    }
+    .content-form .file-content::-webkit-scrollbar-track
+    {
+        border-radius: 16px;
+        background-color: #f1f1f1;
+    }
+
     .file-content .file {
         width: 100%;
         min-height: 40px;

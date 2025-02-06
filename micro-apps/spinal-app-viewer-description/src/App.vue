@@ -25,7 +25,6 @@ with this file. If not, see
 
   <v-app v-if="pageSate === PAGE_STATES.loaded" class="app">
 
-
     <div class="selectors">
       <div class="DButton">
         <ScDownloadButton :fileName="'insight_data'" :csv="true" :data="getDataFormatted()" />
@@ -46,7 +45,7 @@ with this file. If not, see
 
     <div class="dataBody">
       <viewerApp :class="{ 'active3D': isActive3D }" class="viewerContainer"></viewerApp>
-      <dataSideApp :floor="floor" :DActive="isActive3D" :ActiveData="isActive"
+      <dataSideApp :changeData="loadingdata" :floor="floor" :DActive="isActive3D" :ActiveData="isActive"
         :class="{ 'active': isActive, 'inactive': isActive3D }" class="appContainer" :config="config"
         :selectedZone="selectedZone" :data="displayedData" @changeRoute="changeApp" @clickOnDataView="onDataViewClicked"
         @buttonClicked="toggleActive" @buttonClicked3D="toggleActive3D" @full3D="full3D()">
@@ -137,6 +136,7 @@ class App extends Vue {
     spaceSelectedId: '',
     buildingId: ''
   };
+  loadingdata: boolean = false
   firstCOlor: boolean = false;
   coloredRoom: null
   floor: any = null
@@ -146,7 +146,6 @@ class App extends Vue {
     this.RemoveEventHandlers();
 
     EventBus.$on('colorRoom', (dynamicId) => {
-
       const buildingId = localStorage.getItem("idBuilding");
       const itemsToColor = [{
         buildingId: buildingId,
@@ -182,7 +181,6 @@ class App extends Vue {
         items: itemsToColor,
         buildingId: buildingId,
       });
-
     });
 
 
@@ -200,11 +198,8 @@ class App extends Vue {
     }
 
     this.$nextTick(() => {
-
       // this.query.app = this.config.idAppDescription
-
       // window.parent.router.query.app = this.query.app
-
       const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
       this.applyURLParam(currentQuery);
     });
@@ -316,6 +311,7 @@ class App extends Vue {
 
 
   toggleActive(value) {
+    console.log(value);
     if (this.isActive3D) {
       this.isActive3D = false
     }
@@ -362,7 +358,7 @@ class App extends Vue {
       case undefined:
 
         const buildingId = localStorage.getItem("idBuilding");
-        if (buildingId) {
+          if (buildingId) {
           const playload = {
             config,
             item: { buildingId, type: "building" },
@@ -492,6 +488,11 @@ class App extends Vue {
     //   "type": "geographicFloor"
     // }
 
+    this.loadingdata = !this.loadingdata
+
+    console.warn('le lancement du projetttttttttttttttttttt');
+    
+    
     const buildingId = localStorage.getItem("idBuilding");
 
 

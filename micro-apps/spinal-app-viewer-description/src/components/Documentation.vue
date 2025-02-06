@@ -38,18 +38,21 @@
             </div>
             <!-- Affichage des données du fichier excel -->
              <div v-if="show[0].excel.show" class="excel-vue">
-                <table>
-                    <thead>
-                        <tr>
-                            <th v-for="header in headersTableExcel">{{ header }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="row in tableExcelData">
-                            <td v-for="cell in row">{{ cell }}</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <v-data-table
+                    :headers="headersTableExcel"
+                    :items="tableExcelData"
+                    class="elevation-1 header-excel"
+                    loader-height="2"
+                    dense
+                    :loading="loading"
+                    loading-text="Chargement des données"
+                
+                >
+                    </v-data-table>
+          
+             </div>
+             <div v-if="show[0].json.show">
+                    <pre>{{ jsonData }}</pre>
              </div>
              <div v-if="show[0].movie.show" class="movie-vue">
                     <video  :src="show[0].movie.url" controls > 
@@ -122,8 +125,10 @@ const getToolbar = () => ({
                 numPages: 0,
                 curentpage: 1,
                 loader: true,
-                headersTableExcel: [],
+                headersTableExcel: [{}],
                 tableExcelData: [],
+                jsonData: [],
+                loading: true,
                 show :[ {
                     pdf: {
                         show: false,
@@ -141,6 +146,10 @@ const getToolbar = () => ({
                         show: false,
                         url: '',
                     },
+                    json: {
+                        show: false,
+                        url: '',
+                    }
                   
                 }],
                 vue_pdfConfig: {
@@ -198,12 +207,14 @@ const getToolbar = () => ({
             showFile(type: string, url: string){
               
                this.show.map(async (item, index)=> {
+       
                     if(type === 'pdf'){
                         item.pdf.show = true;
                         item.pdf.url = url;
                         item.excel.show = false;
                         item.image.show = false; 
                         item.movie.show = false;
+                        item.json.show = false;
                         
                     
                     }else if(type === 'png' || type === 'jpeg' || type === 'jpg'){
@@ -212,6 +223,7 @@ const getToolbar = () => ({
                         item.pdf.show = false;  
                         item.excel.show = false;
                         item.movie.show = false;
+                        item.json.show = false;
 
                     } else if(type === 'mp4' || type === 'mkv' || type === 'ogg' || type === 'avi' || type === 'mov' || type === 'flv' || type === 'wmv'){
                         item.movie.show = true;
@@ -219,14 +231,16 @@ const getToolbar = () => ({
                         item.pdf.show = false;
                         item.image.show = false;
                         item.excel.show = false;
+                        item.json.show = false;
                     }
                     
                     
-                    else if(type === 'xlsx' || type === 'xls'){
+                    else if(type === 'xlsx' || type === 'xls' || type === 'csv'){
                         item.pdf.show = false;
                         item.image.show = false;
                         item.excel.show = true;
                         item.movie.show = false;
+                        item.json.show = false;
                         this.tableExcelData = [];
                         this.headersTableExcel = [];
                         item.excel.url = url;
@@ -236,13 +250,34 @@ const getToolbar = () => ({
                         
                         const load = utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]])
                        load.forEach((row, index) => {
-                            if(index === 0){
-                                 this.headersTableExcel = Object.keys(row)
-                            }
-                            this.tableExcelData.push(Object.values(row))
-                        })
-                       
+                        if(index === 0) {
+                           const headers = Object.keys(row)
+                            headers.forEach((header) => {
+                                 this.headersTableExcel.push({
+                                    text: header,
+                                    value: header,
+                                 })
+                            })
 
+                        }
+                         this.tableExcelData.push(row)
+                         this.loading = false;
+                        })
+
+
+                    }
+                    else if(type === 'json') {
+                        item.pdf.show = false;
+                        item.image.show = false;
+                        item.excel.show = false;
+                        item.movie.show = false;
+                        item.json.show = true;
+                        item.json.url = url;
+                        const data = fetch(url)
+                        const json = (await data).json()
+                        json.then((res) => {
+                            this.jsonData = res;
+                        })
                     }
                })
             },
@@ -252,7 +287,7 @@ const getToolbar = () => ({
 
 </script>
 
-<style>
+<style scoped>
 
     .top-bar {
         width: 100%;
@@ -273,6 +308,7 @@ const getToolbar = () => ({
         position: relative;
         overflow: hidden;
         overflow-y: auto;
+       
     }
 
     .name-file {
@@ -398,12 +434,16 @@ const getToolbar = () => ({
     .btn-closed {
         height: max-content;
         cursor: pointer;
-        color: #fff;
+        color: #fff !important;
         padding: 8px;
         font-size: 16px;
         border-radius: 10px;
         font-weight: 700;
         background-color: #14202C;
+    }
+    .header-excel {
+        background-color: #14202C;
+        color: #fff;
     }
    
 .loader-doc {
@@ -420,5 +460,34 @@ const getToolbar = () => ({
           mask-composite: intersect;
   animation:l4 1s infinite steps(10);
 }
+
+
+@media (max-width: 1024px) and (min-width: 760px) {
+    .content {
+        resize: vertical;
+        -m-resize: vertical;
+        z-index: 1000;
+        background-color: #ffffff;
+        height: calc(100% - 24px);
+    }
+        .movie-vue {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            overflow-y: auto;
+        }
+        .movie-vue video {
+            width: 100% ;
+            height: 100% ;
+            object-fit: cover;
+            border-radius: 10px;
+            overflow: hidden;
+            object-position: center;
+        }
+}
+
 @keyframes l4 {to{transform: rotate(1turn)}}
 </style>

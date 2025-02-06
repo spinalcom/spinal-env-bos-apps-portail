@@ -104,6 +104,9 @@ export class EventManager {
 			emitterHandler.on(<any>VIEWER_EVENTS.VIEWER_ADD_COMPONENT_SPRITE, (data: any) => {
 				viewerUtils.addComponentAsSprite(viewer, data);
 			});
+			emitterHandler.on(<any>VIEWER_EVENTS.VIEWER_ADD_CARD_COMPONENT, (data: any) => {
+				viewerUtils.addCardComponent(viewer, data);
+			});
 
 
 

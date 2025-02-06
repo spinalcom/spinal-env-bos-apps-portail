@@ -17,6 +17,11 @@ export default function getIcon(file_name: string): { name: string, color: strin
                 name:'mdi-file-excel-box',
                 color: '#207245'
             };
+          case 'json': 
+            return {
+                name:'mdi-code-braces-box',
+                color: '#14202C'
+            };
           case 'jpg':
           case 'jpeg':
             return {

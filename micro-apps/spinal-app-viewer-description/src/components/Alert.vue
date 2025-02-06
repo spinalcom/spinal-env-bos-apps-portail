@@ -1,5 +1,5 @@
 <template>
-    <div v-show="show_alert" class="alert-content">
+    <div v-show="show" class="alert-content">
         <div style="width: 100%; padding: 10px; display: flex; align-items: center; gap: 10px;">
             <v-icon
                 :color="currentIcon.color"
@@ -73,10 +73,11 @@ export default {
 <style scoped>
 .alert-content {
     min-width: max-content;
+    width: 200px;
+    height: max-content;
     position: fixed;
-    top: 100px;
     left: 45%;
-    transform: translateX(-55%);
+    transform: translateX(-55%) translateY(40%);
     color: #14202C;
     font-weight: 700;
     font-size: 14px;

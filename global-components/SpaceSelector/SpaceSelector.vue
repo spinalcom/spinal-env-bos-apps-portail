@@ -25,17 +25,12 @@ with this file. If not, see
 <template>
   <div>
     <div class="space-selector-container" :class="{ isopen: open }">
-      <v-card
-        color="#14202C"
-        :class="{ 'space-selector-open': open }"
-        class="space-selector"
-        style="
+      <v-card color="#14202C" :class="{ 'space-selector-open': open }" class="space-selector" style="
           border: 1px solid #f5f5f5;
           border-left: 2px solid #f5f5f5;
           border-bottom: none !important;
           overflow: hidden;
-        "
-        :style="[
+        " :style="[
           { height: open ? selectorHeight + 'px !important' : '59px' },
           { 'overflow-y': !isFill },
           { 'border-right': edge ? '' : 'none' },
@@ -44,67 +39,38 @@ with this file. If not, see
             'border-bottom-right-radius':
               edge || (!edge && open) ? '' : '0 !important',
           },
-        ]"
-      >
-        <div
-          ref="SpaceSelectorTitleContainer"
-          @click.stop="
-            $emit('update:open', !open);
-            showSign();
-          "
-          class="space-selector-header"
-          :style="{ cursor: maxDepth !== -1 ? 'pointer' : 'default' }"
-        >
+        ]">
+        <div ref="SpaceSelectorTitleContainer" @click.stop="
+          $emit('update:open', !open);
+        showSign();
+        " class="space-selector-header" :style="{ cursor: maxDepth !== -1 ? 'pointer' : 'default' }">
           <span class="legend">{{ label }}</span>
           <p class="space-selector-header-title">
-            <v-icon
-              :style="[
-                { color: maxDepth !== -1 ? '#f5f5f5' : '#14202c' },
-                { width: maxDepth !== -1 ? 'auto' : '0 !important' },
-                { color: maxDepth !== -1 ? '#f5f5f5' : '#14202c' },
-              ]"
-              class="rotate-disabled space-selector-header-title-icon"
-              :class="{ 'rotate-enabled': open }"
-            >
+
+            <v-icon :style="[
+              { color: maxDepth !== -1 ? '#f5f5f5' : '#14202c' },
+              { width: maxDepth !== -1 ? 'auto' : '0 !important' },
+              { color: maxDepth !== -1 ? '#f5f5f5' : '#14202c' },
+            ]" class="rotate-disabled space-selector-header-title-icon" :class="{ 'rotate-enabled': open }">
               mdi-chevron-down
             </v-icon>
 
             {{ selectedZoneName.toUpperCase() }}
+
+
           </p>
-          <v-progress-circular
-            style="margin-right: 10px"
-            v-if="!viewerLoaded && label == 'ESPACE'"
-            :size="25"
-            color="white"
-            indeterminate
-          ></v-progress-circular>
+          <v-progress-circular style="margin-right: 10px;" v-if="!viewerLoaded && label == 'ESPACE'" :size="25"
+            color="white" indeterminate></v-progress-circular>
         </div>
-        <transition-group
-          id="myDiv"
-          name="staggered-fade"
-          class="card-list spinal-scrollbar"
-          :style="[{ 'overflow-y': 'auto' + ' !important' }]"
-          tag="div"
-          v-bind:css="false"
-          v-on:before-enter="beforeEnter"
-          v-on:enter="enter"
-        >
-          <SpaceSelectorItem
-            :label="label"
-            :loading_viewer="viewerLoaded"
-            class="staggered-fade-item"
+        <transition-group id="myDiv" name="staggered-fade" class="card-list spinal-scrollbar"
+          :style="[{ 'overflow-y': 'auto' + ' !important' }]" tag="div" v-bind:css="false"
+          v-on:before-enter="beforeEnter" v-on:enter="enter">
+          <SpaceSelectorItem :label="label" :loading_viewer="viewerLoaded" class="staggered-fade-item"
             v-for="(item, index) in buildingStructure"
-            :key="`${index}-${item.dynamicId}-${item.platformId}-${item.patrimoineId}`"
-            :item="item"
-            v-bind:data-index="index"
-            :maxDepth="maxDepth"
-            @onSelect="select(item)"
-            :selected="selectedZone"
-            @onOpenClose="expandCollapse(item, index)"
-            :spaceSelectorItemButtons="spaceSelectorItemButtons"
-            :viewButtonsType="viewButtonsType"
-            @onActionClick="onActionClick"
-          ></SpaceSelectorItem>
+            :key="`${index}-${item.dynamicId}-${item.platformId}-${item.patrimoineId}`" :item="item"
+            v-bind:data-index="index" :maxDepth="maxDepth" @onSelect="select(item)" :selected="selectedZone"
+            @onOpenClose="expandCollapse(item, index)" :spaceSelectorItemButtons="spaceSelectorItemButtons"
+            :viewButtonsType="viewButtonsType" @onActionClick="onActionClick"></SpaceSelectorItem>
         </transition-group>
       </v-card>
     </div>
@@ -117,21 +83,10 @@ with this file. If not, see
               Date de début
             </v-card-title>
             <div class="d-flex flex-row justify-space-around">
-              <v-date-picker
-                v-model="dateBegin"
-                scrollable
-                locale="fr"
-                :first-day-of-week="1"
-                color="orange"
-                header-color="primary"
-              ></v-date-picker>
-              <v-time-picker
-                v-model="timeBegin"
-                scrollable
-                format="24hr"
-                color="orange"
-                header-color="primary"
-              ></v-time-picker>
+              <v-date-picker v-model="dateBegin" scrollable locale="fr" :first-day-of-week="1" color="orange"
+                header-color="primary"></v-date-picker>
+              <v-time-picker v-model="timeBegin" scrollable format="24hr" color="orange"
+                header-color="primary"></v-time-picker>
             </div>
           </div>
           <v-divider vertical inset></v-divider>
@@ -140,21 +95,10 @@ with this file. If not, see
               Date de fin
             </v-card-title>
             <div class="d-flex flex-row justify-space-around">
-              <v-date-picker
-                v-model="dateEnd"
-                scrollable
-                locale="fr"
-                :first-day-of-week="1"
-                color="orange"
-                header-color="primary"
-              ></v-date-picker>
-              <v-time-picker
-                v-model="timeEnd"
-                scrollable
-                format="24hr"
-                color="orange"
-                header-color="primary"
-              ></v-time-picker>
+              <v-date-picker v-model="dateEnd" scrollable locale="fr" :first-day-of-week="1" color="orange"
+                header-color="primary"></v-date-picker>
+              <v-time-picker v-model="timeEnd" scrollable format="24hr" color="orange"
+                header-color="primary"></v-time-picker>
             </div>
           </div>
         </v-card-text>
@@ -162,9 +106,7 @@ with this file. If not, see
           <v-spacer></v-spacer>
           <v-btn text @click="pickDate = false">Annuler</v-btn>
           <!-- validation possible que si tous les champs sont remplis -->
-          <v-btn text @click="onDateChange" :disabled="!validatePicker"
-            >OK</v-btn
-          >
+          <v-btn text @click="onDateChange" :disabled="!validatePicker">OK</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -179,6 +121,7 @@ import type { ISpaceSelectorItem } from './interfaces/ISpaceSelectorItem';
 import SpaceSelectorItem from './SpaceSelectorItem.vue';
 import { convertZonesToISpaceSelectorItems } from './convertZonesToISpaceSelectorItems';
 import moment from 'moment';
+import { log } from 'console';
 
 @Component({
   components: {
@@ -240,7 +183,7 @@ class SpaceSelector extends Vue {
     this.localOpen = newVal;
   }
 
-  @Watch('selectedZone')
+  @Watch("selectedZone")
   async onSelectedChange() {
     for (let idx = 0; idx < this.buildingStructure.length; idx++) {
       const item = this.buildingStructure[idx];
@@ -259,7 +202,7 @@ class SpaceSelector extends Vue {
           if (
             parentId === item.staticId &&
             (this.selectedZone.platformId === item.platformId ||
-              item.type === 'patrimoine')
+              item.type === "patrimoine")
           ) {
             found = true;
             if (!item.isOpen) {
@@ -277,34 +220,35 @@ class SpaceSelector extends Vue {
     this.checkingOverflow();
   }
 
-  @Watch('date')
+
+  @Watch("date")
   onDateChange() {
     // formattage de la plage de date pour les requetes
-    const item = this.buildingStructure.find((b) => b.name === 'Personnalisé');
+    const item = this.buildingStructure.find((b) => b.name === "Personnalisé");
     const [begin, end] = [
-      this.dateBegin + ' ' + this.timeBegin,
-      this.dateEnd + ' ' + this.timeEnd,
+      this.dateBegin + " " + this.timeBegin,
+      this.dateEnd + " " + this.timeEnd,
     ].sort();
     item.range = {
-      begin: moment(begin).format('DD-MM-YYYY HH:mm:ss'),
-      end: moment(end).format('DD-MM-YYYY HH:mm:ss'),
+      begin: moment(begin).format("DD-MM-YYYY HH:mm:ss"),
+      end: moment(end).format("DD-MM-YYYY HH:mm:ss"),
     };
 
     // reinitialisation des champs
-    this.dateBegin = '';
-    this.dateEnd = '';
-    this.timeBegin = '';
-    this.timeEnd = '';
+    this.dateBegin = "";
+    this.dateEnd = "";
+    this.timeBegin = "";
+    this.timeEnd = "";
 
     this.pickDate = false;
-    this.$emit('update:open', !this.open);
-    this.$emit('input', item);
+    this.$emit("update:open", !this.open);
+    this.$emit("input", item);
   }
 
   select(item?: ISpaceSelectorItem) {
-    if (item.name !== 'Personnalisé') {
-      this.$emit('update:open', !this.open);
-      this.$emit('input', item);
+    if (item.name !== "Personnalisé") {
+      this.$emit("update:open", !this.open);
+      this.$emit("input", item);
       return;
     }
     this.pickDate = true;
@@ -335,24 +279,22 @@ class SpaceSelector extends Vue {
     this.intervalId = window.setInterval(this.checkViewerStatus, 1000);
   }
 
+
   viewerLoaded: boolean = true;
   checkViewerStatus() {
-    const currentQuery = {
-      ...window.parent.routerFontion.apps[0]._route.query,
-    };
+    const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query }
 
     if (!currentQuery.app) {
-      this.viewerLoaded = true;
-      localStorage.setItem('viewer_loaded', 'loaded');
+      this.viewerLoaded = true
+      localStorage.setItem("viewer_loaded", "loaded");
     } else {
       // TODO
-      const currentStatus = ['loaded', 'initialize'].includes(
-        localStorage.getItem('viewer_loaded') || ''
-      );
+      const currentStatus = ["loaded", "initialize"].includes(localStorage.getItem("viewer_loaded") || "");
       if (this.viewerLoaded !== currentStatus) {
         this.viewerLoaded = currentStatus;
       }
     }
+
   }
 
   async expandCollapse(
@@ -387,6 +329,7 @@ class SpaceSelector extends Vue {
   }
 
   private closeItem(item: ISpaceSelectorItem) {
+
     item.isOpen = false;
 
     const toRm: typeof this.buildingStructure = [];
@@ -492,6 +435,7 @@ export default SpaceSelector;
   width: 100%;
   right: 0;
   overflow: hidden;
+  min-width: 250px;
 }
 
 .space-selector-container.isopen {

@@ -1,32 +1,50 @@
 <!--
-Copyright 2023 SpinalCom - www.spinalcom.com
-
-This file is part of SpinalCore.
-
-Please read all of the following terms and conditions
-of the Free Software license Agreement ("Agreement")
-carefully.
-
-This Agreement is a legally binding contract between
-the Licensee (as defined below) and SpinalCom that
-sets forth the terms and conditions that govern your
-use of the Program. By installing and/or using the
-Program, you agree to abide by all the terms and
-conditions stated or referenced herein.
-
-If you do not agree to abide by these terms and
-conditions, do not demonstrate your acceptance and do
-not install or use the Program.
-You should have received a copy of the license along
-with this file. If not, see
-<http://resources.spinalcom.com/licenses.pdf>.
--->
+  Copyright 2023 SpinalCom - www.spinalcom.com
+  
+  This file is part of SpinalCore.
+  
+  Please read all of the following terms and conditions
+  of the Free Software license Agreement ("Agreement")
+  carefully.
+  
+  This Agreement is a legally binding contract between
+  the Licensee (as defined below) and SpinalCom that
+  sets forth the terms and conditions that govern your
+  use of the Program. By installing and/or using the
+  Program, you agree to abide by all the terms and
+  conditions stated or referenced herein.
+  
+  If you do not agree to abide by these terms and
+  conditions, do not demonstrate your acceptance and do
+  not install or use the Program.
+  You should have received a copy of the license along
+  with this file. If not, see
+  <http://resources.spinalcom.com/licenses.pdf>.
+  -->
 
 <template>
 
   <div class="appli">
-    <div style="width: 55%; height: 100%; background: #14202c;" v-show="showDocvalue">
-      <ShowDocumentation :referenceId="idDoc" :file_prop="nameFile" :closecomp="ActiveData" @closeDialog="closeVueDoc" />
+    <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
+    <ConfirmDelete :show="showConfirmDelete" @delete-doc="showAlert" @close="updateCloseConfirmDelete"
+      :idReference="confirmIdReferenceDelete" :idFile="confirmIdFileDelete" :contextFile="contextFile" />
+    <div v-show="showDocvalue" class="doc-vue">
+      <ShowDocumentation :referenceId="idDoc" :file_prop="nameFile" :closecomp="ActiveData"
+        @closeDialog="closeVueDoc" />
+    </div>
+    <div v-if="ActiveData && selection == 'Indicateur' && labelsChart" class="graphContainer">
+
+
+      <LineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
+        :step="labelsChart.length" :tooltipCallbacks="{
+          title: (context) => { },
+          label: (tooltipItem) =>
+            `${tooltipItem.dataset.label}: ${tooltipItem.parsed.y.toFixed(
+              2
+            )} `,
+          footer: (data) => { },
+        }"></LineCardComponent>
+      <!-- </sc-line-card> -->
     </div>
     <!-- style="['height: calc(100vh - 160px); background-color: red', " -->
     <div
@@ -50,7 +68,7 @@ with this file. If not, see
 
       <div class="el3d">
         <button @click="() => {
-          $emit('buttonClicked');
+          $emit('buttonClicked', '');
           resize();
         }
           " style="
@@ -73,7 +91,7 @@ with this file. If not, see
           <v-icon v-else>mdi-chevron-left</v-icon>
         </button>
         <button @click="() => {
-          $emit('buttonClicked3D');
+          $emit('buttonClicked3D', '');
           resize();
         }
           " style="
@@ -118,39 +136,57 @@ with this file. If not, see
             v-if="floorstaticDetails.length && floorstaticDetails[0].attributsList.length">
             <div style="" v-for="(item, index) in floorstaticDetails[0].attributsList[0].attributs">
               <div v-if="item.label == 'area'">
-                {{ item.value }} m²
+                {{ typeof item.value === 'number' ? item.value.toFixed(2) : item.value }} m²
               </div>
             </div>
           </div>
         </div>
       </div>
 
+      <ProgressBar v-if="data_loading < 100" :value="data_loading" :size="120" :width="20" />
 
-      <div class="inventory">
+      <div v-if="data_loading >= 100" class="inventory">
+
         <div v-if="selection == 'Vue Globale'">
           <div v-if="inventoyList">
-            <div v-if="inventoyList.length > 0" class="blocInformation">
-              <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Inventaire
-                des équipements ({{ config.inventory }})</span>
-              <div>
-                <div v-if="inventoyList == null"
-                  style="justify-content: center;align-items: center;width: 100%;display: flex; margin-top: 10px; margin-bottom: 10px;">
-                  PAS DE DONNÉES DISPONIBLE
-                </div>
-                <div v-else class="inventory-container">
-                  <div v-for="(item, index) in inventoyList" :key="index" class="inventory-item">
-                    <li>{{ item }}</li>
-                    <div style="margin-left: 5px;">
-                      <v-icon v-if="eyes.indexOf(index) === -1" @click="() => { hideelement(item); closeeyes(index) }"
-                        style="cursor: pointer">mdi-eye-outline</v-icon>
-                      <v-icon v-else @click="() => { hideelement(item); closeeyes(index) }"
-                        style="cursor: pointer">mdi-eye-off-outline</v-icon>
-                    </div>
-                  </div>
+            <div v-for="(items, categoryName) in inventoyList" :key="categoryName" class="blocInformation"
+              style="margin-bottom: 20px;">
+              <span
+                style="font-size: 19px; font-family: Arial, Helvetica, sans-serif; font-weight: bold; display: block; margin-bottom: 10px;">
+                Inventaire des équipements ({{ categoryName }})
+              </span>
+              <div v-if="!items || items.length === 0"
+                style="text-align: center; font-style: italic; color: #888; margin: 10px 0;">
+                PAS DE DONNÉES DISPONIBLES
+              </div>
+              <div v-else class="inventory-container" style="display: flex; flex-wrap: wrap;">
+                <div v-for="(item, index) in items" :key="index" class="inventory-item"
+                  style="display: flex; align-items: center; width: 100%; border: 1px solid #ddd; padding: 14px 5px;border-radius: 5px;">
+
+                  <li style="flex: 1; font-size: 16px; font-family: Arial, Helvetica, sans-serif;">{{ item }}</li>
+                  <v-icon v-if="!eyes[categoryName] || eyes[categoryName].indexOf(item) === -1"
+                    @click="() => { hideelement(item, categoryName); closeeyes(item, categoryName) }"
+                    style="cursor: pointer; margin-left: 10px;">
+                    mdi-eye-outline
+                  </v-icon>
+                  <v-icon v-else @click="() => { hideelement(item, categoryName); closeeyes(item, categoryName) }"
+                    style="cursor: pointer; margin-left: 10px;">
+                    mdi-eye-off-outline
+                  </v-icon>
+                  <v-icon v-if="!ink[categoryName] || ink[categoryName].indexOf(item) === -1"
+                    @click="() => { showIconElement(item, categoryName); closeink(item, categoryName) }"
+                    style="cursor: pointer; margin-left: 10px;">
+                    mdi-map-marker-circle
+                  </v-icon>
+                  <v-icon v-else @click="() => { deleteIconElement(item, categoryName); closeink(item, categoryName) }"
+                    style="cursor: pointer; margin-left: 10px;">
+                    mdi-map-marker-remove-variant
+                  </v-icon>
                 </div>
               </div>
             </div>
           </div>
+
           <div class="blocInformation">
             <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif;font-weight: bold;">Liste des
               attributs</span>
@@ -201,32 +237,78 @@ with this file. If not, see
               </div>
             </div>
           </div>
-
         </div>
 
         <!-- ONGLET attribut (attribut)-->
         <div v-if="selection == 'Attribut'">
+
+          <FormDocAttr :isDialogOpen="ShowFormDocAttrs == true" @close-dialog="ShowFormDocAttr"
+            @validated="handleValidated" :item="selectedAttribut" :id="idEl" :itemOp="itemOp" />
+
+          <FormDocCateAttr :isDialogOpen="ShowFormDocCat == true" @close-dialog="ShowFormDocCate"
+            @validatedcate="handleValidatedCate" :item="selectedCategory" :id="idCatEl" />
+
+          <AddBtn name="Ajouter un attribut" icon="mdi-tag-plus-outline" @open-dialog="ShowFormAttribute" />
+          <FormAttribute :show="showFormAttributeValue" :referenceId="selectedZone.dynamicId"
+            @close-dialog="ShowFormAttribute" @add-attribute="showAlert" />
+
           <h3>Attribut de la selection</h3>
 
           <div v-for="(item, index) in floorstaticDetails[0].attributsList" class="blocInformation">
-            <span style="font-size: 19px; font-family: Arial, Helvetica, sans-serif; font-weight: bold;">{{ item.name
-              }}</span>
+            <div
+              style="width: 100%; display: flex; justify-content: space-between; align-items:center; padding-inline: 10px; border-radius: 10px; position: relative;">
+
+              <span
+                style=" text-wrap: nowrap; font-size: 19px; font-family: Arial, Helvetica, sans-serif; font-weight: bold;">{{
+                  item.name }}</span>
+              <div
+                style="display: flex; justify-content: space-between; align-items: center;  width: 100%; position: relative; padding-right: 10px;">
+                <OverMenu :show="itemOverflowMenu == item.dynamicId" @close="closeOverMenu" :item="item"
+                  @showDoc="showDoc" @editFile="editCattattr(floorstaticDetails[0].dynamicId, item)"
+                  @downloadFile="downloadFile" :showDocs="false" :showDownload="false" :editable="true"
+                  @DeleteFile="deleteCateAttr(floorstaticDetails[0].dynamicId, item.dynamicId, 'parent')"
+                  @changeOverflowItemMenu="changeOverflowItemMenu">
+                </OverMenu>
+              </div>
+            </div>
             <div v-if="floorstaticDetails[0].attributsList == null"
               style="justify-content: center; align-items: center; width: 100%; display: flex; margin-top: 10px; margin-bottom: 10px;">
               <v-progress-circular :size="50" color="primary" indeterminate></v-progress-circular>
             </div>
             <div v-else class="inventory-container">
               <div class="inventory-item"
-                style="color:#14202c; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
+                style=" width: 100%; color:#14202c;overflow: visible; padding: 16px; border-radius: 5px; padding-left: 6px; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;"
                 v-for="(attr, index2) in item.attributs">
-                <li v-if="isLink(attr.value)">
+                <li v-if="isLink(attr.value)" style="list-style: none; background-color: red; width: 95%;">
                   {{ attr.label }}:
-                  <a :href="attr.value" target="_blank" style="color: #3498db;">{{ attr.value }}</a>
+                  <a :href="attr.value" target="_blank" style="color: #3498db;">{{ attr.value }} {{ attr.unit }}</a>
                 </li>
-                <li v-else>
-                  {{ attr.label }}: {{ attr.value }}
+                <li v-else style="list-style: none; width: 100%; overflow: hidden; overflow-x: auto;">
+                  <span style="font-weight: 600;">
+                    {{ attr.label }}:
+                  </span>
+                  <span style="font-weight: 400;">
+                    {{ attr.value }} {{ attr.unit }}
+                  </span>
                 </li>
+
+                <div
+                  style="display: flex; justify-content: space-between; align-items: center;  width: 20px;  position: relative;">
+                  <OverMenu :show="itemOverflowMenu == index2 && itemOverflowMenuAttr == item.dynamicId"
+                    @close="closeOverMenu" :item="attr" @showDoc="showDoc"
+                    @editFile="editattr(attr, floorstaticDetails[0].dynamicId, item)" @downloadFile="downloadFile"
+                    :showDocs="false" :showDownload="false" :editable="true"
+                    @DeleteFile="DeleteAttribut(floorstaticDetails[0].dynamicId, item.dynamicId, attr.label)"
+                    @changeOverflowItemMenu="changeOverflowItemMenuAttr(index2, item.dynamicId)">
+                  </OverMenu>
+                </div>
               </div>
+
+
+
+
+
+
             </div>
           </div>
 
@@ -247,7 +329,7 @@ with this file. If not, see
                     style="color:#14202c;margin: 5px; padding: 16px; border-radius: 5px; padding-left: 6px; background-color: #f9f9f9; box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                     <li v-for="(attr, attrIndex) in category.attributs" :key="attrIndex">{{ attr.label }}: {{
                       attr.value
-                      }}
+                    }}
                     </li>
                   </div>
                 </div>
@@ -258,7 +340,6 @@ with this file. If not, see
 
         <!-- ONGLET TICKETS -->
         <div v-if="selection == 'Tickets'">
-          <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
           <!-- Vérification si les tickets existent -->
           <AddTicketBtn @open-dialog="ShowDialog()" />
           <div v-if="ticketsList">
@@ -312,19 +393,7 @@ with this file. If not, see
 
         <!-- ONGLET INDICATEUR (controleEndpoint) indicateur -->
         <div style="display: flex">
-          <div v-if="ActiveData && selection == 'Indicateur' && labelsChart" class="graphContainer">
 
-            <LineCardComponent :title="'Donnée Insight'" :labels="labelsChart" :datasets="chartData"
-              :step="labelsChart.length" :tooltipCallbacks="{
-                title: (context) => { },
-                label: (tooltipItem) =>
-                  `${tooltipItem.dataset.label}: ${tooltipItem.parsed.y.toFixed(
-                    2
-                  )} `,
-                footer: (data) => { },
-              }"></LineCardComponent>
-            <!-- </sc-line-card> -->
-          </div>
           <div style="width: 100%;" v-if="selection == 'Indicateur'">
 
             <div v-for="(item, index) in floorstaticDetails[0].controlEndpoint" class="blocInformation">
@@ -339,16 +408,17 @@ with this file. If not, see
                   v-for="(item, index2) in floorstaticDetails[0].controlEndpoint[index].endpoints" :key="index2">
                   <div class=" inventory-item"
                     :style="{ width: '100%', color: '#14202c', padding: '16px', borderRadius: '5px', paddingLeft: '6px', boxShadow: 'rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px' }">
-                    <li>{{ item.name }}: {{ item.value }}</li>
+                    <li> {{ item.name }}: {{ typeof item.value === 'number' ? item.value.toFixed(2) : item.value }} {{
+                      item.unit }} </li>
                     <v-icon @click="() => {
                       fullData()
-                      addOrRemove(item.dynamicId);
+                      addOrRemove(item.dynamicId, item.name);
                       resize();
                     }"
-                      v-if="cpIdToDraw.includes(item.dynamicId) && !activeChart.includes(item.dynamicId)">mdi-chart-line</v-icon>
+                      v-if="cpIdToDraw.includes(item.dynamicId) && !activeChartData.includes(item.dynamicId)">mdi-chart-line</v-icon>
                     <v-icon @click="() => {
-                      addOrRemove(item.dynamicId);
-                    }" v-if="activeChart.includes(item.dynamicId)">mdi-close</v-icon>
+                      addOrRemove(item.dynamicId, item.name);
+                    }" v-if="activeChartData.includes(item.dynamicId)">mdi-close</v-icon>
                   </div>
                 </div>
               </div>
@@ -362,12 +432,9 @@ with this file. If not, see
         <!-- ONGLET DOCUMENTATION -->
         <div v-if="selection == 'Documentation'"
           style="display: flex; flex-direction: column; overflow: hidden !important; overflow-y: auto !important ;">
-          <!-- Notification -->
-          <Alert :type_alert="type_alert" :show="alert" :text="alert_ind" />
           <!-- Box pour afficher le document -->
-          <!-- Boutton d'ajout d'un document -->
           <v-row style="padding: 20px;">
-            <AddBtn @open-dialog="ShowFormDoc" />
+            <AddBtn @open-dialog="ShowFormDoc" name="Ajouter un document" icon="mdi-file-plus-outline" />
           </v-row>
           <FormDoc :isDialogOpen="show_formdoc" @close-dialog="ShowFormDoc" @add-doc="showAlert"
             :referenceid="this.selectedZone.dynamicId" />
@@ -376,34 +443,25 @@ with this file. If not, see
             <div class="blocInformation">
               <div v-if="documentation.element != 0">
 
-                <div style="display: flex; justify-content: space-between; align-items: center;  width: 100%;"
+                <div
+                  style="display: flex; justify-content: space-between; align-items: center;  width: 100%; position: relative;"
                   v-for="(item, index) in documentation.element">
                   <div class="inventory-item"
                     style="width: 100%;  overflow: hidden; color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
 
                     <li style="list-style: none;">
                       <v-icon :style="{ 'color': getIcon(item.Name).color }">{{ getIcon(item.Name).name }}</v-icon>
-
                       {{ item.Name }}
-
                     </li>
 
                   </div>
-
-                  <v-row
-                    style="display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 10px; padding: 10px; width: max-content;">
-                    <v-icon
-                      style="width: max-content; height: max-content; background-color: rgba(203 213 225 0.5); border-radius: 50%; padding: 4px; color: #14202c; cursor: pointer;"
-                      @click="showDoc(item.dynamicId, item.Name);">
-                      mdi-eye
-                    </v-icon>
-                    <v-icon @click="downloadFile(item.dynamicId)" style="cursor: pointer; font-size: 40px;"
-                      color="green">
-                      mdi-download-box
-                    </v-icon>
-                  </v-row>
+                  <OverMenu :show="itemOverflowMenu == item.dynamicId" @close="closeOverMenu" :item="item"
+                    @showDoc="showDoc" @downloadFile="downloadFile"
+                    @DeleteFile="DeleteFile(item.dynamicId, selectedZone.dynamicId, 'child')"
+                    @changeOverflowItemMenu="changeOverflowItemMenu">
+                  </OverMenu>
                 </div>
-                <Loader :showLoader="showLoader" />
+                <Loader :showLoader="showLoader_in_child" />
               </div>
               <div v-else style="width: 100%; text-align: center;">
                 <p>Aucun document</p>
@@ -418,7 +476,8 @@ with this file. If not, see
             <div v-if="parent.documentation && parent.documentation.length > 0">
               <h3>{{ parent.name }}</h3>
               <div class="blocInformation">
-                <div style="display: flex;" v-for="(item, index2) in parent.documentation" :key="index2">
+                <div style="display: flex; position: relative; align-items: center "
+                  v-for="(item, index2) in parent.documentation" :key="index2">
                   <div class="inventory-item"
                     style="max-width: 100%; width: 99%;  overflow: hidden; color:#14202c;padding: 16px;border-radius: 5px;padding-left: 6px ;background-color: #f9f9f9;box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;">
                     <li style="list-style: none;">
@@ -426,19 +485,15 @@ with this file. If not, see
                       {{ item.Name }}
                     </li>
                   </div>
-                  <v-row
-                    style="display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; padding: 10px; width: max-content; gap: 10px">
-                    <v-icon
-                      style="width: max-content; height: max-content; background-color: rgba(203 213 225 0.5); border-radius: 50%; padding: 4px; color: #14202c; cursor: pointer;"
-                      @click="showDoc(item.dynamicId, item.Name)">
-                      mdi-eye
-                    </v-icon>
-                    <v-icon @click="downloadFile(item.dynamicId)" style="cursor: pointer; font-size: 40px;"
-                      color="green">
-                      mdi-download-box
-                    </v-icon>
-                  </v-row>
+
+                  <OverMenu :show="itemOverflowMenu == item.dynamicId" @close="closeOverMenu" :item="item"
+                    @showDoc="showDoc" @downloadFile="downloadFile"
+                    @DeleteFile="DeleteFile(item.dynamicId, parent.dynamicId, 'parent')"
+                    @changeOverflowItemMenu="changeOverflowItemMenu">
+                  </OverMenu>
+
                 </div>
+                <Loader :showLoader="showLoader_in_parent" />
               </div>
             </div>
           </div>
@@ -487,6 +542,7 @@ import { State } from "vuex-class";
 import { MutationTypes } from "../../services/store/appDataStore/mutations";
 import { mapState } from "vuex";
 import SpriteComponent from "./SpriteComponent.vue"
+import SpriteComponent2 from "./SpriteComponent2.vue"
 import GroupDataView from "./groupDataView.vue";
 import BreadcrumbSelector from "./breadcrumb.vue";
 import { computed } from 'vue';
@@ -496,17 +552,22 @@ import {
   EmitterViewerHandler,
   VIEWER_AGGREGATE_SELECTION_CHANGED,
 } from "spinal-viewer-event-manager";
-import { log, warn } from "console";
-import { getParent } from "../../services/spinalAPI/GeographicContext/geographicContext";
+
 import LineCardComponent from "./LineCardComponent.vue";
 import moment from 'moment';
 import FormTicket from "../FormTicket.vue";
 import AddTicketBtn from "../ButtonAddticket.vue";
 import FormDoc from "../FormDoc.vue";
+import FormDocAttr from "../FormDocAttr.vue";
+import FormDocCateAttr from "../FormDocCateAttr.vue";
 import AddBtn from '../ButtonAdd.vue';
 import Loader from "../Loader.vue";
-import Loader from "../Loader.vue";
 import getIcon from "../../services/function/getIcon";
+import FormAttribute from '../FormAttribute.vue';
+import OverMenu from "./OverMenu.vue";
+import ConfirmDelete from "./ConfirmDelete.vue";
+import ProgressBar from "./ProgressBar.vue";
+import { EventBus } from '../../../../../global-components/SpaceSelector/eventBus';
 
 @Component({
   components: {
@@ -519,8 +580,14 @@ import getIcon from "../../services/function/getIcon";
     Alert,
     ShowDocumentation,
     FormDoc,
+    FormDocAttr,
     AddBtn,
-    Loader
+    Loader,
+    FormAttribute,
+    OverMenu,
+    FormDocCateAttr,
+    ConfirmDelete,
+    ProgressBar
   },
   filters: {},
 })
@@ -532,6 +599,7 @@ class dataSideApp extends Vue {
   @Prop() floor: any;
   @Prop() DActive: boolean;
   @Prop() ActiveData: boolean;
+  @Prop() changeData: boolean;
 
   showFormTicket: boolean = false;
   showDocvalue: boolean = false;
@@ -555,8 +623,8 @@ class dataSideApp extends Vue {
   displaySprite: boolean = false;
   parentAttribut: any = [];
   ticketsList: any = [];
-  eyes: [] = [];
-  ink: [] = [];
+  eyes: any = {};
+  ink: any = {};
   referencedId: any = 0;
   referencedType: any = 'building';
   cpIdToDraw: [];
@@ -576,7 +644,27 @@ class dataSideApp extends Vue {
   nameFile = ''
   show_formdoc = false
   showLoader = false
+  showFormAttributeValue = false
+  showLoader_in_child = false
+  showLoader_in_parent = false
+  selectedAttribut = null
   getIcon = getIcon
+  itemOverflowMenu = null
+  itemOverflowMenuAttr = null
+  ShowFormDocAttrs = false
+  ShowFormDocCat = false
+  idEl = null
+  itemOp = null
+  selectedCategory = null
+  idCatEl = null
+  activeChartData: any = []
+  // variable for confirm delete
+  confirmIdReferenceDelete: number | null = null
+  confirmIdFileDelete: number | null = null
+  showConfirmDelete = false
+  contextFile = ''
+  data_loading = 0
+  interval: {}
 
   get dynamicItems(): string[] {
     let items = ['Vue Globale', 'Attribut', 'Documentation', 'Tickets'];
@@ -605,6 +693,18 @@ class dataSideApp extends Vue {
   }
   ShowFormDoc() {
     this.show_formdoc = !this.show_formdoc;
+  }
+  ShowFormDocAttr() {
+    this.ShowFormDocAttrs = !this.ShowFormDocAttrs;
+  }
+  ShowFormDocCate() {
+    this.ShowFormDocCat = !this.ShowFormDocCat;
+  }
+  ShowFormAttribute() {
+    this.showFormAttributeValue = !this.showFormAttributeValue;
+    if (this.showFormAttributeValue == false) {
+      this.getdataofelement()
+    }
   }
   async showAlert(v) {
     const buildingId = localStorage.getItem("idBuilding");
@@ -635,14 +735,9 @@ class dataSideApp extends Vue {
           const resultParentDoc = await Promise.all(parentPromiseDoc);
           const parents = resultParentDoc[0];
 
-          const documentationPromise = [
-            this.$store.dispatch(ActionTypes.GET_DOCUMENTATION, {
-              buildingId: buildingId,
-              referenceIds: this.selectedZone.dynamicId,
-            }),
-          ];
-          const result = await Promise.all(documentationPromise);
-          const documentation = result[0];
+          const documentationPromise = await this.getfetchDocRetry()
+          const documentation = documentationPromise;
+
 
           let parentDocumentation = {};
           for (let parent of parents) {
@@ -655,6 +750,7 @@ class dataSideApp extends Vue {
             const parentDocResult = await Promise.all(parentDocPromise);
             parentDocumentation[parent.dynamicId] = {
               name: parent.name,
+              dynamicId: parent.dynamicId,
               documentation: parentDocResult[0]
             };
           }
@@ -675,6 +771,133 @@ class dataSideApp extends Vue {
     }
 
   }
+  updateCloseConfirmDelete(value) {
+    this.showConfirmDelete = false
+  }
+  async getfetchDocRetry() {
+    const max = 10;
+    const delay = 1000;
+    for (let i = 0; i < max; i++) {
+      const result = this.$store.dispatch(ActionTypes.GET_DOCUMENTATION, {
+        buildingId: localStorage.getItem("idBuilding"),
+        referenceIds: this.selectedZone.dynamicId,
+      })
+      const documentation = await result.then((res => {
+        return res
+      }))
+
+      if (documentation.lenght != 0 && documentation[documentation.length - 1] && documentation[documentation.length - 1].dynamicId) {
+        return documentation;
+
+      } else if (documentation.length == 0) {
+        return documentation;
+      }
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+    throw new Error('Error');
+  }
+
+
+  async editattr(attr, id, item) {
+    this.ShowFormDocAttrs = true
+    this.selectedAttribut = attr
+    this.idEl = id
+    this.itemOp = item
+  }
+
+  async editCattattr(id, item) {
+    this.ShowFormDocCat = true
+    this.selectedCategory = item
+    this.idCatEl = id
+  }
+
+  async DeleteFile(fileId: number, referenceId: number, space: string) {
+    this.confirmIdFileDelete = fileId
+    this.confirmIdReferenceDelete = referenceId
+    this.showConfirmDelete = true
+    this.contextFile = space
+    this.closeOverMenu()
+
+  }
+
+  async DeleteAttribut(referenceId: number, cateId: number, name: string) {
+    const result = await this.$store.dispatch(ActionTypes.DELETE_ATTRIBUT, {
+      buildingId: localStorage.getItem("idBuilding"),
+      referenceId: referenceId,
+      cateId: cateId,
+      name: name
+    })
+    result.status == 200 ? this.showAlert({ status: 'success', message: 'Attribut supprimé avec succès', context: 'Attribut' }) :
+      this.showAlert({ status: 'error', message: "Erreur lors de la suppression de l'attribut", context: 'document', space_context: name })
+    this.getdataofelement()
+  }
+
+  async UpdateAttribut(referenceId: number, cateId: number, name: string, item: object) {
+
+    console.warn(referenceId, cateId, name, item);
+
+    const result = await this.$store.dispatch(ActionTypes.UPDATE_ATTRIBUT, {
+      buildingId: localStorage.getItem("idBuilding"),
+      referenceId: referenceId,
+      cateId: cateId,
+      name: name,
+      item: item
+    })
+    result.status == 200 ? this.showAlert({ status: 'success', message: 'Attribut modifié avec succès', context: 'Attribut' }) :
+      this.showAlert({ status: 'error', message: "Erreur lors de la mise à jour de l'attribut", context: 'document', space_context: name })
+    this.getdataofelement()
+  }
+
+  async deleteCateAttr(referenceId: number, cateId: number, name: string) {
+
+
+    const result = await this.$store.dispatch(ActionTypes.DELETE_CATE_ATTRIBUT, {
+      buildingId: localStorage.getItem("idBuilding"),
+      referenceId: referenceId,
+      cateId: cateId
+    })
+    result.status == 200 ? this.showAlert({ status: 'success', message: 'Catégory supprimé avec succès', context: 'catégory attribut' }) :
+      this.showAlert({ status: 'error', message: "Erreur lors de la suppression de la catégorie", context: 'cétegory', space_context: name })
+    this.getdataofelement()
+  }
+
+
+  async updateCateAttr(referenceId: number, cateId: number, name: string, item: object) {
+
+    const result = await this.$store.dispatch(ActionTypes.UPDATE_CATE_ATTRIBUT, {
+      buildingId: localStorage.getItem("idBuilding"),
+      referenceId: referenceId,
+      cateId: cateId,
+      item: item
+    })
+    result.status == 200 ? this.showAlert({ status: 'success', message: 'Catégory edité avec succès', context: 'catégory attribut' }) :
+      this.showAlert({ status: 'error', message: "Erreur lors de l'edit de la catégorie", context: 'cétegory', space_context: name })
+    this.getdataofelement()
+  }
+
+  handleValidated(updatedItem, el, dyn, item) {
+    console.warn('Objet reçu après validation :', item, el.dynamicId, dyn.label, updatedItem);
+
+    const formattedItem = {
+      attributeLabel: updatedItem.label,
+      attributeUnit: updatedItem.unit,
+      attributeValue: updatedItem.value,
+    };
+
+    this.UpdateAttribut(item, el.dynamicId, dyn.label, formattedItem)
+  }
+  handleValidatedCate(id, cateId, item) {
+
+
+    const formattedItem = {
+      "categoryName": item.name,
+    };
+
+    console.warn('Objet reçu après validation :::::::', id, cateId, 'category', formattedItem);
+    this.updateCateAttr(id, cateId, 'category', formattedItem)
+  }
+
+
   showDoc(referencedId, nameFile) {
     if (!this.showDocvalue) {
       this.$emit('buttonClicked', 'vueDoc')
@@ -683,14 +906,44 @@ class dataSideApp extends Vue {
     this.idDoc = referencedId
     this.showDocvalue = true;
   }
+
   closeVueDoc() {
-    this.showDocvalue = false;
-    this.$emit('buttonClicked', 'vueDocClose')
+    if (this.showDocvalue) {
+      this.showDocvalue = false;
+      this.$emit('buttonClicked', 'vueDocClose')
+    }
+
   }
   resize() {
     setTimeout(() => {
       window.dispatchEvent(new Event('resize'));
     }, 1);
+  }
+
+  changeOverflowItemMenu(index) {
+    const latItem = this.itemOverflowMenu
+    if (latItem === index) {
+      this.itemOverflowMenu = null
+    } else {
+      this.itemOverflowMenu = index
+    }
+  }
+
+  changeOverflowItemMenuAttr(index, item) {
+    const latItem = this.itemOverflowMenu
+    const itemCateg = item;
+    if (latItem === this.itemOverflowMenu && this.itemOverflowMenuAttr === itemCateg) {
+      this.itemOverflowMenuAttr = null
+    } else {
+      this.itemOverflowMenuAttr = itemCateg
+      this.itemOverflowMenu = index
+    }
+
+  }
+
+
+  closeOverMenu() {
+    this.itemOverflowMenu = null
   }
 
   changeIcon() {
@@ -701,27 +954,148 @@ class dataSideApp extends Vue {
     return typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'));
   }
 
-  hideelement(item) {
-    this.$store.commit(MutationTypes.REMOVE_ITEM_TO_HIDE);
+  async deleteIconElement(item, categoryName) {
+    // this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+    // console.log('elemtn toto delete ' , item);
+    this.$store.dispatch(ActionTypes.REMOVE_SPRITES_BY_GROUP, item + categoryName);
+  }
+
+  async showIconElement(item, categoryName) {
+    console.warn(item, categoryName, this.inventoryDbids, '🔍 Test - showIconElement');
+
     const itemType = item.substring(item.indexOf(' ') + 1);
-    const numbers = this.inventoryDbids[itemType] || [];
-    this.$store.commit(MutationTypes.SET_ITEM_TO_HIDE, numbers);
+
+    const categoryData = this.inventoryDbids[categoryName];
+    if (!categoryData || !categoryData[itemType]) {
+      console.warn(`⚠ Aucun élément trouvé pour "${item}" dans la catégorie "${categoryName}".`);
+      return;
+    }
+
+    const groupData = categoryData[itemType];
+
+    const equipmentMap = {};
+    for (const [bimFileId, entries] of Object.entries(groupData)) {
+      entries.forEach(equipment => {
+        equipmentMap[equipment.dynamicId] = {
+          dbid: equipment.dbid,
+          bimFileId,
+        };
+      });
+    }
+
+
+    const uniqueReferenceIds = Object.keys(equipmentMap).map(id => Number(id));
+
+    if (uniqueReferenceIds.length === 0) {
+      return;
+    }
+
+    const buildingId = localStorage.getItem("idBuilding");
+    const batchSize = 50;
+    const batchedPromises = [];
+
+    for (let i = 0; i < uniqueReferenceIds.length; i += batchSize) {
+      const batch = uniqueReferenceIds.slice(i, i + batchSize);
+
+      batchedPromises.push(
+        this.$store.dispatch(ActionTypes.GET_ATTRIBUT_LIST_MULTIPLE, {
+          buildingId,
+          referenceIds: batch,
+        })
+      );
+    }
+
+    const results = await Promise.all(batchedPromises);
+
+    const flatResults = results.flat();
+
+    flatResults.forEach(obj => {
+      const ref = equipmentMap[obj.dynamicId];
+      if (!ref) {
+        return;
+      }
+
+      let center = null;
+      obj.categoryAttributes.forEach(category => {
+        category.attributs.forEach(attr => {
+          if (attr.label === "XYZ center") {
+            // Transformer la string "-37.1215;-45.4714;1.25" en un objet { x, y, z }
+            const values = attr.value.split(";").map(Number);
+            if (values.length === 3) {
+              center = { x: values[0], y: values[1], z: values[2] };
+            }
+          }
+        });
+      });
+
+      if (!center) {
+        return;
+      }
+
+      const wrappedResult = [obj];
+
+      this.forgeVignette(wrappedResult, buildingId, ref.dbid, ref.bimFileId, center, item, categoryName);
+    });
+  }
+
+
+
+
+
+
+  hideelement(item, categoryName) {
+    console.warn(item, categoryName, this.inventoryDbids, ' le test');
+
+    // Réinitialiser les éléments à cacher
+    this.$store.commit(MutationTypes.REMOVE_ITEM_TO_HIDE);
+
+    // Extraire le type d'élément à partir de la chaîne `item`
+    const itemType = item.substring(item.indexOf(' ') + 1);
+
+    // Vérifier si la catégorie et le type existent dans `inventoryDbids`
+    const categoryData = this.inventoryDbids[categoryName];
+    if (!categoryData || !categoryData[itemType]) {
+      console.warn(`Aucun élément trouvé pour "${item}" dans la catégorie "${categoryName}".`);
+      return;
+    }
+
+    const groupData = categoryData[itemType];
+
+    // Construire l'objet `itemToHide` avec uniquement les `dbid`
+    const itemToHide = {};
+    for (const [bimFileId, entries] of Object.entries(groupData)) {
+      // Extraire uniquement les `dbid` de chaque équipement dans le tableau d'objets
+      itemToHide[bimFileId] = [...new Set(entries.map(equipment => equipment.dbid))];
+    }
+
+    // Vérifier s'il y a des éléments à cacher
+    if (Object.keys(itemToHide).length === 0) {
+      console.warn(`Aucun élément trouvé à cacher pour "${item}" dans la catégorie "${categoryName}".`);
+      return;
+    }
+
+    // Construire les données à envoyer à l'action
     const currentQuery = { ...window.parent.routerFontion.apps[0]._route.query };
     const data = {
       buildingId: this.selectedZone.staticId,
       dynamicId: currentQuery.spaceSelectedId,
-      itemToHIde: numbers
+      itemToHIde: itemToHide,
     };
 
+    // Enregistrer les éléments à cacher dans le store
+    this.$store.commit(MutationTypes.SET_ITEM_TO_HIDE, itemToHide);
+
+    // Lancer l'action pour cacher les éléments
     this.$store.dispatch(ActionTypes.HIDE_ITEMS, {
       items: data,
       buildingId: this.selectedZone.staticId,
     });
   }
 
+
   gestionBouton() {
     if (!this.displaySprite) {
-      this.$emit('full3D');
+      this.$emit('full3D', 'full3D');
       this.resize();
       this.changeIcon()
     } else {
@@ -729,8 +1103,30 @@ class dataSideApp extends Vue {
     }
   }
 
-
   async mounted() {
+
+    EventBus.$on('vignette', async (data) => {
+      console.log('on reçoit bien la donnée')
+      const buildingId = localStorage.getItem("idBuilding");
+
+      // const referenceIds = referenceResult[0][0].bimObjects[0].dynamicId
+      const promises = [
+        this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
+          buildingId,
+          referenceIds: data.dynamicId
+        }),
+      ];
+
+
+      const result = await Promise.all(promises);
+      this.forgeItem(result, buildingId, data.dbid, data.bimFileId, data.position)
+
+      return;
+
+    });
+
+
+
     this.timeactuelle = this.getFormattedDateFromTemporalData();
     await this.getBuildingInfo();
 
@@ -747,13 +1143,19 @@ class dataSideApp extends Vue {
     });
     this.pageSate = PAGE_STATES.loaded;
     this.isBuildingSelected = true;
+
+    console.log('0.5%');
+    this.data_loading += 5
   }
 
   async loadBuildingInfo() {
     await this.getBuildingInfo();
+
+
     if (this.buildingInfo[0].dynamicId) {
 
       const result = await this.getBuildingStaticDetails();
+
 
       this.floorstaticDetails = result
       this.filteredEndpoints('building')
@@ -780,7 +1182,6 @@ class dataSideApp extends Vue {
 
     const tickets = resultParent;
     this.ticketsList = tickets[0].reverse();
-
 
   }
 
@@ -858,6 +1259,7 @@ class dataSideApp extends Vue {
       const parentDocResult = await Promise.all(parentDocPromise);
       parentDocumentation[parent.dynamicId] = {
         name: parent.name,
+        dynamicId: parent.dynamicId,
         documentation: parentDocResult[0]
       };
     }
@@ -867,6 +1269,7 @@ class dataSideApp extends Vue {
       parents: parentDocumentation
     };
 
+    this.data_loading += 5
     this.$forceUpdate();
   }
 
@@ -889,7 +1292,7 @@ class dataSideApp extends Vue {
     const result = await Promise.all(promises);
     return result
   }
-  async downloadFile(referenceIds) {
+  async downloadFile(referenceIds, name) {
     const promises = [
       this.$store.dispatch(ActionTypes.POST_DOWNLOAD_FILE, {
         buildingId: localStorage.getItem("idBuilding"),
@@ -897,16 +1300,16 @@ class dataSideApp extends Vue {
       }),
     ];
     const result = await Promise.all(promises);
-
     result.forEach(blob => {
       const type = blob.type.split('/', 2);
+      const finalType = type[1].split('+', 2) == "vnd.openxmlformats-officedocument.spreadsheetml.sheet" ? "xlsx" : type[1];
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'filename.' + type[1]);
+      link.setAttribute('download', `${name}.${finalType}`);
       document.body.appendChild(link);
       link.click();
-      link.parentNode.removeChild(link);
+      link.parentNode?.removeChild(link);
       window.URL.revokeObjectURL(url);
     });
 
@@ -924,6 +1327,9 @@ class dataSideApp extends Vue {
     ];
     const result = await Promise.all(promises);
     this.buildingInfo = [...result]
+    this.data_loading += 5
+    console.log('0%');
+
   }
 
 
@@ -972,11 +1378,13 @@ class dataSideApp extends Vue {
               ];
               const result = await Promise.all(promises);
               this.forgeItem(result, buildingId, ref.dbid, obj.bimFileId, data.center)
+
               return;
             }
           }
         }
       }
+
       return null;
     }
     else {
@@ -991,8 +1399,11 @@ class dataSideApp extends Vue {
 
       const result = await Promise.all(promises);
       this.forgeItem(result, buildingId, data.dbIds[0], data.modelId.bimFileId[0], data.center)
+
       return;
     }
+
+
   }
 
   async getfloorstaticdetails(id) {
@@ -1023,6 +1434,7 @@ class dataSideApp extends Vue {
         referenceIds: [id]
       }),
     ];
+
 
     const node_read = await Promise.all(promises_node);
 
@@ -1072,6 +1484,7 @@ class dataSideApp extends Vue {
       this.referencedType = 'etage'
       this.referencedId = id
     }
+
 
   }
 
@@ -1194,7 +1607,8 @@ class dataSideApp extends Vue {
       }
     }
     this.attributProfil = attributProfil
-
+    this.data_loading += 5
+    console.log('9%');
   }
 
 
@@ -1212,9 +1626,12 @@ class dataSideApp extends Vue {
       const profile = this.floorstaticDetails[0].controlEndpoint.find(profile => profile.profileName === this.config.room.profileNameControlePts);
       this.endpointProfil = profile ? profile.endpoints : [];
     }
+    this.data_loading += 5
+    console.log('7%');
+
   }
 
-  forgeItem(result, buildingId, dbid, bimFileId, center) {
+  forgeVignette(result, buildingId, dbid, bimFileId, center, items, categoryName) {
 
     let X = center.x;
     let Y = center.y;
@@ -1229,9 +1646,54 @@ class dataSideApp extends Vue {
       name: result[0].name,
       position: new THREE.Vector3(Number(X), Number(Y), Number(Z)),
       data: result[0],
-      config: this.config
+      config: this.config,
+      group: items + categoryName,
+      z_index: 0
     }
-    this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+
+    // this.$store.dispatch(ActionTypes.REMOVE_SPRITES_BY_GROUP, {
+    //   group: 'toto'
+    // });
+
+
+
+    const screenWidth = window.innerWidth;
+    if (screenWidth <= 700) {
+      this.displaySprite = false;
+      this.isSmallScreen = item;
+      this.displaySprite = true;
+    } else {
+      this.$store.dispatch(ActionTypes.ADD_COMPONENT_AS_SPRITES, {
+        items: item,
+        buildingId: buildingId,
+        component: SpriteComponent2,
+      });
+    }
+  }
+
+  forgeItem(result, buildingId, dbid, bimFileId, center) {
+    console.log('alo ?');
+
+    let X = center.x;
+    let Y = center.y;
+    let Z = center.z;
+
+    const item = {
+      color: '#ded638',
+      dynamicId: result[0].dynamicId,
+      buildingId: buildingId,
+      dbid: dbid,
+      bimFileId: bimFileId,
+      name: result[0].name,
+      position: new THREE.Vector3(Number(X), Number(Y), Number(Z)),
+      data: result[0],
+      config: this.config,
+      group: 'card',
+      z_index:1
+    }
+    // this.$store.dispatch(ActionTypes.REMOVE_ALL_SPRITES);
+
+    this.$store.dispatch(ActionTypes.REMOVE_SPRITES_BY_GROUP, 'card');
 
     const screenWidth = window.innerWidth;
     if (screenWidth <= 700) {
@@ -1280,6 +1742,9 @@ class dataSideApp extends Vue {
         }),
       ];
       const result = await Promise.all(promises);
+      this.data_loading += 5
+      console.log('1%');
+
 
       this.$store.commit(MutationTypes.SET_DATA, result[0]);
       this.pageSate = PAGE_STATES.loaded;
@@ -1288,6 +1753,9 @@ class dataSideApp extends Vue {
       this.retry = this.retriveData;
       this.pageSate = PAGE_STATES.error;
     }
+    this.data_loading += 5
+    console.log('2%');
+
   }
 
   selectDataView(item) {
@@ -1311,7 +1779,8 @@ class dataSideApp extends Vue {
     ];
     const result = await Promise.all(promises);
     this.referenceObjects = [...result];
-
+    this.data_loading += 5
+    console.log('5%');
   }
   async getInventoryObject(referenceIds) {
     const buildingId = localStorage.getItem("idBuilding");
@@ -1324,18 +1793,26 @@ class dataSideApp extends Vue {
     const result = await Promise.all(promises);
     this.inventory = [...result];
     this.countInventoryTypes([...result]);
+    this.data_loading += 5
+    console.log('15%');
+
   }
 
-  async addOrRemove(dyn) {
+  async addOrRemove(dyn, name) {
 
-    if (this.activeChart.includes(dyn)) {
+    if (this.activeChartData.includes(dyn)) {
       this.dataTable = this.dataTable.filter(item => item.dynamicId !== dyn);
-      this.activeChart = this.activeChart.filter(id => id !== dyn);
+      this.activeChartData = this.activeChartData.filter(id => id !== dyn);
       this.removegraphInfoCp(dyn)
     }
     else {
-      this.addgraphInfoCp(dyn)
-      this.activeChart.push(dyn);
+      this.addgraphInfoCp(dyn, name)
+      const dataSave = {
+        dynamicId: dyn,
+        label: name,
+      }
+      this.activeChartData.push(dyn)
+      this.activeChart.push(dataSave);
     }
   }
   async removegraphInfoCp(dyn) {
@@ -1349,7 +1826,9 @@ class dataSideApp extends Vue {
     return new Date(`${year}-${month}-${day}T${timePart}`);
   }
 
-  async addgraphInfoCp(dyn) {
+  async addgraphInfoCp(dyn, name) {
+
+    console.log('dyn: ', dyn);
     if (!this.cpIdToDraw.includes(dyn)) return;
 
     const { begintime, endtime } = this.getBeginAndEndTime();
@@ -1384,11 +1863,13 @@ class dataSideApp extends Vue {
     // Mettre à jour le tableau de données
     const actuelleTable = {
       dynamicId: dyn,
+      label: name,
       data: processedResult.map(({ date, value }) => ({ x: date, y: value })),
       unit: "kwh",
       name: "le nom du graph",
     };
-
+    console.log('data table: ', this.dataTable);
+    console.log('actuelleTable: ', actuelleTable);
     this.dataTable = [...this.dataTable, actuelleTable];
     this.labelsChart = this.labels(begintime, endtime).map(this.toDate);
     this.chartData = this.chartDataObject(this.dataTable);
@@ -1434,8 +1915,10 @@ class dataSideApp extends Vue {
 
 
   toDate(date) {
+
     switch (this.$store.state.appDataStore.temporalitySelected.name) {
       case ITemporality.hour:
+      case ITemporality.currentValue:
         return moment(date).format('HH:mm');
       case ITemporality.day:
         return moment(date).format('HH[h]');
@@ -1499,8 +1982,8 @@ class dataSideApp extends Vue {
   async reloadNewChartData() {
     this.dataTable = [];
 
-    for (const id of this.activeChart) {
-      await this.addgraphInfoCp(id);
+    for (const item of this.activeChart) {
+      await this.addgraphInfoCp(item.dynamicId, item.label);
     }
   }
 
@@ -1509,71 +1992,215 @@ class dataSideApp extends Vue {
   chartDataObject(dataTable) {
     const l1: any = []
     dataTable.forEach((el, index) => {
-      l1.push({ data: [...el.data], label: 'graph 1' + index, color: 'blue', dynamicId: el.dynamicId, specialAxis: index });
+      l1.push({ data: [...el.data], label: el.label, color: 'blue', dynamicId: el.dynamicId, specialAxis: index });
     });
 
     return l1;
   }
 
 
-  closeeyes(index) {
-    const indexPosition = this.eyes.indexOf(index);
-    if (indexPosition === -1) {
-      this.eyes.push(index);
-    } else {
-      this.eyes.splice(indexPosition, 1);
+  closeeyes(item, categoryName) {
+    if (!this.eyes[categoryName]) {
+      // Utilisation de $set pour rendre la propriété réactive
+      this.$set(this.eyes, categoryName, []);
     }
-  }
-  closeink(index) {
-    const indexPosition = this.ink.indexOf(index);
-    if (indexPosition === -1) {
-      this.ink.push(index);
+
+    const itemIndex = this.eyes[categoryName].indexOf(item);
+
+    if (itemIndex === -1) {
+      this.eyes[categoryName].push(item);
     } else {
-      this.ink.splice(indexPosition, 1);
+      this.eyes[categoryName].splice(itemIndex, 1);
     }
   }
 
-  countInventoryTypes(floors) {
+  closeink(item, categoryName) {
+    if (!this.ink[categoryName]) {
+      // Utilisation de $set pour rendre la propriété réactive
+      this.$set(this.ink, categoryName, []);
+    }
+
+    const itemIndex = this.ink[categoryName].indexOf(item);
+
+    if (itemIndex === -1) {
+      this.ink[categoryName].push(item);
+    } else {
+      this.ink[categoryName].splice(itemIndex, 1);
+    }
+  }
+
+
+
+
+  async countInventoryTypes(floors) {
+
+    this.data_loading += 5
+    console.log('10%');
+
     const inventoryCounts = {};
     const inventoryDbids = {};
 
-    floors[0].forEach(floor => {
-      if (floor.inventories) {
-        const typologyInventory = floor.inventories.find(inventory => inventory.name === this.config.inventory);
+    const buildingId = localStorage.getItem("idBuilding");
 
-        if (typologyInventory) {
-          typologyInventory.inventory.forEach(group => {
-            if (inventoryCounts[group.name]) {
-              inventoryCounts[group.name] += group.equipments?.length;
+    const contextList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_LIST, { buildingId });
+
+    const dynamicIdMap = {};
+
+    this.data_loading += 16
+    console.log('20%');
+
+    for (const configItem of this.config.inventaire) {
+      const matchingContext = contextList.find(
+        (context) => context.name === configItem.ctx
+      );
+      if (matchingContext) {
+        dynamicIdMap[configItem.ctx] = matchingContext.dynamicId;
+      } else {
+        console.warn(`Contexte "${configItem.ctx}" non trouvé dans la liste.`);
+      }
+    }
+
+    const categoryPromises = Object.entries(dynamicIdMap).map(([ctx, contextId]) => {
+      return this.$store.dispatch(ActionTypes.GET_CONTEXT_CATEGORY_LIST, {
+        buildingId,
+        contextId,
+      });
+    });
+
+    const resultCategory = await Promise.all(categoryPromises);
+
+    const categoriesWithGroups = {};
+
+    for (const [ctx, contextId] of Object.entries(dynamicIdMap)) {
+      const configItems = this.config.inventaire.filter((item) => item.ctx === ctx);
+
+      for (const configItem of configItems) {
+        const configCatName = configItem.cat;
+
+        const matchingCategory = resultCategory.flat().find(
+          (category) => category.name === configCatName
+        );
+
+        if (!matchingCategory) {
+          console.warn(`Catégorie "${configCatName}" non trouvée pour le contexte "${ctx}".`);
+          continue;
+        }
+
+        const categoryDynId = matchingCategory.dynamicId;
+
+        const groupList = await this.$store.dispatch(ActionTypes.GET_CONTEXT_CATEGORY_GROUP_LIST, {
+          buildingId,
+          contextId,
+          categoryDynId,
+        });
+
+        // Gestion des groupes sous forme de tableau
+        const groupIds = [];
+        if (Array.isArray(configItem.grp)) {
+          configItem.grp.forEach((groupName) => {
+            const matchingGroup = groupList.find((group) => group.name === groupName);
+            if (matchingGroup) {
+              groupIds.push(matchingGroup.dynamicId);
             } else {
-              inventoryCounts[group.name] = group.equipments?.length;
+              // console.warn(`Groupe "${groupName}" non trouvé pour la catégorie "${configCatName}".`);
+            }
+          });
+        } else if (configItem.grp) {
+          const matchingGroup = groupList.find((group) => group.name === configItem.grp);
+          if (matchingGroup) {
+            groupIds.push(matchingGroup.dynamicId);
+          } else {
+            // console.warn(`Groupe "${configItem.grp}" non trouvé pour la catégorie "${configCatName}".`);
+          }
+        } else {
+          groupIds.push(...groupList.map((group) => group.dynamicId));
+        }
+
+        if (!categoriesWithGroups[configCatName]) {
+          categoriesWithGroups[configCatName] = [];
+        }
+
+        categoriesWithGroups[configCatName].push({
+          categoryId: categoryDynId,
+          groupIds,
+        });
+      }
+    }
+
+    console.log(categoriesWithGroups, "Catégories avec leurs groupes");
+
+    const categorizedResults = {};
+    floors[0].forEach((floor) => {
+
+      if (floor.inventories) {
+        for (const [categoryName, categories] of Object.entries(categoriesWithGroups)) {
+          if (!categorizedResults[categoryName]) {
+            categorizedResults[categoryName] = {};
+          }
+
+          categories.forEach(({ categoryId, groupIds }) => {
+            const matchingCategory = floor.inventories.find(
+              (inventory) => inventory.dynamicId === categoryId
+            );
+
+            if (!matchingCategory) {
+              return;
             }
 
-            group.equipments.forEach(equipment => {
-              const bimFileId = equipment.bimFileId;
-
-              if (!inventoryDbids[group.name]) {
-                inventoryDbids[group.name] = {};
+            matchingCategory.inventory.forEach((group) => {
+              if (!groupIds.includes(group.dynamicId)) {
+                return;
               }
 
-              if (!inventoryDbids[group.name][bimFileId]) {
-                inventoryDbids[group.name][bimFileId] = [];
+              const itemCount = group.equipments?.length || 0;
+              if (!categorizedResults[categoryName][group.name]) {
+                categorizedResults[categoryName][group.name] = 0;
               }
 
-              inventoryDbids[group.name][bimFileId].push(equipment.dbid);
+              categorizedResults[categoryName][group.name] += itemCount;
+
+              group.equipments.forEach((equipment) => {
+                const bimFileId = equipment.bimFileId;
+
+                if (!inventoryDbids[categoryName]) {
+                  inventoryDbids[categoryName] = {};
+                }
+
+                if (!inventoryDbids[categoryName][group.name]) {
+                  inventoryDbids[categoryName][group.name] = {};
+                }
+
+                if (!inventoryDbids[categoryName][group.name][bimFileId]) {
+                  inventoryDbids[categoryName][group.name][bimFileId] = [];
+                }
+
+                // Ajouter à la liste un objet contenant dbid et dynamicId
+                inventoryDbids[categoryName][group.name][bimFileId].push({
+                  dbid: equipment.dbid,
+                  dynamicId: equipment.dynamicId,
+                  name: equipment.name
+                });
+              });
+
             });
           });
-        } else {
-          console.warn(`Aucun inventaire trouvé pour le type "${this.config.inventory}" dans cet étage.`);
         }
+
+
       } else {
         console.warn(`Aucun inventaire trouvé pour cet étage :`, floor);
       }
+
+
     });
 
-    const results = [];
-    for (const [key, value] of Object.entries(inventoryCounts)) {
-      results.push(`${value} ${key}`);
+    this.data_loading += 100
+
+    const results = {};
+    for (const [categoryName, items] of Object.entries(categorizedResults)) {
+      results[categoryName] = Object.entries(items).map(
+        ([itemName, itemCount]) => `${itemCount} ${itemName}`
+      );
     }
 
     this.inventoyList = results;
@@ -1584,15 +2211,36 @@ class dataSideApp extends Vue {
   }
 
 
+  getdataofelement() {
+    this.referencedId = 0;
+    this.referencedType = ''
+    if (this.selectedZone.type != "building") {
+      if (this.data.length == 0) {
+        this.getroomstaticdetails(this.selectedZone.dynamicId)
+        this.getInventoryObject([this.selectedZone.dynamicId])
+      } else {
+        this.getfloorstaticdetails(this.floor)
+        this.getDataDynamicIdtab()
+      }
+    }
+    else {
+      this.inventoyList = []
+    }
+
+  }
+
   /**
    * Watch
    */
-
+  @Watch('showConfirmDelete')
+  watchShowConfirmDelete(newVal) {
+    this.showConfirmDelete = newVal;
+  }
   @Watch('temporality')
   @Watch('t_index')
   onTemporalDataChanged() {
     this.timeactuelle = this.getFormattedDateFromTemporalData();
-    //ajouter le nouvelle fonction qui va chercher ledonnées 
+    //ajouter le nouvelle fonction qui va chercher les données 
     this.reloadNewChartData();
   }
 
@@ -1604,15 +2252,20 @@ class dataSideApp extends Vue {
   @Watch("alert")
   watchAlert(newVal) {
     if (newVal) {
-      this.showLoader = true;
+      this.itemOverflowMenu = null
+
       setTimeout(() => {
         this.alert = false;
-        this.showLoader = false;
-      }, 5000);
+
+        this.showLoader_in_child = false;
+        this.showLoader_in_parent = false;
+      }, 2000);
     }
   }
   @Watch("selectedZone")
   watchSelectedZone() {
+
+    this.itemOverflowMenu = null
     if (this.selectedZone.type === "building") {
       this.loadBuildingInfo()
       this.isBuildingSelected = true;
@@ -1627,8 +2280,14 @@ class dataSideApp extends Vue {
   watchShowDocvalue(newVal) {
     this.showDocvalue = newVal;
   }
+  @Watch("changeData")
+  changeDataLoading(newVal) {
+    this.data_loading = 10;
+  }
   @Watch("floorstaticDetails")
   async watchFloorstaticDetails(newVal, oldVal) {
+    console.warn('9.5%', this.selectedZone.type);
+
     const dynamicIds = newVal[0].controlEndpoint.flatMap(profile => profile.endpoints.map(endpoint => endpoint.dynamicId));
     const buildingId = localStorage.getItem("idBuilding");
     const parentDocPromise = [
@@ -1648,6 +2307,10 @@ class dataSideApp extends Vue {
 
     this.cpIdToDraw = attributs
 
+    if (this.selectedZone.type == 'building') {
+      this.data_loading += 100
+    }
+
   }
 
   @Watch("data")
@@ -1656,6 +2319,7 @@ class dataSideApp extends Vue {
     this.referencedType = ''
     if (this.selectedZone.type != "building") {
       if (this.data.length == 0) {
+
         this.getroomstaticdetails(this.selectedZone.dynamicId)
         this.getInventoryObject([this.selectedZone.dynamicId])
       } else {
@@ -1672,7 +2336,12 @@ class dataSideApp extends Vue {
 export { dataSideApp };
 export default dataSideApp;
 </script>
-<style lang="scss">
+
+<style lang="scss" scoped>
+.v-select__selection--comma {
+  font-size: 20px !important;
+}
+
 .graphDataContainer {
   display: flex;
   justify-content: space-between;
@@ -1826,11 +2495,12 @@ a {
   background-color: white;
 }
 
-.v-select__selection--comma {
-  font-size: 1.5rem !important;
-  font-family: Arial, Helvetica, sans-serif;
-  overflow: visible !important;
-}
+// .v-select__selection--comma {
+//   font-size: 12px ;
+//   font-family: Arial, Helvetica, sans-serif;
+//   overflow: visible !important;
+//   font-weight: 200 !important;
+// }
 
 
 @media (max-width: 960px) {
@@ -2175,5 +2845,27 @@ a {
   top: -10%;
   left: 50%;
   filter: blur(0.05rem);
+}
+
+.doc-vue {
+  width: 55%;
+  height: 100%;
+  background: #14202c;
+}
+
+@media (max-width: 1024px) and (min-width: 768px) {
+  .appli {
+    flex-direction: column;
+  }
+
+  .doc-vue {
+    width: 100%;
+    height: 50%;
+  }
+
+  .doc-content {
+    width: 100%;
+    height: 50%;
+  }
 }
 </style>
