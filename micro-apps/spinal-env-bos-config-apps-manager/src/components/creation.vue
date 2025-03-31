@@ -23,174 +23,170 @@ with this file. If not, see
 -->
 
 <template>
-  <v-card class="creationContent"
-          elevation="4">
+  <v-card class="creationContent" elevation="4">
     <div class="back">
-      <v-btn rounded
-             outlined
-             color="#14202c"
-             dark
-             @click="cancel">
-        <v-icon left>
-          mdi-arrow-left-thin
-        </v-icon>
+      <v-btn rounded outlined color="#14202c" dark @click="cancel">
+        <v-icon left> mdi-arrow-left-thin </v-icon>
         Retour
       </v-btn>
     </div>
 
-    <v-form class="form"
-            @submit.prevent="onSubmit">
-      <div class="_title">{{title}}</div>
+    <v-form class="form" @submit.prevent="onSubmit">
+      <div class="_title">{{ title }}</div>
 
       <div class="content">
         <div class="appDiv">
           <div class="selectionDiv">
-            <v-checkbox v-model="appInfo.hasViewer"
-                        label="Cette application utilise de la 3D"></v-checkbox>
+            <v-checkbox
+              v-model="appInfo.hasViewer"
+              label="Cette application utilise de la 3D"
+            ></v-checkbox>
           </div>
 
           <div class="selectionDiv">
-            <v-checkbox v-model="appInfo.isExternalApp"
-                        label="Cette application est une application externe">
+            <v-checkbox
+              v-model="appInfo.isExternalApp"
+              label="Cette application est une application externe"
+            >
             </v-checkbox>
           </div>
         </div>
 
         <v-row>
-          <v-col class="colonnes"
-                 cols="4">
-            <v-combobox :items="icons"
-                        v-model="appInfo.icon"
-                        label="Icone"
-                        item-value="name"
-                        item-text="name"
-                        :hide-details="true"
-                        outlined>
-
+          <v-col class="colonnes" cols="4">
+            <v-combobox
+              :items="icons"
+              v-model="appInfo.icon"
+              label="Icone"
+              item-value="name"
+              item-text="name"
+              :hide-details="true"
+              outlined
+            >
               <template v-slot:item="{ item }">
-                <v-icon style="margin-right: 10px;">{{'mdi-' + item.name}}
+                <v-icon style="margin-right: 10px"
+                  >{{ 'mdi-' + item.name }}
                 </v-icon>
 
-                {{item.name}}
+                {{ item.name }}
               </template>
 
               <template v-slot:selection="{ item }">
-                <v-icon style="margin-right: 10px;">{{'mdi-' + item.name}}
+                <v-icon style="margin-right: 10px"
+                  >{{ 'mdi-' + item.name }}
                 </v-icon>
 
                 <!-- {{item.name}} -->
               </template>
-
             </v-combobox>
           </v-col>
-          <v-col class="colonnes"
-                 cols="8">
-            <v-text-field v-model="appInfo.name"
-                          label="Nom de l'application"
-                          :hide-details="true"
-                          outlined></v-text-field>
+          <v-col class="colonnes" cols="8">
+            <v-text-field
+              v-model="appInfo.name"
+              label="Nom de l'application"
+              :hide-details="true"
+              outlined
+            ></v-text-field>
           </v-col>
         </v-row>
 
         <v-row>
-          <v-col class="colonnes"
-                 cols="12">
-            <v-text-field v-model="appInfo.link"
-                          v-if="appInfo.isExternalApp"
-                          label="Lien vers l'application"
-                          :hide-details="true"
-                          outlined></v-text-field>
+          <v-col class="colonnes" cols="12">
+            <v-text-field
+              v-model="appInfo.link"
+              v-if="appInfo.isExternalApp"
+              label="Lien vers l'application"
+              :hide-details="true"
+              outlined
+            ></v-text-field>
 
-            <v-text-field v-model="appInfo.packageName"
-                          v-else-if="!appInfo.isExternalApp"
-                          label="Nom du package (dans le package.json)"
-                          :hide-details="true"
-                          outlined></v-text-field>
+            <v-text-field
+              v-model="appInfo.packageName"
+              v-else-if="!appInfo.isExternalApp"
+              label="Nom du package (dans le package.json)"
+              :hide-details="true"
+              outlined
+            ></v-text-field>
           </v-col>
 
           <v-col cols="12">
-            <v-text-field v-model="appInfo.documentationLink"
-                          label="Lien vers la documentation de l'application"
-                          :hide-details="true"
-                          outlined></v-text-field>
-          </v-col>
-
-        </v-row>
-
-        <v-row>
-          <v-col class="colonnes"
-                 cols="12">
-            <v-combobox small-chips
-                        deletable-chips
-                        multiple
-                        append-icon="none"
-                        v-model="appInfo.tags"
-                        label="Tags"
-                        :hide-details="true"
-                        outlined></v-combobox>
+            <v-text-field
+              v-model="appInfo.documentationLink"
+              label="Lien vers la documentation de l'application"
+              :hide-details="true"
+              outlined
+            ></v-text-field>
           </v-col>
         </v-row>
 
         <v-row>
-          <v-col class="colonnes"
-                 cols="6">
-            <v-text-field v-model="appInfo.categoryName"
-                          label="Categorie de l'application"
-                          :hide-details="true"
-                          outlined></v-text-field>
-          </v-col>
-
-          <v-col class="colonnes"
-                 cols="6">
-            <v-text-field v-model="appInfo.groupName"
-                          label="Groupe de l'application"
-                          :hide-details="true"
-                          outlined></v-text-field>
+          <v-col class="colonnes" cols="12">
+            <v-combobox
+              small-chips
+              deletable-chips
+              multiple
+              append-icon="none"
+              v-model="appInfo.tags"
+              label="Tags"
+              :hide-details="true"
+              outlined
+            ></v-combobox>
           </v-col>
         </v-row>
 
         <v-row>
-          <v-col class="colonnes"
-                 cols="12">
-            <v-textarea v-model="appInfo.description"
-                        outlined
-                        name="input-7-4"
-                        label="Description">
+          <v-col class="colonnes" cols="6">
+            <v-text-field
+              v-model="appInfo.categoryName"
+              label="Categorie de l'application"
+              :hide-details="true"
+              outlined
+            ></v-text-field>
+          </v-col>
+
+          <v-col class="colonnes" cols="6">
+            <v-text-field
+              v-model="appInfo.groupName"
+              label="Groupe de l'application"
+              :hide-details="true"
+              outlined
+            ></v-text-field>
+          </v-col>
+        </v-row>
+
+        <v-row>
+          <v-col class="colonnes" cols="12">
+            <v-textarea
+              v-model="appInfo.description"
+              outlined
+              name="input-7-4"
+              label="Description"
+            >
             </v-textarea>
           </v-col>
         </v-row>
 
         <div class="buttons">
-          <v-btn class="button"
-                 color="error"
-                 @click="cancel">
-            Annuler
-          </v-btn>
+          <v-btn class="button" color="error" @click="cancel"> Annuler </v-btn>
 
-          <v-btn class="button"
-                 color="#14202c"
-                 type="submit">
-            <v-icon class="btnIcon">
-              mdi-content-save-outline
-            </v-icon>
+          <v-btn class="button" color="#14202c" type="submit">
+            <v-icon class="btnIcon"> mdi-content-save-outline </v-icon>
             Enregister
           </v-btn>
-
         </div>
-
       </div>
     </v-form>
   </v-card>
 </template>
-  
-  <script lang="ts">
-import { IApp } from "../types/interfaces";
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
-import icons from "../store/icons";
+
+<script lang="ts">
+import { IApp } from '../types/interfaces';
+import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
+import icons from '../store/icons';
 
 @Component({})
 class CreationComponent extends Vue {
-  required = [(v: string) => !!v || "this input is required"];
+  required = [(v: string) => !!v || 'this input is required'];
   icons: { id: string; name: string }[] = icons;
 
   @Prop() title!: string;
@@ -198,17 +194,17 @@ class CreationComponent extends Vue {
   @Prop() appSelected!: IApp;
 
   appInfo: IApp = {
-    name: "",
-    icon: "",
-    description: "",
+    name: '',
+    icon: '',
+    description: '',
     tags: [],
-    categoryName: "",
-    groupName: "",
+    categoryName: '',
+    groupName: '',
     hasViewer: false,
-    packageName: "",
+    packageName: '',
     isExternalApp: false,
-    link: "",
-    documentationLink: "",
+    link: '',
+    documentationLink: '',
   };
 
   mounted() {
@@ -219,40 +215,40 @@ class CreationComponent extends Vue {
 
       this.appInfo = Object.assign({}, this.appSelected);
       this.appInfo.icon = icon || this.appSelected.icon;
-      if (!this.appInfo.documentationLink) this.appInfo.documentationLink = "";
+      if (!this.appInfo.documentationLink) this.appInfo.documentationLink = '';
     }
   }
 
   onSubmit() {
     if (this.edit) {
-      this.$emit("edit", Object.assign({}, this.appInfo));
+      this.$emit('edit', Object.assign({}, this.appInfo));
       this.initAppInfo();
       return;
     }
 
-    this.$emit("create", Object.assign({}, this.appInfo));
+    this.$emit('create', Object.assign({}, this.appInfo));
     this.initAppInfo();
   }
 
   cancel() {
-    this.$emit("cancel");
+    this.$emit('cancel');
     this.initAppInfo();
   }
 
   initAppInfo() {
     this.appInfo = {
-      name: "",
-      icon: "",
-      description: "",
+      name: '',
+      icon: '',
+      description: '',
       tags: [],
-      categoryName: "",
-      groupName: "",
+      categoryName: '',
+      groupName: '',
       hasViewer: false,
-      packageName: "",
+      packageName: '',
     };
   }
 
-  @Watch("edit")
+  @Watch('edit')
   watchEdit() {
     if (this.edit) {
       this.appInfo = Object.assign({}, this.appSelected);
@@ -265,9 +261,9 @@ class CreationComponent extends Vue {
 
 export default CreationComponent;
 </script>
-  
-  <!-- Add "scoped" attribute to limit CSS to this component only -->
-  <style lang="scss">
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style lang="scss">
 $header-height: 80px;
 $toolbar-height: 60px;
 
@@ -355,4 +351,3 @@ $toolbar-height: 60px;
   }
 }
 </style>
-  

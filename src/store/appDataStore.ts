@@ -108,7 +108,7 @@ export const appDataStore = {
     selectedPortofolio: undefined,
     portofolios: undefined,
     spaceSelected: '',
-    appSelected: undefined,
+    appSelected: '',
     appsDisplayed: [],
     pamApps: [],
     bos: [],
@@ -122,13 +122,14 @@ export const appDataStore = {
       state.selectedPortofolio = playload;
     },
     [SET_PORTOFOLIO](state: any, playload) {
-      state.portofolios = [
-        {
-          id: 'apps',
-          name: 'Applications',
-          apps: [...(playload['adminApps'] || []), ...(playload['apps'] || [])],
-        },
-      ];
+      const apps = playload['apps'] || [];
+      const adminApps = playload['adminApps'] || [];
+      const item = {
+        id: 'apps',
+        name: 'Applications',
+        apps: [...apps, ...adminApps],
+      };
+      state.portofolios = [item];
     },
 
     [SET_USER_INFO](state: any, playload: any) {
@@ -141,7 +142,7 @@ export const appDataStore = {
       state.appsFormatted = appsFormatted;
     },
 
-    [SET_SELECTED_APP](state: any, playload: any) {
+    [SET_SELECTED_APP](state: any, playload: string) {
       state.appSelected = playload;
     },
 
@@ -181,7 +182,7 @@ export const appDataStore = {
     async getPortofolios({ commit, dispatch, state }: any) {
       try {
         const profileId = await dispatch('getProfileId');
-        const profile = await getUserProfile(profileId);
+        const profile = await getUserProfile();
         commit(SET_PORTOFOLIO, profile);
       } catch (error) {}
     },
@@ -271,3 +272,5 @@ export const appDataStore = {
     },
   },
 };
+
+window['appDataStore'] = appDataStore;

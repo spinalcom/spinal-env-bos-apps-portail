@@ -23,31 +23,30 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="homeContainer"
-               fluid
-               @click.stop="closeSelect">
+  <v-container class="homeContainer" fluid @click.stop="closeSelect">
     <div class="header">
       <div class="nav">
         <NavBar :isMobile="isMobile" />
       </div>
 
       <div class="select">
-        <select-component ref="select-component"
-                          :isMobile="isMobile"
-                          @selected="changeApps"
-                          :portofolios="portofolios"></select-component>
+        <select-component
+          ref="select-component"
+          :isMobile="isMobile"
+          @selected="changeApps"
+          :portofolios="portofolios"
+        ></select-component>
       </div>
     </div>
 
-    <router-view class="content"
-                 :isMobile="isMobile"></router-view>
+    <router-view class="content" :isMobile="isMobile"></router-view>
   </v-container>
 </template>
 
 <script lang="ts">
-import { mapActions, mapState } from "vuex";
-import NavBar from "../components/nav.vue";
-import SelectComponent from "../components/select.vue";
+import { mapActions, mapState } from 'vuex';
+import NavBar from '../components/nav.vue';
+import SelectComponent from '../components/select.vue';
 export default {
   components: {
     NavBar,
@@ -57,14 +56,14 @@ export default {
     await this.init();
   },
   methods: {
-    ...mapActions("appDataStore", [
-      "getPortofolios",
-      "getApps",
-      "getBos",
-      "getUserInfo",
-      "selectSpace",
-      "getFavoriteApps",
-    ]),
+    ...mapActions('appDataStore', [
+      'getPortofolios',
+      'getApps',
+      'getBos',
+      'getUserInfo',
+      'selectSpace',
+      'getFavoriteApps',
+    ] as const),
 
     init() {
       return Promise.all([
@@ -75,7 +74,7 @@ export default {
     },
 
     closeSelect() {
-      const ref = this.$refs["select-component"];
+      const ref = this.$refs['select-component'];
       if (ref) ref.close();
     },
 
@@ -84,10 +83,14 @@ export default {
     },
   },
   computed: {
-    ...mapState("appDataStore", ["appsDisplayed", "userInfo", "portofolios"]),
+    ...mapState('appDataStore', [
+      'appsDisplayed',
+      'userInfo',
+      'portofolios',
+    ] as const),
     isMobile() {
       const breakpoint = this.$vuetify.breakpoint.name;
-      if (["xs", "sm"].indexOf(breakpoint) !== -1) return true;
+      if (['xs', 'sm'].indexOf(breakpoint) !== -1) return true;
       return false;
     },
   },

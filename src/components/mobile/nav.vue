@@ -23,10 +23,8 @@ with this file. If not, see
 -->
 
 <template>
-  <div class="mobile-nav-container"
-       :class="{'enabled' : drawer}">
-    <div class="navPickerApp"
-         @click.stop="drawer = !drawer">
+  <div class="mobile-nav-container" :class="{ enabled: drawer }">
+    <div class="navPickerApp" @click.stop="drawer = !drawer">
       <div class="navPickerApp-container">
         <div class="navPickerApp-mainMenu">
           <button class="navPickerApp-mainMenu-button">
@@ -39,23 +37,15 @@ with this file. If not, see
         <div class="navPickerApp-companyLogo">
           <img :src="logoSvg" />
         </div>
-
       </div>
     </div>
 
-    <v-navigation-drawer v-model="drawer"
-                         absolute
-                         temporary>
-
+    <v-navigation-drawer v-model="drawer" absolute temporary>
       <v-list-item>
         <v-list-item-content>
-
           <v-list-item-title class="text-h6">
-            <v-avatar size="36"
-                      color="grey">
-              <v-icon dark>
-                mdi-account
-              </v-icon>
+            <v-avatar size="36" color="grey">
+              <v-icon dark> mdi-account </v-icon>
             </v-avatar>
             {{ userInfo && userInfo.name }}
           </v-list-item-title>
@@ -68,11 +58,8 @@ with this file. If not, see
 
       <v-divider></v-divider>
 
-      <v-list nav
-              rounded>
-
-        <v-list-item link
-                     @click="goToHome">
+      <v-list nav rounded>
+        <v-list-item link @click="goToHome">
           <v-list-item-icon>
             <v-icon>mdi-domain</v-icon>
           </v-list-item-icon>
@@ -82,12 +69,14 @@ with this file. If not, see
           </v-list-item-content>
         </v-list-item>
 
-        <v-list-item v-for="item in apps"
-                     :key="item.id"
-                     link
-                     @click="goToApp(item, $event)">
+        <v-list-item
+          v-for="item in apps"
+          :key="item.id"
+          link
+          @click="goToApp(item, $event)"
+        >
           <v-list-item-icon>
-            <v-icon>{{item.icon || 'mdi-domain'}}</v-icon>
+            <v-icon>{{ item.icon || 'mdi-domain' }}</v-icon>
           </v-list-item-icon>
 
           <v-list-item-content>
@@ -97,25 +86,19 @@ with this file. If not, see
       </v-list>
 
       <template v-slot:append>
-        <div style="height : 60px">
-          <v-btn block
-                 color="error"
-                 style="height : 100%"
-                 @click="logOut">
-            <v-icon left>
-              mdi-logout
-            </v-icon>
+        <div style="height: 60px">
+          <v-btn block color="error" style="height: 100%" @click="logOut">
+            <v-icon left> mdi-logout </v-icon>
             Déconnexion
           </v-btn>
         </div>
       </template>
     </v-navigation-drawer>
   </div>
-
 </template>
 
 <script>
-const logo = require("../../../assets/img/favicon.png");
+const logo = require('../../../assets/img/favicon.png');
 export default {
   props: {
     logoSvg: {},
@@ -130,15 +113,15 @@ export default {
 
   methods: {
     logOut() {
-      this.$emit("logout");
+      this.$emit('logout');
     },
 
     goToHome(event) {
-      this.$emit("home", event);
+      this.$emit('home', event);
     },
 
     goToApp(item, event) {
-      this.$emit("goToApp", { item, event });
+      this.$emit('goToApp', { item, event });
     },
   },
   watch: {
@@ -152,8 +135,8 @@ export default {
 <style lang="scss" scoped>
 .mobile-nav-container {
   position: absolute;
-  width: 450px !important;
-  height: 60px !important;
+  // width: 450px !important;
+  // height: 60px !important;
   top: 5px;
   left: 0px;
 }

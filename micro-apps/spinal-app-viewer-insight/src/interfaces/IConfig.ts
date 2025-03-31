@@ -78,6 +78,10 @@ export interface ISource {
   objectType: "equipments" | "rooms";
   categoryName?: string;
   unit?: string;
+  controllable: {
+    on: boolean; // Pour activer ou non le contrôle de la source
+    type: "controlValue" | "currentValue"; // Type de valeur à contrôler
+  };
   legend?: ILegend;
 }
 

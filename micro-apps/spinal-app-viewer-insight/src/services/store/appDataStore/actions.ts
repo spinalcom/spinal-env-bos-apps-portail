@@ -60,19 +60,185 @@ import ViewerManager from "../../../../../../global-components/viewer/manager/vi
 // import SpriteManager from "../../../components/viewer/manager/spriteManager";
 // import ViewerManager from "../../../components/viewer/manager/viewerManager";
 import { IConfig } from "../../../interfaces/IConfig";
-import { getSourceValue } from "../../spinalAPI/endpoints/getEndpoints";
+import { getControlEndpointListMultiple, getSourceValue, updateEndpoint } from "../../spinalAPI/endpoints/getEndpoints";
 import {
   getItemsToRegroup,
   regroupByGeographicItem,
   regroupByGeograhicGroup,
 } from "./utils/regroupement";
 import { classifyItemByBimFileId } from "./utils/openViewer";
+import connectSocket from "../../websocket";
+import { getContextId } from "../../websocket/Current";
+import { subscribe } from "../../websocket/subscribe";
+
 
 const ApiIteratorStore: ApiIteratorStoreType &
   ApiIteratorStoreRecordStringType &
   ApiIteratorStoreRecordNumberType = {};
 
 export const actions = {
+async [ActionTypes.UPDATE_ENDPOINT]({commit, state}: any, {buildingId, formData, updateType} : {buildingId: string, formData: FormData, updateType: string} ) {
+      if(formData.has('allValue')) {
+        const value = formData.get('allValue');
+        const dynamicIdValue = formData.get('dynamicIds');
+        const dynamicIds = dynamicIdValue ? JSON.parse(dynamicIdValue as string) : [];
+        let updatePromise: any[]  = [];
+        dynamicIds.forEach(async (dynamicId: number) => {
+          try {
+            const res = await updateEndpoint(buildingId, dynamicId, value, updateType);
+            if(res.status === 200) {
+              updatePromise.push(
+                 {
+                  success: true,
+                  endpoint: res.data
+                 }
+              )
+            }
+          } catch (error) {
+            updatePromise.push(
+              {
+                success: false,
+                endpoint: null
+              }
+            )
+          }
+        })
+        const result = await Promise.all(updatePromise);
+        const allSuccess = result.every((el) => el.success === true);
+        if(allSuccess){
+          return {success: true, data: result};
+        }
+        else {
+          return {success: false, data: result};
+        }
+
+      } else {
+        
+            let updatePromise: any[]  = [];
+            for (let [key, value] of formData.entries()) {
+              try {
+                const res = await updateEndpoint(buildingId, parseInt(key), value, updateType);
+                if(res.status === 200) {
+                  updatePromise.push(
+                     {
+                      success: true,
+                      endpoint: res.data
+                     }
+                  )
+                }
+              } catch (error) {
+                updatePromise.push(
+                  {
+                    success: false,
+                    endpoint: null
+                  }
+                )
+                console.error(error);
+              }
+            }
+            const result = await Promise.all(updatePromise);
+            const allSuccess = result.every((el) => el.success === true);
+            if(allSuccess){
+              return {success: true, data: result};
+            }
+            else {
+              return {success: false, data: result};
+            }
+        
+      }
+},
+
+async [ActionTypes.GET_CONTROL_POINT_MULTIPLE]({commit, state}: any, {buildingId, dynamicIds,} : {buildingId: string, dynamicIds: number[]} ) {
+  const result: any[] = await getControlEndpointListMultiple(buildingId, dynamicIds);
+
+  return result;
+},
+
+async [ActionTypes.ENABLE_SOCKET]({dispatch ,commit, state, rootState}: any, {enable} : {enable: boolean} ) { 
+  commit(MutationTypes.SET_REAL_TIME, enable);
+  if(enable) {
+    // Vérifions si le socket est déjà connecté
+    if(!state.socket || !state.socket.connected) {
+      const socketInstance = connectSocket();
+      commit(MutationTypes.SET_SOCKET, socketInstance);
+
+      // Connexion au socket
+      socketInstance.connect();
+      console.log('socket connected');
+
+
+      //Récupération des nodeId pour la souscription au socket
+      let elementContext_alt: any[] = [];
+      const buildingId = localStorage.getItem('idBuilding');
+      const context = await getContextId(buildingId);
+      //context ID
+      const contextId = context[0].dynamicId;
+      if(rootState.appDataStore.data.length > 0) {
+          const children = rootState.appDataStore.data
+      children.map((item: any) => {
+          item.children.map((el: any) => {
+            const value = el.endpoint.dynamicId;
+            elementContext_alt.push(`${contextId}/${value}`);
+          })
+      })
+      commit(MutationTypes.SET_ELEMENT_CONTEXT, elementContext_alt); 
+        
+        const requestOption = {
+          subscribeChildren: true,
+          subscribeChildScope: 'tree_in_context',
+        }
+        const events = await subscribe(state.socket, state.elementContext, requestOption);
+        try{
+          for await (const event of events) {
+            state.socket.on(event.toString(), (data: any) => {
+              const value = {
+                dynamicId: data.data.node.dynamicId,
+                name: data.data.node.element.name,
+                value: data.data.node.element.currentValue,
+                unit: data.data.node.element.unit
+              }
+              console.log('value', value);
+              
+              const stateupdate = dispatch(ActionTypes.WEBSOCKET_CALLBACK, {data: value});
+              commit(MutationTypes.SET_ENDPOINT, stateupdate)
+
+            })
+          }
+        } catch (error) {
+
+        }
+
+      } {
+      
+  }
+  return true;
+ }
+ else {
+  // Déconnexion du socket
+    state.socket.disconnect();
+    console.log('socket disconnected');
+    return false;
+ }
+}
+},
+
+
+async [ActionTypes.WEBSOCKET_CALLBACK]({commit, state, rootState}: any, {data} : {data: any} ) {
+
+
+  // on parcours le state pour voir si on a des données qui correspondent à celles reçues afin de les mettre à jour
+  state.data.forEach((el: any) => {
+    el.children.forEach((child: any) => { 
+        if(child.endpoint.dynamicId === data.dynamicId) {
+          child.endpoint.value = data.value;
+          rootState.appDataStore.reloadData = true;
+        }
+        
+    })
+  })
+  return state;
+},
+
   async [ActionTypes.GET_BUILDINGS](
     { commit, state }: AugmentedActionContextAppData,
     { patrimoineId, forceUpdate }
@@ -459,11 +625,29 @@ export const actions = {
   ) {
     return ViewerManager.getInstance().addSprites(items, buildingId);
   },
-
+  
   [ActionTypes.ADD_COMPONENT_AS_SPRITES](
     { commit, dispatch, state },
     { items, buildingId, component }: any
   ) {
+    console.log("ADD_SPRITES", items, buildingId);    
+    // console.log({
+    //   MESSAGE: 'COUCOU',
+    //   ITEMS: items,
+    //   BUILDING_ID: buildingId,
+    //   COMPONENT: component,
+    // })
+    return ViewerManager.getInstance().addComponentAsSprites(
+      items,
+      buildingId,
+      component
+    );
+  },
+  [ActionTypes.ADD_CURRENT_CARD](
+    { commit, dispatch, state },
+    { items, buildingId, component }: any
+  ) {
+    console.log("ADD_SPRITES", items, buildingId);    
     // console.log({
     //   MESSAGE: 'COUCOU',
     //   ITEMS: items,
@@ -502,5 +686,12 @@ export const actions = {
       commit(MutationTypes.ADD_CHART_ITEM, item);
     }
   },
+
+  [ActionTypes.SET_ENDPOINT](
+    { commit, dispatch, state },
+    children: any[]
+  ) {
+    return commit(MutationTypes.SET_ENDPOINT, children);
+  }
 
 };

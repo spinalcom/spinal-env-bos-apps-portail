@@ -22,5 +22,26 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-export * from './ISpinalApp';
-export * from './ISubApp';
+export interface ISubApp {
+  id?: string;
+  type?: string;
+  name: string;
+  icon?: string;
+  description?: string;
+  tags?: string[];
+  categoryName?: string;
+  groupName?: string;
+  hasViewer?: boolean;
+  documentationLink?: string;
+  appConfig?: any; // JSON object
+}
+
+export interface ISubAppExel extends Partial<ISubApp> {
+  name: string;
+  /**
+   * @type {string} can be appId or appName
+   * @memberof ISubAppExel
+   */
+  parentApp: string;
+  appConfig: any; // JSON object
+}

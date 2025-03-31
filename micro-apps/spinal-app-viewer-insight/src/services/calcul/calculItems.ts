@@ -25,6 +25,7 @@ import moment, { min } from "moment";
 import { calculTypes } from "../../interfaces/IConfig";
 import { INodeItemTree } from "../../interfaces/INodeItem";
 import { getTimeSeriesAsync } from "../spinalAPI/endpoints/getEndpoints";
+import { getCurrentData } from "../websocket/Current";
 
 export async function calculItemsValue(
   data: INodeItemTree[],
@@ -50,24 +51,35 @@ export async function calculItemsValue(
 
 export function getColor(item, legend, percent = false) {
   const value = item.displayValue;
-
   if (isNaN(value) || !isFinite(value)) return "#808080";
-
   const { min, max } = percent
-    ? { min: 0, max: 100 }
-    : { min: legend.min.value, max: legend.max.value };
+  ? { min: 0, max: 100 }
+  : { 
+      min: Number(legend.min.value).toFixed(2), 
+      max: Number(legend.max.value).toFixed(2) 
+    };
 
-  if (legend.median) {
-    const third = min + (max - min) / 3;
-    const two_third = min + ((max - min) * 2) / 3;
+// Vérifier si min et max sont bien des nombres après arrondi
+const minNum = parseFloat(min.toString());
+const maxNum = parseFloat(max.toString());
 
-    if (value <= third) return legend.min.color;
-    if (value <= two_third) return legend.median.color;
-    return legend.max.color;
-  }
+if (minNum === maxNum) return legend.min.color;
 
-  const mid = (min + max) / 2;
-  return value <= mid ? legend.min.color : legend.max.color;
+if (legend.median) {
+  const intervale = parseFloat(((maxNum - minNum) / 3).toFixed(2));
+  const third = parseFloat((minNum + intervale).toFixed(2));
+  const two_third = parseFloat((minNum + 2 * intervale).toFixed(2));
+
+  if (value <= third) return legend.min.color;
+  if (value <= two_third) return legend.median.color;
+  return legend.max.color;
+}
+
+// Cas sans median : séparation en deux
+const mid = parseFloat(((minNum + maxNum) / 2).toFixed(2));
+return value <= mid ? legend.min.color : legend.max.color;
+
+ 
 }
 
 async function getValue(

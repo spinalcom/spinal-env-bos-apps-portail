@@ -1,19 +1,19 @@
 /*
  * Copyright 2022 SpinalCom - www.spinalcom.com
- * 
+ *
  * This file is part of SpinalCore.
- * 
+ *
  * Please read all of the following terms and conditions
  * of the Free Software license Agreement ("Agreement")
  * carefully.
- * 
+ *
  * This Agreement is a legally binding contract between
  * the Licensee (as defined below) and SpinalCom that
  * sets forth the terms and conditions that govern your
  * use of the Program. By installing and/or using the
  * Program, you agree to abide by all the terms and
  * conditions stated or referenced herein.
- * 
+ *
  * If you do not agree to abide by these terms and
  * conditions, do not demonstrate your acceptance and do
  * not install or use the Program.
@@ -22,9 +22,9 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import Vue from 'vue'
-import Vuex, { ActionContext } from 'vuex'
-import { IApp, IState } from "../types/interfaces"
+import Vue from 'vue';
+import Vuex, { ActionContext } from 'vuex';
+import type { ISpinalApp } from '../types/ISpinalApp';
 
 import {
   createBuildingAppsRequest,
@@ -38,9 +38,8 @@ import {
   updateBuildingAppRequest,
   updateAdminAppRequest,
   uploadAdminFileRequest,
-  uploadBuildingFileRequest
-} from "../requests";
-
+  uploadBuildingFileRequest,
+} from '../requests';
 
 import {
   SET_BUILDINGS_APPS,
@@ -50,119 +49,150 @@ import {
   REMOVE_BUILDINGS_APPS,
   REMOVE_ADMIN_APPS,
   EDIT_BUILDINGS_APPS,
-  EDIT_ADMIN_APPS
-} from './mutations'
+  EDIT_ADMIN_APPS,
+} from './mutations';
 
+Vue.use(Vuex);
+export interface IState {
+  portofolioApps: ISpinalApp[];
+  buildingApps: ISpinalApp[];
+  adminApps: ISpinalApp[];
+}
 
-Vue.use(Vuex)
-
-export default new Vuex.Store({
+export default new Vuex.Store<IState>({
   state: {
     portofolioApps: [],
     buildingApps: [],
-    adminApps: []
+    adminApps: [],
   },
-  getters: {
-  },
+  getters: {},
   mutations: {
-
-    [SET_BUILDINGS_APPS](state: IState, playload: IApp[]) {
+    [SET_BUILDINGS_APPS](state: IState, playload: ISpinalApp[]) {
       state.buildingApps = playload;
     },
-    [SET_ADMIN_APPS](state: IState, playload: IApp[]) {
+    [SET_ADMIN_APPS](state: IState, playload: ISpinalApp[]) {
       state.adminApps = playload;
     },
 
-    [ADD_BUILDINGS_APPS](state: IState, playload: IApp) {
+    [ADD_BUILDINGS_APPS](state: IState, playload: ISpinalApp) {
       state.buildingApps = [...state.buildingApps, playload];
     },
-    [ADD_ADMIN_APPS](state: IState, playload: IApp) {
+    [ADD_ADMIN_APPS](state: IState, playload: ISpinalApp) {
       state.adminApps = [...state.adminApps, playload];
     },
 
     [REMOVE_BUILDINGS_APPS](state: IState, id: string) {
-      state.buildingApps = state.buildingApps.filter((el: IApp) => el.id !== id);
+      state.buildingApps = state.buildingApps.filter(
+        (el: ISpinalApp) => el.id !== id
+      );
     },
     [REMOVE_ADMIN_APPS](state: IState, id: string) {
-      state.adminApps = state.adminApps.filter((el: IApp) => el.id !== id);
+      state.adminApps = state.adminApps.filter(
+        (el: ISpinalApp) => el.id !== id
+      );
     },
 
-    [EDIT_BUILDINGS_APPS](state: IState, { id, data }: { id: string; data: IApp }) {
-      const index = state.buildingApps.findIndex((el: IApp) => el.id === id)
+    [EDIT_BUILDINGS_APPS](
+      state: IState,
+      { id, data }: { id: string; data: ISpinalApp }
+    ) {
+      const index = state.buildingApps.findIndex(
+        (el: ISpinalApp) => el.id === id
+      );
       if (index !== -1) {
         state.buildingApps[index] = data;
       }
     },
-    [EDIT_ADMIN_APPS](state: IState, { id, data }: { id: string; data: IApp }) {
-      const index = state.adminApps.findIndex((el: IApp) => el.id === id)
+    [EDIT_ADMIN_APPS](
+      state: IState,
+      { id, data }: { id: string; data: ISpinalApp }
+    ) {
+      const index = state.adminApps.findIndex((el: ISpinalApp) => el.id === id);
       if (index !== -1) {
         state.adminApps[index] = data;
       }
     },
   },
   actions: {
-
-    async createBuildingApps({ commit }: ActionContext<IState, any>, appInfo: IApp) {
+    async createBuildingApps(
+      { commit }: ActionContext<IState, any>,
+      appInfo: ISpinalApp
+    ) {
       const { data } = await createBuildingAppsRequest(appInfo);
       commit(ADD_BUILDINGS_APPS, data);
     },
-    async createAdminApps({ commit }: ActionContext<IState, any>, appInfo: IApp) {
+    async createAdminApps(
+      { commit }: ActionContext<IState, any>,
+      appInfo: ISpinalApp
+    ) {
       const { data } = await createAdminAppsRequest(appInfo);
       commit(ADD_ADMIN_APPS, data);
     },
 
     async getAllBuildingApps({ commit }: ActionContext<IState, any>) {
-      const response: any = await getAllBuildingAppsRequest()
+      const response: any = await getAllBuildingAppsRequest();
       commit(SET_BUILDINGS_APPS, response.data);
     },
     async getAllAdminApps({ commit }: ActionContext<IState, any>) {
-      const response: any = await getAllAdminAppsRequest()
+      const response: any = await getAllAdminAppsRequest();
       commit(SET_ADMIN_APPS, response.data);
     },
 
     async getBuildingApp({ state }: ActionContext<IState, any>, id: string) {
-      if (state.buildingApps && state.buildingApps.length > 0) return state.buildingApps;
-      return getBuildingAppRequest(id)
+      if (state.buildingApps && state.buildingApps.length > 0)
+        return state.buildingApps;
+      return getBuildingAppRequest(id);
     },
     async getAdminApp({ state }: ActionContext<IState, any>, id: string) {
       if (state.adminApps && state.adminApps.length > 0) return state.adminApps;
-      return getAdminAppRequest(id)
+      return getAdminAppRequest(id);
     },
 
     //*delete By Id
 
-    async deleteBuildingApp({ commit }: ActionContext<IState, any>, id: string) {
-      const { data } = await deleteBuildingAppRequest(id)
-      commit(REMOVE_BUILDINGS_APPS, id)
+    async deleteBuildingApp(
+      { commit }: ActionContext<IState, any>,
+      id: string
+    ) {
+      const { data } = await deleteBuildingAppRequest(id);
+      commit(REMOVE_BUILDINGS_APPS, id);
     },
     async deleteAdminApp({ commit }: ActionContext<IState, any>, id: string) {
-      const { data } = await deleteAdminAppRequest(id)
-      commit(REMOVE_ADMIN_APPS, id)
+      const { data } = await deleteAdminAppRequest(id);
+      commit(REMOVE_ADMIN_APPS, id);
     },
 
-
-    async updateBuildingApp({ commit }: ActionContext<IState, any>, { id, newValue }: { id: string; newValue: IApp }) {
-      const { data } = await updateBuildingAppRequest(id, newValue)
+    async updateBuildingApp(
+      { commit }: ActionContext<IState, any>,
+      { id, newValue }: { id: string; newValue: ISpinalApp }
+    ) {
+      const { data } = await updateBuildingAppRequest(id, newValue);
       commit(EDIT_BUILDINGS_APPS, { id, data });
     },
-    async updateAdminApp({ commit }: ActionContext<IState, any>, { id, newValue }: { id: string; newValue: IApp }) {
-      const { data } = await updateAdminAppRequest(id, newValue)
+    async updateAdminApp(
+      { commit }: ActionContext<IState, any>,
+      { id, newValue }: { id: string; newValue: ISpinalApp }
+    ) {
+      const { data } = await updateAdminAppRequest(id, newValue);
       commit(EDIT_ADMIN_APPS, { id, data });
     },
 
-
     // upload
 
-    async uploadAdminFile({ dispatch }: ActionContext<IState, any>, fileData: FormData) {
+    async uploadAdminFile(
+      { dispatch }: ActionContext<IState, any>,
+      fileData: FormData
+    ) {
       const response = await uploadAdminFileRequest(fileData);
-      await dispatch("getAllAdminApps");
+      await dispatch('getAllAdminApps');
     },
-    async uploadBuildingFile({ dispatch }: ActionContext<IState, any>, fileData: FormData) {
+    async uploadBuildingFile(
+      { dispatch }: ActionContext<IState, any>,
+      fileData: FormData
+    ) {
       const response = await uploadBuildingFileRequest(fileData);
-      await dispatch("getAllBuildingApps");
-    }
-
+      await dispatch('getAllBuildingApps');
+    },
   },
-  modules: {
-  }
-})
+  modules: {},
+});

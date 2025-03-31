@@ -1,24 +1,30 @@
 <template>
-  <div class="sprite_container" ref="container" @click.stop="onClick">
+  <div class="sprite_container_insight" ref="container" @click.stop="onClick">
     <div
-      class="sprite_color"
+      class="sprite_color_insight"
       :style="{ background: data.color, ...dynamicStyle, zIndex: 1 }"
     ></div>
     <div
       v-if="roundedValue"
-      class="sprite_value_unit"
+      class="sprite_value_unit_insight"
       :style="{ ...dynamicStyle, zIndex: 0 }"
     >
       {{ roundedValue }}
     </div>
+    <CurrentCard v-if="showCardcurrentValue" :data="currentData" :on3D="false" @removeCard="closeCard" />
+    
     <div class="card-menu" v-if="displayChart">
-      <ul class="cards">
-        <div style="z-index: 2" class="card">
-          <div
-            style="display: flex; flex-direction: column; padding-right: 5px"
-            class="mt-4 ml-4"
-          >
-            <span
+      <Loader  v-if="showLoader" />
+      <div v-if="switchChart == 'current'" style="display: flex; flex-direction: column; padding-right: 5px;" class="mt-4 ml-4">
+          <span @click.stop="onClose" style="font-size: 15px; color: rgb(0, 0, 0); position: absolute; right: 15px; font-weight: bold;">X</span>
+          <div style="width: calc(100% - 25px)">
+            <div class="color" :style="{ background: data.color }" style="display: inline-block"></div>
+            <span style="font-size: 13px; color: rgb(20, 32, 44)">{{ data.name }} : {{ roundedValue }}</span>
+          </div>
+        </div>
+        <!-- Other endpoint -->
+        <div v-if="switchChart == 'other'" style="display: flex; flex-direction: column; padding-right: 5px;" class="mt-4 ml-4">
+          <span
               @click.stop="onClose"
               style="
                 font-size: 15px;
@@ -29,19 +35,24 @@
               "
             >
               X
-            </span>
-            <div style="width: calc(100% - 25px)">
-              <div
-                class="color"
-                :style="{ background: data.color }"
-                style="display: inline-block"
-              ></div>
-              <span style="font-size: 13px; color: rgb(20, 32, 44)">
-                {{ data.name }} : {{ roundedValue }}
-              </span>
-            </div>
+            </span>          <div style="width: calc(100% - 25px)">
+            <div class="color" :style="{ background: data.color }" style="display: inline-block"></div>
+            <span style="font-size: 13px; color: rgb(20, 32, 44)">{{ data.name }} : {{ roundedValue }}</span>
           </div>
+        </div>
+        <!-- End other endpoint -->
+    <div style="width: 310px; height: 50px; background-color: white; border-top-left-radius: 5px; border-top-left-radius: 5px; border-bottom: 1px solid #14202C; overflow: hidden; overflow-x: auto;">
+      <ul style="width: max-content; height: 100%; display: flex; justify-content: start; align-items: center; list-style: none; padding: 5px; gap: 2px;">
+        <li v-for="(item, idx) in endpoint" :key="idx" class="endpoint-item" :class="{ 'active': endpointName_selected == item.name }" @click.stop="changeChart(item)">
+          <span>{{ item.name }}</span>
+        </li>
+      </ul>
+    </div>
+      <ul class="cards">
+        <div style="z-index: 2" class="card">
+          
           <LineChart
+          v-if="switchChart === 'current'"
             class="mx-2"
             :data="{
               labels: labels,
@@ -92,6 +103,59 @@
               },
             }"
           />
+           
+        <LineChart
+        v-if="switchChart === 'other'"
+          class="mx-2"
+          :data="{
+            labels: labels,
+            datasets: [
+              {
+                label: '',
+                data: otherValues,
+                borderColor: '#00A2FF',
+                backgroundColor: data.color,
+                fill: false,
+              },
+            ],
+          }"
+          :options="{
+            pointStyle: false,
+            spanGaps: true,
+            tension: 0.3,
+            plugins: {
+              title: {
+                display: false,
+              },
+              legend: {
+                display: false,
+              },
+            },
+            scales: {
+              x: {
+                ticks: {
+                  callback: function (_, i, x) {
+                    if (i % Math.round(labels.length / 4)) return '';
+                    return toDate(labels[i]);
+                  },
+                },
+              },
+            },
+            interaction: {
+              mode: 'nearest',
+              axis: 'xy',
+              intersect: false,
+              callbacks: {
+                title: (context) => {
+                  return this.toTooltipDate(context[0].raw.x);
+                },
+                label: (tooltipItem) => {
+                  return `${tooltipItem.parsed.y.toFixed(2)} ${unit}`;
+                },
+              },
+            },
+          }"
+        />
         </div>
       </ul>
     </div>
@@ -109,6 +173,11 @@ import { getLabels, getValues } from "../../services/calcul/computeChart";
 import { ITemporality } from "../../interfaces/IConfig";
 import moment from "moment";
 import "moment/locale/fr";
+import CurrentCard from "./CurrentCard.vue";
+import {config} from '../../config';
+import { getControlEndpointList, getTimeSeriesAsync } from '../../services/spinalAPI/endpoints/getEndpoints';
+import Loader from './loader.vue'
+import CurrentCard from "./CurrentCard.vue";
 
 moment.locale("fr", {
   months: [
@@ -156,6 +225,8 @@ export default {
   name: "SpriteComponent",
   components: {
     LineChart,
+    Loader,
+    CurrentCard
   },
   props: {
     data: {},
@@ -165,11 +236,21 @@ export default {
     menu: false,
     message: false,
     hints: true,
+    showCardcurrentValue: false,
+    currentData:  {},
     dynamicStyle: {
       border: "3px solid #F9F9F9",
       boxShadow: "none",
     },
     isClicked: false,
+    endpoint: [],
+    endpointName_selected: "",
+    t_index: store.state.appDataStore.t_index,
+    unit: "",
+    time: null,
+    otherValues: [],
+    switchChart: 'current',
+    showLoader: true,
   }),
   computed: {
     roundedValue() {
@@ -209,6 +290,7 @@ export default {
       }); 
 
       //result.push(data)
+      this.showLoader = false;
       return data;
       // return this.labels.map((label) => ({
       //   x: label,
@@ -216,7 +298,10 @@ export default {
       // }));
     },
   },
-  mounted() {},
+  async mounted()  {
+    await this.loadEndpoint();
+
+  },
   methods: {
     findClosestPastTimestamp(label, timestamps) {
     // Filter the timestamps to only include those less than or equal to the label
@@ -228,7 +313,35 @@ export default {
       // Return the largest timestamp (the closest in the past)
       return pastTimestamps.reduce((prev, curr) => (curr > prev ? curr : prev));
   },
-    onClick() {
+    async onClick() {
+      if(store.state.appDataStore.temporalitySelected.name === "Valeur courante"){
+        this.showCardcurrentValue = true;
+      }
+      const idBuilding = localStorage.getItem("idBuilding");
+      this.endpointName_selected = this.data.endpoint.name;
+      this.unit = this.data.unit;
+      this.currentData = this.data;
+      const endpoint = config.source;
+      const endpointList = await getControlEndpointList(idBuilding, this.data.dynamicId);
+      let controlPoints = [];
+      endpoint.forEach((item) => {
+        endpointList.forEach((el) => {
+          if (item.profileName === el.profileName) {
+            controlPoints.push(el);
+          }
+        });
+      });
+      let uniqueEndpoints = new Map();
+      endpoint.forEach((item) => {
+        controlPoints.forEach((el) => {
+          el.endpoints.forEach((end) => {
+            if (item.name === end.name) {
+              uniqueEndpoints.set(item.name, { name: item.name, dynamicId: end.dynamicId, unit: end.unit });
+            }
+          });
+        });
+      });
+      this.endpoint = Array.from(uniqueEndpoints.values());
       const emitterHandler = EmitterViewerHandler.getInstance();
       emitterHandler.emit(VIEWER_SPRITE_CLICK, { node: this.data });
       store.dispatch(ActionTypes.SELECT_SPRITES, [this.data.dynamicId]);
@@ -242,6 +355,21 @@ export default {
       this._isNotSelected();
     },
     _isSelected() {
+      
+      if(store.state.appDataStore.temporalitySelected.name === "Valeur courante"){
+        const item = store.state.appDataStore.itemSelected;
+        if(!item.children) {
+          
+          this.showCardcurrentValue = true;
+          this.currentData = this.data;
+        }
+        else {
+          this.showCardcurrentValue = false;
+          this.currentData = {};
+        }
+
+     
+      }
       this.dynamicStyle = {
         border: "3px solid #00A2FF",
         boxShadow: "0px 0px 10px 2px #00A2FF",
@@ -252,7 +380,15 @@ export default {
       }
       this.isClicked = true;
     },
+    closeCard() {
+      this.showCardcurrentValue = false;
+
+    },
     _isNotSelected() {
+      if(store.state.appDataStore.temporalitySelected.name === "Valeur courante"){
+        this.showCardcurrentValue = false;
+      }
+
       this.dynamicStyle = {
         border: "3px solid #F9F9F9",
         boxShadow: "none",
@@ -262,6 +398,61 @@ export default {
         enfant.parentElement.style.zIndex = "1";
       }
       this.isClicked = false;
+    },
+    // Load chart data
+    async loadEndpoint() {
+      // this.endpointName_selected = this.data.endpoint.name;
+      // const idBuilding = localStorage.getItem("idBuilding");
+      // const endpoint = config.source;
+      // const endpointList = await getControlEndpointList(idBuilding, this.data.dynamicId);
+      // let controlPoints = [];
+      // endpoint.forEach((item) => {
+      //   endpointList.forEach((el) => {
+      //     if (item.profileName === el.profileName) {
+      //       controlPoints.push(el);
+      //     }
+      //   });
+      // });
+      // let uniqueEndpoints = new Map();
+      // endpoint.forEach((item) => {
+      //   controlPoints.forEach((el) => {
+      //     el.endpoints.forEach((end) => {
+      //       if (item.name === end.name) {
+      //         uniqueEndpoints.set(item.name, { name: item.name, dynamicId: end.dynamicId });
+      //       }
+      //     });
+      //   });
+      // });
+      // this.endpoint = Array.from(uniqueEndpoints.values());
+    },
+    async changeChart(item) {
+      this.showLoader = true;
+      this.unit = item.unit;
+      this.endpointName_selected = item.name;
+      const dynamicId = item.dynamicId;
+      this.t_index = store.state.appDataStore.t_index;
+      this.updateDataOnTimeChanged();
+      const {begin, end} = this.time;
+      const buildingId = localStorage.getItem("idBuilding");
+      const series = await getTimeSeriesAsync(buildingId ,dynamicId, begin, end);
+      const values = getValues(series);
+      const valuesTimestamps = Object.keys(values).map((key) => parseInt(key));
+      const data = this.labels.map((lab) => {
+        // Find the closest past timestamp to the current label
+        const closestTimestamp = this.findClosestPastTimestamp(lab, valuesTimestamps);
+
+        // If a valid closest past timestamp was found, use its value; otherwise, use NaN
+        const yValue = closestTimestamp !== null ? values[closestTimestamp] : 'NaN';
+        return { x: lab, y: yValue };
+      });
+      this.otherValues = data;
+      this.showLoader = false;
+      if(item.name === this.data.endpoint.name) {
+        this.switchChart = 'current';
+      } else {
+        this.switchChart = 'other';
+      }
+       
     },
     toDate(date) {
       switch (store.state.appDataStore.temporalitySelected.name) {
@@ -283,7 +474,7 @@ export default {
               moment(begin, "DD-MM-YYYY HH:mm:ss")
             )
           );
-          console.log(moment(end, "DD-MM-YYYY HH:mm:ss"), duration);
+          // console.log(moment(end, "DD-MM-YYYY HH:mm:ss"), duration);
           if (duration.asMonths() > 2) return moment(date).format("MMM");
           if (duration.asDays() > 1) return moment(date).format("D/M/YY");
           if (duration.asHours() > 1) return moment(date).format("HH[h]");
@@ -292,46 +483,106 @@ export default {
           return moment(date).format("D/M/YY");
       }
     },
+    // Update the chart data when the time range changes
+    async updateDataOnTimeChanged() {
+    const end = moment().minutes(59).seconds(59);
+    switch (store.state.appDataStore.temporalitySelected.name) {
+      case ITemporality.currentValue:
+        this.time = null;
+        break;
+      case ITemporality.hour:
+        end.add(this.t_index, 'hours');
+        this.time = {
+          begin: moment(end).startOf('hour').format('DD-MM-YYYY HH:mm:ss'),
+          end: end.format('DD-MM-YYYY HH:mm:ss'),
+        };
+        break;
+      case ITemporality.day:
+        end.endOf('day').add(this.t_index, 'days');
+        this.time = {
+          begin: moment(end).startOf('day').format('DD-MM-YYYY HH:mm:ss'),
+          end: end.format('DD-MM-YYYY HH:mm:ss'),
+        };
+        break;
+      case ITemporality.week:
+        end.endOf('week').add(this.t_index, 'weeks');
+        this.time = {
+          begin: moment(end).startOf('week').format('DD-MM-YYYY HH:mm:ss'),
+          end: end.format('DD-MM-YYYY HH:mm:ss'),
+        };
+        break;
+      case ITemporality.month:
+        end.endOf('month').add(this.t_index, 'months');
+        this.time = {
+          begin: moment(end).startOf('month').format('DD-MM-YYYY HH:mm:ss'),
+          end: end.format('DD-MM-YYYY HH:mm:ss'),
+        };
+        break;
+      case ITemporality.year:
+        end.endOf('year').add(this.t_index, 'years');
+        this.time = {
+          begin: moment(end).startOf('year').format('DD-MM-YYYY HH:mm:ss'),
+          end: end.format('DD-MM-YYYY HH:mm:ss'),
+        };
+        break;
+      case ITemporality.custom:
+        this.time = this.selectedTime.range;
+        break;
+      default:
+        this.time = null;
+        break;
+    }
+  },
+
     toTooltipDate(date) {
       return moment(date).format("DD/MM/YYYY HH:mm");
     },
   },
+
+  watch: {
+    showCardcurrentValue: function (val) {
+      this.showCardcurrentValue = val;  
+    },
+  }
 };
 </script>
 
 <style scoped>
-.color {
+.color_insight {
   width: 7px;
   height: 12px;
   margin-right: 4px;
   border-radius: 3px;
 }
 
-.sprite_container {
-  width: "fit-content";
-  height: "fit-content";
+.sprite_container_insight {
+  overflow: hidden;
   background: none;
   box-shadow: none;
   color: transparent;
   display: flex;
   flex-direction: row;
   align-items: center;
+  
 }
-.sprite_color {
-  width: 20px;
-  height: 20px;
+.sprite_color_insight {
+  width: 13px;
+  height: 13px;
   border-radius: 100%;
-  z-index: 1;
+  z-index: 2 ;
+  transition: 0.2s
 }
-.sprite_value_unit {
+.sprite_value_unit_insight {
   border-radius: 100px;
   color: #14202c;
-  margin-left: -15px;
-  padding-left: 15px;
-  padding-right: 5px;
-  padding-bottom: 1px;
-  height: 20px;
-  font-size: 14px;
+  margin-left: -13px;
+  padding-left: 13px;
+  padding-right: 4px;
+  /* padding-bottom: 1px;
+  padding-top: 1px; */
+  height: 13px;
+  font-size: 12px;
+  font-weight: 500;
   background: #f9f9f9;
   z-index: 1;
 }
@@ -343,7 +594,7 @@ export default {
   position: absolute;
   background-color: white;
   width: 310px;
-  height: 200px;
+  min-height: 250px;
   -webkit-animation: scale-in-tl 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
   animation: scale-in-tl 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
   z-index: 99999 !important;
@@ -480,4 +731,31 @@ export default {
 .sprite_container:hover {
   cursor: pointer;
 } */
+
+/* Box chart */
+.active {
+  background-color: slategray;
+  color: #ffffff !important;
+}
+.endpoint-item {
+  display: flex;
+  width: max-content;
+  justify-content: center;
+  align-items: center;
+  color: #14202C;
+  padding: 5px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.endpoint-item:hover {
+  background-color: slategray;
+  color: #f9f9f9;
+}
+.endpoint-item:hover span {
+  color: #f9f9f9;
+}
+.endpoint-item:nth-last-child(1) {
+  border-right: none;
+}
+
 </style>

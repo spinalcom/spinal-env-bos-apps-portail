@@ -50,20 +50,20 @@ export const config: IConfig = {
 
   // Config DEI
   entryPoint: {
-    context: "Gestion des espaces",
+    context: "Gestion des équipements",
     category: "Typologie",
-    group: "Bureaux",
+    group: "Luminaire",
   },
   source: [
     {
       name: "Taux d'occupation",
-      profileName: "Occupation",
+      profileName: "Maintenance élec",
       type: "controlPoint",
-      objectType: "rooms",
+      objectType: "equipments",
       unit: "%",
       controllable: {
         on: true,
-        type: 'currentValue',
+        type: 'controlValue',
       },
       legend: {
         min: { value: 0, color: "#24CBD9" },
@@ -72,35 +72,35 @@ export const config: IConfig = {
       },
     },
     {
-      name: "Présence",
-      profileName: "Occupation",
+      name: "Maintenance ELEC",
+      profileName: "Maintenance élec",
       type: "controlPoint",
-      objectType: "rooms",
-      unit: "",
+      objectType: "equipments",
+      unit: "kwh",
       controllable: {
         on: false,
-        type: 'controlValue',
+        valueControl: 'controlValue',
       },
       legend: {
         min: { value: 0, color: "#00FF00" },
-        median: { value: 0.5, color: "#FFFF00" },
-        max: { value: 1, color: "#FF0000" },
+        median: { value: 50, color: "#FFFF00" },
+        max: { value: 100, color: "#FF0000" },
       },
     },
     {
-      name: "Nombre de personnes",
-      profileName: "Occupation",
+      name: "Maintenance CVC",
+      profileName: "Maintenance élec",
       type: "controlPoint",
-      objectType: "rooms",
-      unit: "",
+      objectType: "equipments",
+      unit: "Kwh",
       controllable: {
         on: false,
-        type: 'controlValue',
+        valueControl: 'controValue',
       },
       legend: {
         min: { value: 0, color: "#00FF00" },
         median: { value: 10, color: "#FFFF00" },
-        max: { value: 20, color: "#FF0000" },
+        max: { value: 2000, color: "#FF0000" },
       },
     },
     

@@ -25,11 +25,12 @@
 import { ISource } from "../../../interfaces/IConfig";
 import { SpinalAPI } from "../SpinalAPI";
 import * as lodash from "lodash";
+import {config} from '../../../config'
 
 export async function getSourceValue(
   buildingId: string,
   items: any[],
-  source: ISource,
+  source: any,
   forceUpdate: boolean = false
 ) {
   const { dynamicIds, obj } = _formatValues(items, forceUpdate);
@@ -49,6 +50,49 @@ export async function getSourceValue(
     }
   }
 }
+
+// Recuperer les valeurs de tous les sources
+export async function getAllSourcesValues(
+  buildingId: string,
+  items: any[],
+  forceUpdate: boolean = false
+) {
+  const { dynamicIds, obj } = _formatValues(items, forceUpdate);
+
+  for (const source of config.source) {
+    const url = _getUrl(items[0]?.type);
+    const static_details = await sendListMultipleRequest(
+      buildingId,
+      dynamicIds,
+      url
+    );
+
+    for (const detail of static_details) {
+      const item = obj[detail.dynamicId];
+      if (item) {
+        item.groups = _getGroupsId(detail);
+        item.endpoint = _getEndpoint(detail, source);
+        item.position = _getPos(detail);
+      }
+    }
+  }
+}
+
+
+export async function getControlEndpointList(buildingId: string, dynamicId: number) {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(
+    buildingId,
+    `/api/v1/node/${dynamicId}/control_endpoint_list/`
+  );
+  return spinalAPI.get(url).then((res: any) => res.data);
+}
+
+export async function getControlEndpointListMultiple(buildingId: string, dynamicIds: any[]) {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = `/api/v1/node/control_endpoint_list_multiple`;
+  return sendListMultipleRequest(buildingId, dynamicIds, url);
+ }
 
 // export async function getSourceValue(buildingId: string, items: any[], source: ISource, forceUpdate: boolean = false) {
 //    const { dynamicIds, obj } = _formatValues(items, forceUpdate);
@@ -70,12 +114,42 @@ export async function getSourceValue(
 
 // }
 
+export async function updateEndpoint(buildingId: string, endpointId: number, value: any, updateType: string) {
+  const spinalApi = SpinalAPI.getInstance();
+  const url = spinalApi.createUrlWithPlatformId(
+    buildingId, 
+    `/api/v1/endpoint/${endpointId}/update?updateType=${updateType}`
+  );
+  const res = await spinalApi.put(url,
+      {
+        'newValue': value
+      }
+   )
+   return res;
+}
+
+
+// Get control value
+
+export async function getControlValue(buildingId: string, endpointId: number) {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrlWithPlatformId(
+    buildingId,
+    `/api/v1/endpoint/${endpointId}/attributsList`
+  );
+  const res = await spinalAPI.get(url).then((res) => res.data);
+  const controlValue = res[0].attributs.find((el) => el.label === "controlValue");
+  return controlValue;
+}
+
+
 export async function getTimeSeriesAsync(
   buildingId: string,
   endpointId: string,
   begin: number,
   end: number
 ) {
+
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(
     buildingId,
@@ -211,3 +285,13 @@ function isEndpoint(object: any): object is "endpoint" {
 function isAttribute(object: any): object is "attribute" {
   return object.type === "attribute";
 }
+
+
+export function _getReadStaticDetails(buildingId, context ) {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = context.type == 'geographicRoom' ?
+   spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/room/${context.dynamicId}/read_static_details`):
+    spinalAPI.createUrlWithPlatformId(buildingId, `/api/v1/equipment/${context.dynamicId}/read_static_details`);
+  return spinalAPI.get(url).then((res: any) => res.data);
+}
+

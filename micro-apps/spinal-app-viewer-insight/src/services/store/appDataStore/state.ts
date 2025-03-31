@@ -32,6 +32,8 @@ import {
   defaultTemporalitySelected,
   defaultZoneSelected,
 } from "./utils/defaultZoneSelected";
+import { subscribe } from "diagnostics_channel";
+import { Socket } from "engine.io-client";
 
 export type StateAppData = typeof state;
 export const state = {
@@ -49,4 +51,11 @@ export const state = {
   selectedSource: {} ,
   dataVizExtn: undefined,
   data: undefined as any,
+  addCurrentCard:  false,
+  elementContext: [] as any[],
+  realtime: [] as any[],
+  socket: null as Socket | null,
+  reloadData: false as boolean,
+  enablereload: true as boolean,
+
 };

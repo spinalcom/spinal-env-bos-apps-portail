@@ -24,11 +24,13 @@ with this file. If not, see
 
 <template>
   <div
-    class="dataView"
-    :id="item.dynamicId"
-    :class="{ subItem: !isTitle, isSelected: isSelected() }"
-    @click="clickEvent"
+  class="dataView"
+  :id="item.dynamicId"
+  :class="{ subItem: !isTitle, isSelected: isSelected() }"
+  @click.stop="clickEvent"
   >
+  <alert :show="showAlert" :text="messageAlert" :type_alert="typeAlert" />
+  <edit-endpoint :_dialog="dialog" :item="edit_item" @close="closeEdit" @update="updateEndpointValue" />
     <div class="value_div">
       <div class="color" :style="{ background: color }"></div>
       <div class="value" style="margin-right: 1px">
@@ -37,6 +39,7 @@ with this file. If not, see
       <div>{{ unit }}</div>
     </div>
     <div class="name">{{ item.name }}</div>
+    <v-icon size="20" v-if="is_controllable" style="padding-right: 5px;" @click.stop="EditEndpoint(item)" >mdi-square-edit-outline</v-icon>
     <div v-if="isChartPossible">
       <v-btn
         icon
@@ -47,6 +50,7 @@ with this file. If not, see
         <v-icon v-else>mdi-close</v-icon>
       </v-btn>
     </div>
+    
   </div>
 </template>
 
@@ -60,6 +64,9 @@ import {
 import { ITemporality } from "../../interfaces/IConfig";
 import { MutationTypes } from "../../services/store/appDataStore/mutations";
 import { ActionTypes } from "../../interfaces/vuexStoreTypes";
+import EditEndpoint from "../EditEndpoint.vue";
+import {config} from '../../config'
+import Alert from "../Alert.vue";
 
 export default {
   name: "dataView",
@@ -68,6 +75,20 @@ export default {
     isTitle: { type: Boolean, default: () => false },
     color: { type: String, default: () => "" },
     unit: { type: String, default: () => "" },
+  },
+  components: {
+    EditEndpoint,
+    Alert,
+  },
+  data  () {
+    return {
+      dialog: false,
+      edit_item: null,
+      is_controllable: false,
+      showAlert: false,
+      messageAlert: '',
+      typeAlert: ''
+    }
   },
   filters: {
     round(value) {
@@ -95,16 +116,45 @@ export default {
       );
     },
   },
+
+  watch: {
+    showAlert(newVal) {
+      if (newVal) {
+        setTimeout(() => {
+          this.showAlert = false;
+        }, 7000); // Notification disappears after 5 seconds
+      }
+    },
+  },
+
   methods: {
+    updateEndpointValue(response) {
+      if (response.statusCode === 200) {
+        this.messageAlert = response.text;
+        this.typeAlert = response.status;
+        this.showAlert = true;
+        
+      } else {
+        this.messageAlert = response.text;
+        this.typeAlert = response.status;
+        this.showAlert = true;
+
+      }
+
+      
+    },
+
+
     clickEvent() {
       this.$emit("onClick");
     },
 
-    isSelected() {
+    isSelected() {      
+      // console.log('isSelected: ', this.item.dynamicId, this.$store.state.appDataStore.itemSelected);
+      
       const itemSelected = this.$store.state.appDataStore.itemSelected;
       return itemSelected && itemSelected.dynamicId == this.item.dynamicId;
     },
-
     inDbids(data, to_search) {
       to_search = isArray(to_search) ? to_search : [to_search];
       for (const id of to_search) if (data.dbIds.includes(id)) return true;
@@ -113,10 +163,7 @@ export default {
 
     clickChart() {
       this.$store.dispatch(ActionTypes.UPDATE_SELECTED_CHART_ITEMS, this.item);
-      console.log(
-        "store chart items",
-        this.$store.state.appDataStore.selectedChartItems
-      );
+    
       //this.changeSelectedItem();
     },
 
@@ -130,11 +177,38 @@ export default {
       }
       this.$store.commit(MutationTypes.SET_ITEM_SELECTED, this.item);
     },
+
+    EditEndpoint(item) {
+      this.dialog = true;
+      this.edit_item = item;
+    },
+    closeEdit() {
+      this.dialog = false;
+    },
   },
 
-  mounted() {
+  async mounted() {
     const emitterHandler = EmitterViewerHandler.getInstance();
     const vm = this;
+   const sources = config.source;
+   let source = {}
+  //  const itemType = this.item.type;
+    if(this.item.children && this.item.children.length > 0) {
+      source = sources.find((el) => el.name === this.item.children[0].endpoint.name)
+     this.$store.state.appDataStore.temporalitySelected.name == "Valeur courante" ? this.is_controllable = source.controllable.on : this.is_controllable = false;
+    }
+    else {
+       if(this.item.endpoint && this.item.endpoint.name) {
+          source = sources.find((el) => el.name === this.item.endpoint.name);
+       }
+        if(source && source.controllable) {
+          this.$store.state.appDataStore.temporalitySelected.name == "Valeur courante" ?  this.is_controllable = source.controllable.on : this.is_controllable = false;
+        }
+        else {
+          this.is_controllable = false;
+        }
+
+    }
     // emitterHandler.on(VIEWER_AGGREGATE_SELECTION_CHANGED, (data) => {
     //   if (data[0] && this.inDbids(data[0], vm.item.dbid)) {
     //     console.log('dataView emit')

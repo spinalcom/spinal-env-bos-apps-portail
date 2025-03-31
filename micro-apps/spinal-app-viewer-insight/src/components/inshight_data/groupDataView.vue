@@ -72,7 +72,8 @@ class GroupDataView extends Vue {
 
   noDataItem = { name: "Aucune donnée", displayValue: "" };
 
-
+  mounted() {
+  }
   public get isSelectedGroupDataView(){
     return this.selectedItem?.dynamicId === this.data.dynamicId
   }

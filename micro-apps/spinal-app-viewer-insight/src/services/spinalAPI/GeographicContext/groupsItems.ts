@@ -35,6 +35,7 @@ export async function getGroupsItems(
   if (config.entryPoint.context && !config.entryPoint.category)
     tree = await getGroupContextTree(buildingId, config.entryPoint.context);
   else tree = await getGroupContextTreeByNames(buildingId, config.entryPoint);
+  console.log("tree", tree);
 
   const items = getItemsInTree(tree);
   return classifyItemsByGeographicTypes(buildingId, items);

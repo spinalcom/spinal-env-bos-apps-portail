@@ -234,6 +234,7 @@ class App extends Vue {
     mode: 'null',
     name: '',
     spaceSelectedId: '',
+    spaceSelectedType: '',
     buildingId: '',
   };
   vueChart: boolean = false;
@@ -410,8 +411,8 @@ class App extends Vue {
   }
 
   onSourceChange(newVal) {
+    console.log('onSourceChange', newVal);
     this.chartTitle = newVal;
-    console.log();
   }
 
   public get selectedZone(): ISpaceSelectorItem {
@@ -448,11 +449,13 @@ class App extends Vue {
         if (buildingId) {
           const playload = {
             config,
-            item: { buildingId, type: "building" },
+            item: { buildingId, type: 'building' },
           };
 
           const promises = [
-            this.$store.dispatch(ActionTypes.GET_BUILDING_BY_ID, { buildingId }),
+            this.$store.dispatch(ActionTypes.GET_BUILDING_BY_ID, {
+              buildingId,
+            }),
           ];
 
           const [building, items] = await Promise.all(promises);
@@ -460,7 +463,7 @@ class App extends Vue {
           const realBuilding = await this.$store.dispatch(
             ActionTypes.GET_BOS_BUILDING,
             { buildingId }
-          )
+          );
           return [
             {
               name: realBuilding.name,
@@ -607,7 +610,6 @@ class App extends Vue {
 
   private _getRows(list: any[]) {
     if (!list) return [];
-
     return list.flatMap((el) => {
       return [
         {

@@ -22,5 +22,10 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-export * from './ISpinalApp';
-export * from './ISubApp';
+import { IApp } from './IApp';
+
+export interface IState {
+  portofolioApps: IApp[];
+  buildingApps: IApp[];
+  adminApps: IApp[];
+}

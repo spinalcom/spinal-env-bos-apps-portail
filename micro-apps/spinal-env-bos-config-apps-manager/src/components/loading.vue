@@ -24,12 +24,13 @@ with this file. If not, see
 
 <template>
   <div class="loadingContainer">
-    <v-progress-circular :size="50"
-                         color="primary"
-                         indeterminate></v-progress-circular>
+    <v-progress-circular
+      :size="50"
+      color="primary"
+      indeterminate
+    ></v-progress-circular>
   </div>
 </template>
-
 
 <style>
 .loadingContainer {

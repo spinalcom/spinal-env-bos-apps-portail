@@ -24,7 +24,6 @@ with this file. If not, see
 
 <template>
   <div class="_content">
-
     <v-card class="cardContent" elevation="4">
       <v-tabs
         class="tabsHeader"
@@ -64,14 +63,14 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import {IApp} from '../types/interfaces';
-import {Component, Prop, Vue, Watch} from 'vue-property-decorator';
+import { IApp } from '../types/interfaces';
+import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import AppListComponent from '../components/appList.vue';
 import categories from '../store/data';
 
 @Component({
   components: {
-    AppListComponent
+    AppListComponent,
   },
 })
 class HomeView extends Vue {
@@ -80,7 +79,7 @@ class HomeView extends Vue {
 
   categories: any = categories;
 
-  categorySelected: {name: string; id: string} = categories.bos;
+  categorySelected: { name: string; id: string } = categories.bos;
 
   tabsObject = Object.freeze({
     Batiments: 'Applications de Bâtiment',
@@ -90,24 +89,24 @@ class HomeView extends Vue {
   tabItems: string[] = Object.values(this.tabsObject);
   tab = this.tabsObject.Batiments;
 
-  selectCategory(item: {name: string; id: string}) {
+  selectCategory(item: { name: string; id: string }) {
     this.$emit('select', item);
   }
 
   createApp() {
-    this.$emit('create', {categorySelected: this.categorySelected});
+    this.$emit('create', { categorySelected: this.categorySelected });
   }
 
   uploadApp() {
-    this.$emit('upload', {categorySelected: this.categorySelected});
+    this.$emit('upload', { categorySelected: this.categorySelected });
   }
 
   editApp(app: IApp) {
-    this.$emit('edit', {app, categorySelected: this.categorySelected});
+    this.$emit('edit', { app, categorySelected: this.categorySelected });
   }
 
   deleteApp(app: IApp) {
-    this.$emit('delete', {app, categorySelected: this.categorySelected});
+    this.$emit('delete', { app, categorySelected: this.categorySelected });
   }
 
   @Watch('tab')

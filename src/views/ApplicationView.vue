@@ -53,11 +53,12 @@ with this file. If not, see
 
 <script lang="ts">
 import NavBar from '../components/nav.vue';
-import { getAppById } from '../requests/userData';
+// import { getAppById } from '../requests/userData';
 import { SET_SELECTED_APP } from '../store/appDataStore';
 import { Vue, Component, Watch } from 'vue-property-decorator';
 import ViewerIFrame from './ViewerIframe.vue';
-import { IApp } from 'micro-apps/spinal-env-pam-apps-manager/src/types/interfaces';
+import type { IApp } from 'global-components/interfaces/IApp';
+
 @Component({
   components: {
     NavBar,
@@ -65,48 +66,55 @@ import { IApp } from 'micro-apps/spinal-env-pam-apps-manager/src/types/interface
   },
 })
 class ApplicationView extends Vue {
-  appSelected: IApp = null;
+  appSelected: string = '';
   showViewer = false;
   appPath: any = null;
   inDrag = false;
 
   async mounted() {
-    window.router = this.$route;
+    // window.router = this.$route;
     await this.initApp();
   }
 
   async initApp() {
     this.appSelected = this.getAppInfo();
-    this.appPath = this.getAppPath();
 
     if (!this.appSelected) return;
 
-    await this.$store.dispatch(
-      `appDataStore/selectSpace`,
-      (<any>this.appSelected).parent
-    );
+    await this.$store.dispatch(`appDataStore/selectSpace`);
     this.$store.commit(`appDataStore/${SET_SELECTED_APP}`, this.appSelected);
+    this.appPath = this.getAppPath();
   }
 
   getAppInfo() {
     try {
       const { query } = this.$route;
       const appId: any = query.app;
-      if (!appId) return;
+      console.log('getAppInfo appId', appId);
+      return appId;
+      // if (!appId) return;
 
-      const application: any = JSON.parse(atob(appId));
-      return application;
+      // const application: any = JSON.parse(atob(appId));
+      // return application;
     } catch (error) {}
   }
 
   getAppPath() {
     if (!this.appSelected) return;
-
-    if (this.appSelected.hasViewer) {
-      this.showViewer = true;
-      return `/micro-apps/spinal-env-pam-dataview`;
+    // if (this.appSelected.hasViewer) {
+    //   this.showViewer = true;
+    //   return `/micro-apps/spinal-env-pam-dataview`;
+    // }
+    for (const item of this.$store.state.appDataStore.portofolios) {
+      if (item.name === 'Applications') {
+        for (const app of item.apps) {
+          if (app.name === this.appSelected) {
+            return '/micro-apps/' + app.packageName;
+          }
+        }
+      }
     }
-    return `/micro-apps/${this.appSelected.packageName}`;
+    return `/micro-apps/${this.appSelected}`;
   }
 
   @Watch('$route')

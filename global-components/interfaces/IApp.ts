@@ -22,5 +22,17 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-export * from './ISpinalApp';
-export * from './ISubApp';
+export interface IApp {
+  id?: string;
+  name: string;
+  icon: { id: string; name: string } | string;
+  description: string;
+  tags: string[];
+  categoryName: string;
+  groupName: string;
+  hasViewer?: boolean;
+  packageName?: string;
+  isExternalApp?: boolean;
+  link?: string;
+  documentationLink: string;
+}
