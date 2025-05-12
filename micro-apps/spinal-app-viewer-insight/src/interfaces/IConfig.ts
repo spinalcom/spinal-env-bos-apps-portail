@@ -1,10 +1,10 @@
 /*
- * Copyright 2023 SpinalCom - www.spinalcom.com
+ * Copyright 2025 SpinalCom - www.spinalcom.com
  *
  * This file is part of SpinalCore.
  *
  * Please read all of the following terms and conditions
- * of the Free Software license Agreement ("Agreement")
+ * of the Software license Agreement ("Agreement")
  * carefully.
  *
  * This Agreement is a legally binding contract between
@@ -22,37 +22,50 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { ActionTypes } from "./vuexStoreTypes";
-
 export interface IConfig {
+  /**
+   * The entry point of the viewer. This is the starting point for the viewer to load data.
+   * @type {EntryPoint}
+   * @memberof IConfig
+   */
   entryPoint: EntryPoint;
+  /**
+   * The title of the viewer.
+   * @type {string}
+   * @memberof IConfig
+   */
   title: string;
-  viewButtons: "base" | "advanced";
+  /**
+   * The type of view buttons to display in the viewer.
+   * @type {('base' | 'advanced')}
+   * @memberof IConfig
+   */
+  viewButtons: 'base' | 'advanced';
   calculs: calculTypes[];
   viewerInfo: {
     roomRef: boolean;
     floorRef: boolean;
-    equipments: "all" | "groupItem" | "none";
+    equipments: 'all' | 'groupItem' | 'none';
   };
   source: ISource | ISource[];
   sprites: boolean;
   legend: ILegend;
   regroupement:
-    | "floors"
-    | "rooms"
+    | 'floors'
+    | 'rooms'
     | IRegroupement
-    | ("floors" | "rooms" | IRegroupement)[];
+    | ('floors' | 'rooms' | IRegroupement)[];
   temporality: ITemporality[];
 }
 
-export const enum ITemporality {
-  currentValue = "Valeur courante",
-  hour = "Heure",
-  day = "Journée",
-  week = "Semaine",
-  month = "Mois",
-  year = "Année",
-  custom = "Personnalisé",
+export enum ITemporality {
+  currentValue = 'Valeur courante',
+  hour = 'Heure',
+  day = 'Journée',
+  week = 'Semaine',
+  month = 'Mois',
+  year = 'Année',
+  custom = 'Personnalisé',
 }
 
 export interface IRegroupement {
@@ -62,30 +75,30 @@ export interface IRegroupement {
 
 export type EntryPoint = { context: string; group?: string; category?: string };
 
-export const enum calculTypes {
-  Maximum = "Maximum",
-  Minimum = "Minimum",
-  Moyenne = "Moyenne",
-  Somme = "Somme",
-  MoyennePercent = "Moyenne en Pourcentage",
-  MeanTime = "Moyenne temporelle",
+export enum calculTypes {
+  Maximum = 'Maximum',
+  Minimum = 'Minimum',
+  Moyenne = 'Moyenne',
+  Somme = 'Somme',
+  MoyennePercent = 'Moyenne en Pourcentage',
+  MeanTime = 'Moyenne temporelle',
 }
 
 export interface ISource {
   name: string;
   profileName?: string;
-  type: "controlPoint" | "endpoint" | "attribute";
-  objectType: "equipments" | "rooms";
+  type: 'controlPoint' | 'endpoint' | 'attribute';
+  objectType: 'equipments' | 'rooms';
   categoryName?: string;
   unit?: string;
   controllable: {
     on: boolean; // Pour activer ou non le contrôle de la source
-    type: "controlValue" | "currentValue"; // Type de valeur à contrôler
+    type: 'controlValue' | 'currentValue'; // Type de valeur à contrôler
   };
   legend?: ILegend;
 }
 
-interface ILegendValue {
+export interface ILegendValue {
   value: number;
   color: string;
 }
@@ -94,11 +107,4 @@ interface ILegend {
   min: ILegendValue;
   median?: ILegendValue;
   max: ILegendValue;
-}
-
-export interface IButton {
-  title: string;
-  icon: string;
-  isShownTypes?: string[];
-  onclickEvent?: ActionTypes;
 }

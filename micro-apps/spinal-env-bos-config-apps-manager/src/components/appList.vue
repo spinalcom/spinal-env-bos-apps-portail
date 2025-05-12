@@ -1,10 +1,10 @@
 <!--
-Copyright 2022 SpinalCom - www.spinalcom.com
+Copyright 2025 SpinalCom - www.spinalcom.com
 
 This file is part of SpinalCore.
 
 Please read all of the following terms and conditions
-of the Free Software license Agreement ("Agreement")
+of the Software license Agreement ("Agreement")
 carefully.
 
 This Agreement is a legally binding contract between
@@ -42,14 +42,40 @@ with this file. If not, see
       </div>
 
       <div class="right_side">
-        <v-btn class="button" color="#14202c" @click="uploadApps">
+        <v-menu
+          v-if="category.id === 'bos'"
+          transition="slide-y-transition"
+          bottom
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              class="header-button"
+              color="#14202c"
+              dark
+              v-bind="attrs"
+              v-on="on"
+            >
+              <v-icon class="btnIcon"> mdi-file-upload-outline </v-icon>
+              Importer un fichier
+            </v-btn>
+          </template>
+          <v-list>
+            <v-list-item @click="upload">
+              <v-list-item-title>Applications du bâtiment</v-list-item-title>
+            </v-list-item>
+            <v-list-item @click="uploadSubApp">
+              <v-list-item-title
+                >Configurations d'applications</v-list-item-title
+              >
+            </v-list-item>
+          </v-list>
+        </v-menu>
+        <v-btn v-else class="header-button" color="#14202c" @click="upload">
           <v-icon class="btnIcon"> mdi-file-upload-outline </v-icon>
-          importer un fichier .xls
+          Importer un fichier
         </v-btn>
-
-        <v-btn class="button" color="#14202c" @click="addApp">
+        <v-btn class="header-button" color="#14202c" @click="create">
           <v-icon class="btnIcon"> mdi-plus </v-icon>
-
           Ajouter une application
         </v-btn>
       </div>
@@ -61,6 +87,9 @@ with this file. If not, see
         hide-default-header
         disable-pagination
         hide-default-footer
+        :single-expand="false"
+        show-expand
+        :expanded.sync="expanded"
         id="table"
         :items="searchedApps"
         item-key="name"
@@ -68,50 +97,42 @@ with this file. If not, see
         <template v-slot:header v-if="searchedApps.length > 0">
           <thead>
             <tr>
-              <th class="firstHeader">
-                <v-card>
-                  <!-- <v-icon small>home</v-icon> -->
-                </v-card>
-              </th>
+              <th class="firstHeader"> </th>
               <th class="tableHeader"> Nom de l'application </th>
               <th class="tableHeader"> Tags </th>
 
               <th class="tableHeader"> Categories/groupes </th>
 
-              <th class="tableHeader"> Actions </th>
+              <th class="tableHeader tableHeader-action"> Actions </th>
+              <th class="tableHeader" style="width: 1px; min-width: 1px"> </th>
             </tr>
           </thead>
         </template>
 
         <template v-slot:item="{ item }">
-          <tr class="itemRow">
-            <td class="iconsCell">
-              <v-timeline>
-                <v-timeline-item color="#fff" fill-dot small>
-                  <template v-slot:icon>
-                    <v-icon>{{ item.icon | formatIcon }}</v-icon>
-                  </template>
-                </v-timeline-item>
-              </v-timeline>
-            </td>
-            <td>{{ item.name }}</td>
-            <td>{{ item.tags | formatTags }}</td>
-            <td>{{ item.categoryName + '/' + item.groupName }}</td>
-            <td class="actions">
-              <v-btn class="actionBtn dark" @click="editApp(item)">
-                <v-icon small>mdi-pencil</v-icon>
-              </v-btn>
+          <AppListRow
+            :item="item"
+            :isExpanded="isExpanded(item)"
+            :canExpand="item.subApps && item.subApps.length > 0"
+            @create-sub-app="createSubApp(item)"
+            @edit-app="edit(item)"
+            @delete-app="deleteApp(item)"
+            @expand="expand"
+          />
+        </template>
 
-              <v-btn
-                class="actionBtn"
-                color="error"
-                outlined
-                @click="deleteApp(item)"
-              >
-                <v-icon small>mdi-close</v-icon>
-              </v-btn>
-            </td>
-          </tr>
+        <template v-slot:expanded-item="{ item }">
+          <AppListRow
+            v-for="subApp in item.subApps"
+            :key="subApp.id"
+            :offset="1"
+            :item="subApp"
+            :parentItem="item"
+            :canExpand="false"
+            @edit-app="editSubApp(item, $event)"
+            @delete-app="deleteSubApp"
+            @expand="expand"
+          />
         </template>
 
         <template slot="no-data">
@@ -123,39 +144,34 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import { IApp } from '../types/interfaces';
-import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
+import type { ISpinalApp } from '../types/ISpinalApp';
+import { Component, Emit, Prop, Vue, Watch } from 'vue-property-decorator';
+import AppListRow from './AppListRow.vue';
+import type { ISubApp } from '../types/ISubApp';
 
 @Component({
-  filters: {
-    formatTags(value: string | string[]) {
-      if (Array.isArray(value)) {
-        return value.join(', ').toUpperCase();
-      }
-
-      return value.toUpperCase();
-    },
-
-    formatIcon(iconName: string) {
-      if (/^mdi-/.test(iconName)) return iconName;
-      return `mdi-${iconName}`;
-    },
+  components: {
+    AppListRow,
   },
 })
 class AppList extends Vue {
-  @Prop() category!: { name: string; id: string };
-  @Prop() apps!: IApp[];
+  @Prop({ required: true }) category: { name: string; id: string };
+  @Prop({ required: true }) apps: ISpinalApp[];
 
-  searchedApps: IApp[] = [];
+  expanded: ISpinalApp[] = [];
+  searchedApps: ISpinalApp[] = [];
   searchQuery: string = '';
 
   mounted() {
     if (this.apps) {
       this._filterData();
+      this.expanded = this.apps.filter((el) => {
+        return el.subApps && el.subApps.length > 0;
+      });
     }
   }
 
-  @Watch('apps')
+  @Watch('apps', { deep: true })
   watchCategory() {
     this._filterData();
   }
@@ -168,7 +184,10 @@ class AppList extends Vue {
   _filterData() {
     const val = this.searchQuery.trim().toLowerCase();
     if (!val) {
-      this.searchedApps = Object.assign([], this.apps);
+      this.searchedApps = this.apps;
+      this.expanded = this.apps.filter((el) => {
+        return el.subApps && el.subApps.length > 0;
+      });
       return;
     }
 
@@ -179,32 +198,49 @@ class AppList extends Vue {
 
       return liste;
     }, []);
+    this.expanded = this.apps.filter((el) => {
+      return el.subApps && el.subApps.length > 0;
+    });
   }
 
-  addApp() {
-    this.$emit('create');
+  expand(item: ISpinalApp) {
+    if (!this.isExpanded(item)) this.expanded.push(item);
+    else this.expanded = this.expanded.filter((el) => el.name !== item.name);
   }
 
-  uploadApps() {
-    this.$emit('upload');
-  }
-
-  editApp(item: IApp) {
-    this.$emit('edit', item);
-  }
-
-  deleteApp(item: IApp) {
-    this.$emit('delete', item);
+  isExpanded(item: ISpinalApp) {
+    return this.expanded.find((el: ISpinalApp) => el.name === item.name);
   }
 
   get title(): string {
     if (!this.category || !this.category.name) return "Liste d'applications";
     return "Liste d'" + this.category.name.toLowerCase();
   }
+
+  @Emit() create() {}
+  @Emit() upload() {}
+  @Emit() edit(item: ISpinalApp) {
+    return item;
+  }
+  @Emit('delete') deleteApp(item: ISpinalApp) {
+    return item;
+  }
+
+  @Emit() createSubApp(item: ISpinalApp) {
+    return item;
+  }
+  @Emit() uploadSubApp() {}
+  @Emit() editSubApp(item: ISubApp, app: ISpinalApp) {
+    return { item, app };
+  }
+  @Emit() deleteSubApp(item: ISubApp) {
+    return item;
+  }
 }
 
 export default AppList;
 </script>
+.
 
 <style lang="scss">
 // .button {
@@ -248,13 +284,14 @@ export default AppList;
     }
 
     .right_side {
-      width: 49%;
       height: 100%;
       display: flex;
       align-items: center;
+      align-content: center;
       justify-content: flex-end;
       flex-wrap: wrap;
-      .button {
+      .header-button {
+        margin: 4px;
         color: #fff;
         max-width: 290px;
         margin-right: 5px;
@@ -268,22 +305,30 @@ export default AppList;
   }
 
   .tableContent {
+    .v-data-table--mobile > .v-data-table__wrapper tbody {
+      display: table-row-group;
+    }
+
     width: 100%;
     height: calc(100% - #{$toolbar-height});
     #table {
       background: transparent !important;
+      .tableHeader-action {
+        text-align: right;
+      }
       .itemRow {
         td {
           vertical-align: middle !important;
         }
 
         .actions {
+          text-align: right;
           // height: 70px;
           .actionBtn {
             min-width: unset;
             width: 30px !important;
             height: 30px;
-            margin-left: 10px;
+            // margin-left: 10px;
           }
           .actionBtn.dark {
             background: #14202c;

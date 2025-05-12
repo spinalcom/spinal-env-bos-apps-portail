@@ -5,3 +5,6 @@ dist/
 .env
 .parcel-cache
 micro-apps/spinal-env-bos-config-viewer-app-sample
+static/configs
+bkp*
+tmp_config

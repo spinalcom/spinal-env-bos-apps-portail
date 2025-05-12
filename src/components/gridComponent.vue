@@ -23,317 +23,158 @@ with this file. If not, see
 -->
 
 <template>
-  <v-data-table v-if="(categories && categories.length > 0)"
-                fixed-header
-                class="dataTable"
-                dense
-                disable-pagination
-                hide-default-footer
-                :headers="headers"
-                :items="categories"
-                height="100%"
-                :style="getWidth">
-
-    <template v-slot:body="{ items }">
-      <tr v-show="!isMobile && displayRow(item)"
-          v-for="(item, index) in items"
-          class="categoriesRows"
-          :key="item.id + '_' + index">
-        <td v-for="(header, index2) in headers"
-            :key="header.value + '_' + index2">
-          <div class="categoryName"
-               v-if="header.value === 'name'">
-            {{ item[header.value] }}
-          </div>
-
-          <div class="card"
-               v-else
-               v-for="(applicationData, index3) in item[header.value]"
-               :key="applicationData.id"
-               :style="cardStyle">
-            <ApplicationCard :data="applicationData"
-                             :isFavorite="isFavorite(applicationData)"
-                             @goToApp="goToApp"
-                             @exploreApp="exploreApp"
-                             @addAppToFavoris="addAppToFavoris" />
-          </div>
-        </td>
-      </tr>
-
-      <!-- 
-      //////////////////////////////////////////////////
-      //                 Mobile                       // 
-      //////////////////////////////////////////////////
-      -->
-
-      <tr v-show="isMobile && displayRow(item)"
-          v-for="(item, index) in items"
-          class="categoriesRows"
-          :key="index + '_' + item.id">
-        <td>
-          <div class="categoryName">
-            {{ item.name }}
-          </div>
-        </td>
-
-        <td class="mobile-td">
-          <div class="card"
-               v-for="(group, index2) in mobileHeaders"
-               :key="index2 + '_' + group"
-               v-if="item[group]">
-            <div class="group_name">{{ group }}</div>
-            <div v-for="(applicationData, index3) in item[group]"
-                 :key="index3"
-                 :style="cardStyle"
-                 class="">
-
-              <ApplicationCard :data="applicationData"
-                               :isFavorite="isFavorite(applicationData)"
-                               @goToApp="goToApp"
-                               @exploreApp="exploreApp"
-                               @addAppToFavoris="addAppToFavoris" />
-
+  <div class="grid-component-container">
+    <template v-if="categories && categories.length > 0">
+      <div v-for="item in appsCompu" :key="item.id">
+        <div class="grid-component-item-header"> {{ item.name }}</div>
+        <hr class="grid-component-item-header-separator" />
+        <div class="grid-component-item" :key="item.id + '_item'">
+          <template v-for="applicationData in item.Applications">
+            <div
+              v-if="!applicationData.subApps"
+              class="grid-component-item-card"
+              :key="applicationData.id"
+              :class="cardClass"
+            >
+              <ApplicationCard
+                :data="applicationData"
+                :isFavorite="isFavorite(applicationData)"
+                @exploreApp="exploreApp"
+                @addAppToFavoris="addAppToFavoris"
+              />
             </div>
-          </div>
-        </td>
-        <!-- <td v-for="(header, index2) in headers"
-            :key="index2">
-
-          <div class="card"
-               v-else
-               v-for="(applicationData, index3) in item[header.value]"
-               :key="index3"
-               :style="cardStyle">
-            <ApplicationCard :data="applicationData"
-                             @goToApp="goToApp"
-                             @exploreApp="exploreApp"
-                             @addAppToFavoris="addAppToFavoris" />
-          </div>
-        </td> -->
-      </tr>
-
+            <template v-else>
+              <div
+                class="grid-component-item-card"
+                v-for="subApp in applicationData.subApps"
+                :key="subApp.id"
+                :class="cardClass"
+              >
+                <ApplicationConfigCard
+                  :app="applicationData"
+                  :appConfig="subApp"
+                  :isFavorite="isFavorite(subApp)"
+                  @exploreApp="exploreApp"
+                  @addAppToFavoris="addAppConfigToFavoris"
+                />
+              </div>
+            </template>
+          </template>
+        </div>
+      </div>
     </template>
-  </v-data-table>
-
-  <div class="emptyApplication"
-       v-else-if="(!categories || categories.length === 0)">
-    <!-- <v-alert outlined
-             type="warning"
-             prominent
-             border="left">
-      Aucune application à afficher
-    </v-alert> -->
-
-    <v-alert border="bottom"
-             colored-border
-             type="warning"
-             elevation="2">
-      Aucune application à afficher
-    </v-alert>
   </div>
 </template>
 
-<script>
-import ApplicationCard from "./applicationCard.vue";
-
-export default {
-  name: "GridComponent",
+<script lang="ts">
+import ApplicationCard from './applicationCard.vue';
+import ApplicationConfigCard from './applicationConfigCard.vue';
+import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
+import {
+  IApplicationsItem,
+  IGridCategoryApp,
+  ISubAppsItem,
+} from './IGridCategoryApp';
+@Component({
   components: {
     ApplicationCard,
+    ApplicationConfigCard,
   },
-  props: {
-    groups: { default: () => [] },
-    categories: { default: () => [] },
-    isMobile: { type: Boolean, default: false },
-    favoriteApps: { default: () => [] },
-  },
-  data() {
+})
+class GridComponent extends Vue {
+  @Prop({ type: Boolean, default: false }) isMobile: boolean;
+  @Prop({ type: Array, default: () => [] }) categories: IGridCategoryApp;
+  appsCompu: IGridCategoryApp = [];
+
+  @Watch('categories', { immediate: true, deep: true })
+  onCategoriesChange(newVal: IGridCategoryApp) {
+    this.appsCompu = newVal.filter(
+      (category) => category.Applications?.length > 0
+    );
+  }
+
+  get cardClass() {
     return {
-      headers: [],
-      mobileHeaders: [],
-      favoriteObj: {},
+      'grid-component-card-mobile': this.isMobile,
     };
-  },
-  mounted() {
-    this.headers = this.formatHeaders(this.groups);
-  },
-  methods: {
-    displayRow(item) {
-      if (
-        (item.value === "favoris" || item.id === "favoris") &&
-        (!item.Applications || item.Applications.length === 0)
-      )
-        return false;
-
-      return true;
-    },
-
-    formatHeaders(headers) {
-      if (this.isMobile) {
-        this.mobileHeaders = headers.map((el) => el.id || el.value || el.name);
-        return [
-          {
-            text: "",
-            value: "name",
-            sortable: false,
-          },
-          {
-            text: "",
-            value: "apps",
-            sortable: false,
-          },
-        ];
-      }
-      return [{ text: "", value: "name" }, ...headers].map((el, index) => ({
-        text: el.text || el.name,
-        value: el.id || el.value || el.name,
-        sortable: false,
-      }));
-    },
-
-    exploreApp(item) {
-      this.$emit("exploreApp", item);
-    },
-
-    addAppToFavoris(data) {
-      this.$emit("addAppToFavoris", data);
-    },
-
-    goToApp(data) {
-      this.$emit("goToApp", data);
-    },
-
-    isFavorite(applicationData) {
-      return this.favoriteObj[applicationData.id] ? true : false;
-    },
-  },
-  computed: {
-    getWidth() {
-      const headerLength = this.groups.length + 1;
-
-      return {
-        width: "100%",
-        // width: headerLength <= 4 ? 20 * headerLength + "vw" : "100%",
-      };
-    },
-
-    cardStyle() {
-      const headerLength = this.groups.length;
-      const width = headerLength < 2 && !this.isMobile ? 32 : 100;
-
-      return {
-        width: `${width}%`,
-        "margin-right": "10px",
-      };
-    },
-  },
-  watch: {
-    favoriteApps() {
-      const obj = {};
-      this.favoriteApps.forEach((el) => {
-        obj[el.id] = el;
-      });
-      this.favoriteObj = obj;
-    },
-    isMobile() {
-      this.headers = this.formatHeaders(this.groups);
-    },
-    groups() {
-      this.headers = this.formatHeaders(this.groups);
-    },
-  },
-};
-</script>
-
-
-<style lang="scss">
-.emptyApplication {
-  width: 100%;
-  // height: 50%;
-  display: flex;
-  justify-content: center;
-  // align-items: center;
-}
-.dataTable {
-  width: 100%;
-  height: 98%;
-  background-color: transparent !important;
-  table {
-    margin-top: 10px;
-    table-layout: fixed;
-    border-collapse: separate !important;
-    border-spacing: 15px 0 !important;
-
-    thead {
-      tr {
-        th {
-          background: transparent !important;
-          text-transform: uppercase;
-          font-size: 0.8em !important;
-          vertical-align: bottom;
-          padding: 0px !important;
-          font-weight: bolder;
-          color: #6aa0ad !important;
-          box-shadow: unset !important;
-        }
-
-        th:first-child {
-          width: 20vw;
-          max-width: 20vw;
-        }
-      }
-    }
-
-    tr.categoriesRows {
-      td {
-        height: 100px !important;
-        border-top: 1px solid #adc8ce;
-
-        > * {
-          // width: 100%;
-          display: inline-block;
-          vertical-align: top;
-        }
-      }
-
-      td:first-child {
-        max-width: 20vw !important;
-      }
-
-      @media (max-width: 960px) {
-        td:not(:first-child) {
-          border-top: unset;
-        }
-      }
-
-      td.mobile-td {
-        width: 100%;
-        .card {
-          width: 100%;
-          .group_name {
-            border-top: 1px solid #adc8ce;
-            text-transform: uppercase;
-            font-size: 0.8em;
-            font-weight: bolder;
-            color: #6aa0ad;
-            margin-bottom: 10px;
-            // background: red;
+  }
+  isFavorite(applicationData: IApplicationsItem | ISubAppsItem) {
+    if (this.favoriteCategory) {
+      if (this.favoriteCategory.Applications) {
+        for (const app of this.favoriteCategory.Applications) {
+          if (app.id === applicationData.id) {
+            return true;
+          }
+          if (app.subApps) {
+            for (const subApp of app.subApps) {
+              if (subApp.id === applicationData.id) {
+                return true;
+              }
+            }
           }
         }
       }
-
-      .categoryName {
-        text-transform: uppercase;
-        font-size: 0.6em;
-        font-weight: bolder;
-        color: #6aa0ad;
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        /* width: 100px; */
-      }
     }
+    return false;
+  }
+
+  get favoriteCategory() {
+    return this.categories.find((cat) => cat.id === 'favoris');
+  }
+  exploreApp(item) {
+    this.$emit('exploreApp', item);
+  }
+
+  addAppToFavoris(data) {
+    this.$emit('addAppToFavoris', data);
+  }
+  addAppConfigToFavoris(data) {
+    this.$emit('addAppToFavoris', data);
   }
 }
-</style>
 
+export default GridComponent;
+</script>
+
+<style scoped>
+.emptyApplication {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+.grid-component-container {
+  padding: 0 16px 16px 16px;
+}
+.grid-component-item-header {
+  text-transform: uppercase;
+  font-size: 0.8em;
+  font-weight: bolder;
+  color: #6aa0ad;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.grid-component-item-header-separator {
+  width: 30%;
+  min-width: 100px;
+  border: none;
+  border-top: 2px solid #6aa0ad; /* Adjust thickness and color */
+}
+
+.grid-component-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+}
+.grid-component-item-card {
+  padding: 5px;
+  width: 33%;
+  width: calc(100% / 3);
+}
+</style>
+<style>
+.grid-component-card-mobile {
+  width: 100% !important;
+}
+</style>

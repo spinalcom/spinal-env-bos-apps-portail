@@ -1,10 +1,10 @@
 /*
- * Copyright 2022 SpinalCom - www.spinalcom.com
+ * Copyright 2025 SpinalCom - www.spinalcom.com
  *
  * This file is part of SpinalCore.
  *
  * Please read all of the following terms and conditions
- * of the Free Software license Agreement ("Agreement")
+ * of the Software license Agreement ("Agreement")
  * carefully.
  *
  * This Agreement is a legally binding contract between
@@ -22,17 +22,5 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-export default Object.freeze({
-  // portofolio: {
-  //     name: "Applications patrimoniales",
-  //     id: "portofolio",
-  // },
-  bos: {
-    name: 'Applications de Bâtiment',
-    id: 'bos',
-  },
-  admin: {
-    name: "Applications d'administration",
-    id: 'admin',
-  },
-});
+export * from './ISpinalApp';
+export * from './ISubApp';

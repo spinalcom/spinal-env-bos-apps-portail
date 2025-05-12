@@ -36,12 +36,6 @@ export interface ISubApp {
   appConfig?: any; // JSON object only for send to api
 }
 
-export interface ISubAppExel extends Partial<ISubApp> {
-  name: string;
-  /**
-   * @type {string} can be appId or appName
-   * @memberof ISubAppExel
-   */
-  parentApp: string;
-  appConfig: any; // JSON object
-}
+export type ISubAppTableItem = ISubApp & {
+  selected: boolean;
+};

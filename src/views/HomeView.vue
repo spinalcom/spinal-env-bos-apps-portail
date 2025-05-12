@@ -24,17 +24,6 @@ with this file. If not, see
 <template>
   <v-container class="appContainer" fluid>
     <div class="my_header">
-      <div class="description">
-        <p>Consultez toutes les données de votre bâtiment connecté.</p>
-        <p>
-          Vous pouvez garder en favoris une visualisation en cliquant sur
-          <v-btn outlined small disabled class="favorisBtn">
-            <!-- <v-icon>mdi-cards-diamond</v-icon> -->
-            <v-icon>mdi-star</v-icon>
-          </v-btn>
-        </p>
-      </div>
-
       <v-row class="search">
         <v-col cols="8" class="searchCol">
           <v-text-field
@@ -72,18 +61,40 @@ with this file. If not, see
           :categories="categoriesDisplayed"
           :isMobile="isMobile"
           :favoriteApps="favoriteApps"
-          @goToApp="goToApp"
-          @exploreApp="exploreApp"
           @addAppToFavoris="addAppToFavoris"
         />
+        <!-- @goToApp="goToApp" -->
       </v-flex>
     </v-layout>
+    <v-btn
+      elevation="2"
+      outlined
+      fab
+      small
+      color="#6aa0ad"
+      class="help-btn"
+      @click="showHelp = !showHelp"
+    >
+      <v-icon>mdi-help</v-icon>
+    </v-btn>
+    <v-bottom-sheet v-model="showHelp">
+      <v-sheet class="text-center" height="200px">
+        <div class="help-content">
+          <p>Consultez toutes les données de votre bâtiment connecté.</p>
+          <p>
+            Vous pouvez garder en favoris une visualisation en cliquant sur
+            <v-btn outlined small disabled class="favorisBtn">
+              <v-icon>mdi-star</v-icon>
+            </v-btn>
+          </p>
+        </div>
+      </v-sheet>
+    </v-bottom-sheet>
   </v-container>
 </template>
 
 <script>
 import Vue from 'vue';
-// import { groups, categories } from "./data";
 import GridComponent from '../components/gridComponent.vue';
 import * as lodash from 'lodash';
 import { mapState } from 'vuex';
@@ -103,6 +114,7 @@ export default Vue.extend({
       value: '',
     };
     return {
+      showHelp: false,
       filtersData: {
         category: this.defaultCategory,
         search: '',
@@ -176,27 +188,6 @@ export default Vue.extend({
       return obj;
     },
 
-    goToApp({ item, event }) {
-      if (item.isExternalApp) {
-        window.open(item.link, '_blank');
-        return;
-      }
-      if (event.ctrlKey) {
-        let routeData = this.$router.resolve({
-          name: 'App',
-          query: { app: item.name },
-        });
-        window.open(routeData.href, '_blank');
-      } else {
-        this.$router.push({
-          name: 'App',
-          query: { app: item.name },
-        });
-      }
-    },
-
-    exploreApp(item) {},
-
     addAppToFavoris({ item, isFavorite }) {
       const ids = [item.id];
       if (isFavorite)
@@ -208,11 +199,12 @@ export default Vue.extend({
     ...mapState('appDataStore', ['appsFormatted', 'favoriteApps']),
   },
   watch: {
-    // favoriteApps() {
-    //   this.favoriteApps.forEach((el) => {
-    //     this.favoriteAppsObj[el.id] = el;
-    //   });
-    // },
+    favoriteApps: {
+      handler(newVal) {
+        this.filterCategories();
+      },
+      deep: true,
+    },
     appsFormatted({ data, groups }) {
       this.formatData({ data, groups });
     },
@@ -237,18 +229,19 @@ $md-screen: 960px;
   padding: 0px;
 
   .my_header {
-    @media (max-width: $md-screen) {
-      width: 100%;
-    }
-    width: 50%;
+    width: 100%;
+    padding: 0 16px;
     display: flex;
     flex-direction: column;
-    height: 150px;
+    height: 80px;
+    overflow: hidden;
 
     .description {
       margin-bottom: 20px;
 
       p {
+        text-overflow: ellipsis;
+        white-space: nowrap;
         margin-bottom: 0px;
       }
     }
@@ -273,8 +266,23 @@ $md-screen: 960px;
 
   .apps-container {
     width: 100%;
-    height: calc(100% - 210px);
+    height: calc(100% - 84px);
     background: transparent;
   }
+}
+</style>
+
+<style scoped>
+.help-btn {
+  position: fixed;
+  bottom: 20px;
+  background-color: rgb(255, 255, 255);
+  right: 20px;
+}
+.help-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: center;
 }
 </style>

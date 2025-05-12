@@ -1,0 +1,127 @@
+{
+  "viewButtons": "base",
+  "entryPoint": {
+    "context": "Gestion des espaces",
+    "category": "Typologie",
+    "group": "Bureaux"
+  },
+  "source": [
+    {
+      // test comment
+      "name": "Taux d'occupation",
+      "profileName": "Occupation",
+      "type": "controlPoint",
+      "objectType": "rooms",
+      "unit": "%",
+      "controllable": {
+        "on": true,
+        "type": "currentValue"
+      },
+      "legend": {
+        "min": {
+          "value": 0,
+          "color": "#24CBD9"
+        },
+        "median": {
+          "value": 50,
+          "color": "#2077CE"
+        },
+        "max": {
+          "value": 100,
+          "color": "#112C9D"
+        }
+      }
+    },
+    {
+      "name": "Présence",
+      "profileName": "Occupation",
+      "type": "controlPoint",
+      "objectType": "rooms",
+      "unit": "",
+      "controllable": {
+        "on": false,
+        "type": "controlValue"
+      },
+      "legend": {
+        "min": {
+          "value": 0,
+          "color": "#00FF00"
+        },
+        "median": {
+          "value": 0.5,
+          "color": "#FFFF00"
+        },
+        "max": {
+          "value": 1,
+          "color": "#FF0000"
+        }
+      }
+    },
+    {
+      "name": "Nombre de personnes",
+      "profileName": "Occupation",
+      "type": "controlPoint",
+      "objectType": "rooms",
+      "unit": "",
+      "controllable": {
+        "on": false,
+        "type": "controlValue"
+      },
+      "legend": {
+        "min": {
+          "value": 0,
+          "color": "#00FF00"
+        },
+        "median": {
+          "value": 10,
+          "color": "#FFFF00"
+        },
+        "max": {
+          "value": 20,
+          "color": "#FF0000"
+        }
+      }
+    }
+  ],
+  "regroupement": [
+    {
+      "context": "Gestion des espaces",
+      "category": "Typologie"
+    },
+    {
+      "context": "Gestion des espaces",
+      "category": "Affectation par entreprise"
+    },
+    {
+      "context": "Gestion des espaces",
+      "category": "Gestion des locations"
+    },
+    {
+      "context": "Gestion des espaces",
+      "category": "Affectation par service"
+    }
+  ],
+  "title": "Insights sur les multicapteurs",
+  "calculs": [
+    "Maximum",
+    "Minimum",
+    "Moyenne",
+    "Somme",
+    "Moyenne en Pourcentage",
+    "Moyenne temporelle"
+  ],
+  "viewerInfo": {
+    "roomRef": true,
+    "floorRef": true,
+    "equipments": "all"
+  },
+  "temporality": [
+    "Valeur courante",
+    "Heure",
+    "Journée",
+    "Semaine",
+    "Mois",
+    "Année",
+    "Personnalisé"
+  ]
+}

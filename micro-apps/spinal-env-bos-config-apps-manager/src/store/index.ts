@@ -39,6 +39,10 @@ import {
   updateAdminAppRequest,
   uploadAdminFileRequest,
   uploadBuildingFileRequest,
+  uploadBuildingAppConfigFileRequest,
+  deleteBuildingSubAppRequest,
+  updateBuildingSubAppRequest,
+  createBuildingSubAppsRequest,
 } from '../requests';
 
 import {
@@ -50,18 +54,20 @@ import {
   REMOVE_ADMIN_APPS,
   EDIT_BUILDINGS_APPS,
   EDIT_ADMIN_APPS,
+  REMOVE_BUILDINGS_SUB_APPS,
+  EDIT_BUILDINGS_SUB_APPS,
+  ADD_BUILDINGS_SUB_APPS,
 } from './mutations';
+import { ISubApp } from '../types';
 
 Vue.use(Vuex);
 export interface IState {
-  portofolioApps: ISpinalApp[];
   buildingApps: ISpinalApp[];
   adminApps: ISpinalApp[];
 }
 
 export default new Vuex.Store<IState>({
   state: {
-    portofolioApps: [],
     buildingApps: [],
     adminApps: [],
   },
@@ -80,12 +86,44 @@ export default new Vuex.Store<IState>({
     [ADD_ADMIN_APPS](state: IState, playload: ISpinalApp) {
       state.adminApps = [...state.adminApps, playload];
     },
+    [ADD_BUILDINGS_SUB_APPS](
+      state: IState,
+      o: { data: ISubApp; appId: string }
+    ) {
+      const index = state.buildingApps.findIndex(
+        (el: ISpinalApp) => el.id === o.appId
+      );
+      if (index !== -1) {
+        const app = state.buildingApps[index];
+        if (!Array.isArray(app.subApps)) app.subApps = [];
+        app.subApps.push(o.data);
+      }
+    },
 
     [REMOVE_BUILDINGS_APPS](state: IState, id: string) {
       state.buildingApps = state.buildingApps.filter(
         (el: ISpinalApp) => el.id !== id
       );
     },
+    [REMOVE_BUILDINGS_SUB_APPS](
+      state: IState,
+      { appId, configId }: { appId: string; configId: string }
+    ) {
+      for (const apps of state.buildingApps) {
+        if (apps.id === appId) {
+          if (!apps.subApps) break; // should not happen
+          const idx = apps.subApps.findIndex(
+            (el: ISpinalApp) => el.id === configId
+          );
+          if (idx !== -1) {
+            apps.subApps.splice(idx, 1);
+            break;
+          }
+          break;
+        }
+      }
+    },
+
     [REMOVE_ADMIN_APPS](state: IState, id: string) {
       state.adminApps = state.adminApps.filter(
         (el: ISpinalApp) => el.id !== id
@@ -100,7 +138,12 @@ export default new Vuex.Store<IState>({
         (el: ISpinalApp) => el.id === id
       );
       if (index !== -1) {
-        state.buildingApps[index] = data;
+        const app = state.buildingApps[index];
+        for (const key in data) {
+          if (Object.prototype.hasOwnProperty.call(data, key)) {
+            app[key] = data[key];
+          }
+        }
       }
     },
     [EDIT_ADMIN_APPS](
@@ -109,7 +152,31 @@ export default new Vuex.Store<IState>({
     ) {
       const index = state.adminApps.findIndex((el: ISpinalApp) => el.id === id);
       if (index !== -1) {
-        state.adminApps[index] = data;
+        const app = state.adminApps[index];
+        for (const key in data) {
+          if (Object.prototype.hasOwnProperty.call(data, key)) {
+            app[key] = data[key];
+          }
+        }
+      }
+    },
+    [EDIT_BUILDINGS_SUB_APPS](
+      state: IState,
+      { appId, id, data }: { appId: string; id: string; data: ISubApp }
+    ) {
+      const index = state.buildingApps.findIndex(
+        (el: ISpinalApp) => el.id === appId
+      );
+      if (index === -1) return;
+      const app = state.buildingApps[index];
+      if (!Array.isArray(app.subApps)) return;
+      const index2 = app.subApps.findIndex((el: ISubApp) => el.id === id);
+      if (index2 === -1) return;
+      const subApp = app.subApps[index2];
+      for (const key in data) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+          subApp[key] = data[key];
+        }
       }
     },
   },
@@ -119,6 +186,7 @@ export default new Vuex.Store<IState>({
       appInfo: ISpinalApp
     ) {
       const { data } = await createBuildingAppsRequest(appInfo);
+      if (!Array.isArray(data.subApps)) data.subApps = [];
       commit(ADD_BUILDINGS_APPS, data);
     },
     async createAdminApps(
@@ -128,9 +196,19 @@ export default new Vuex.Store<IState>({
       const { data } = await createAdminAppsRequest(appInfo);
       commit(ADD_ADMIN_APPS, data);
     },
+    async createBuildingSubApps(
+      { commit }: ActionContext<IState, any>,
+      o: { newValue: ISubApp; appId: string }
+    ) {
+      const { data } = await createBuildingSubAppsRequest(o.appId, o.newValue);
+      commit(ADD_BUILDINGS_SUB_APPS, { data, appId: o.appId });
+    },
 
     async getAllBuildingApps({ commit }: ActionContext<IState, any>) {
       const response: any = await getAllBuildingAppsRequest();
+      for (const app of response.data) {
+        if (!Array.isArray(app.subApps)) app.subApps = [];
+      }
       commit(SET_BUILDINGS_APPS, response.data);
     },
     async getAllAdminApps({ commit }: ActionContext<IState, any>) {
@@ -149,7 +227,6 @@ export default new Vuex.Store<IState>({
     },
 
     //*delete By Id
-
     async deleteBuildingApp(
       { commit }: ActionContext<IState, any>,
       id: string
@@ -157,11 +234,22 @@ export default new Vuex.Store<IState>({
       const { data } = await deleteBuildingAppRequest(id);
       commit(REMOVE_BUILDINGS_APPS, id);
     },
+    async deleteBuildingAppConfig(
+      { state, commit }: ActionContext<IState, any>,
+      id: string
+    ) {
+      const app = state.buildingApps.find((itm) => {
+        return itm.subApps?.find((subApp) => subApp.id === id);
+      });
+      await deleteBuildingSubAppRequest(app.id, id);
+      commit(REMOVE_BUILDINGS_SUB_APPS, { appId: app.id, configId: id });
+    },
     async deleteAdminApp({ commit }: ActionContext<IState, any>, id: string) {
       const { data } = await deleteAdminAppRequest(id);
       commit(REMOVE_ADMIN_APPS, id);
     },
 
+    // update
     async updateBuildingApp(
       { commit }: ActionContext<IState, any>,
       { id, newValue }: { id: string; newValue: ISpinalApp }
@@ -176,15 +264,28 @@ export default new Vuex.Store<IState>({
       const { data } = await updateAdminAppRequest(id, newValue);
       commit(EDIT_ADMIN_APPS, { id, data });
     },
+    async updateBuildingSubApp(
+      { commit }: ActionContext<IState, any>,
+      { appId, id, newValue }: { appId: string; id: string; newValue: ISubApp }
+    ) {
+      const { data } = await updateBuildingSubAppRequest(appId, id, newValue);
+      commit(EDIT_BUILDINGS_SUB_APPS, { appId, id, data });
+    },
 
     // upload
-
     async uploadAdminFile(
       { dispatch }: ActionContext<IState, any>,
       fileData: FormData
     ) {
       const response = await uploadAdminFileRequest(fileData);
       await dispatch('getAllAdminApps');
+    },
+    async uploadBuildingAppConfigFile(
+      { dispatch }: ActionContext<IState, any>,
+      fileData: FormData
+    ) {
+      const response = await uploadBuildingAppConfigFileRequest(fileData);
+      await dispatch('getAllBuildingApps');
     },
     async uploadBuildingFile(
       { dispatch }: ActionContext<IState, any>,

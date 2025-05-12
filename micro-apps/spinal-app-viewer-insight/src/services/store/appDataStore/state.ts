@@ -25,15 +25,14 @@
 import type {
   IEquipmentItem,
   IZoneItem,
-} from "../../../../../../global-components/SpaceSelector";
-import type { IViewInfoItemRes } from "../../../services/spinalAPI/GeographicContext/getViewInfo";
-import type { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
+} from '../../../../../../global-components/SpaceSelector';
+import type { IViewInfoItemRes } from '../../../services/spinalAPI/GeographicContext/getViewInfo';
+import type { IGetAllBuildingsRes } from '../../../interfaces/IGetAllBuildingsRes';
 import {
   defaultTemporalitySelected,
   defaultZoneSelected,
-} from "./utils/defaultZoneSelected";
-import { subscribe } from "diagnostics_channel";
-import { Socket } from "engine.io-client";
+} from './utils/defaultZoneSelected';
+import { Socket } from 'engine.io-client';
 
 export type StateAppData = typeof state;
 export const state = {
@@ -48,14 +47,16 @@ export const state = {
   viewerStartedList: {} as { [key: string]: string },
   itemSelected: undefined,
   selectedChartItems: [] as any[],
-  selectedSource: {} ,
+  selectedSource: {},
   dataVizExtn: undefined,
   data: undefined as any,
-  addCurrentCard:  false,
+  addCurrentCard: false,
   elementContext: [] as any[],
   realtime: [] as any[],
   socket: null as Socket | null,
   reloadData: false as boolean,
   enablereload: true as boolean,
-
+  realTimeData: null as any,
+  subscribed: false,
+  appConfig: {} as any,
 };

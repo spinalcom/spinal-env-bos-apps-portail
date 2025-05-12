@@ -29,62 +29,58 @@ with this file. If not, see
       v-show="isMobile"
       :logoSvg="logoSvg"
       :userInfo="userInfo"
-      :apps="appsDisplayed"
+      :apps="apps"
       @logout="logOut"
-      @home="goToHome"
-      @goToApp="({ item, event }) => goToApp(item, event)"
     ></mobile-nav>
-
+    <div
+      class="spinal-backdrop"
+      @click="showMenu = navBarAppMenuShow = false"
+      v-if="showMenu || navBarAppMenuShow"
+    ></div>
     <nav v-show="!isMobile">
       <div class="navPickerApp">
         <div class="navPickerApp-container">
-          <div class="navPickerApp-mainMenu">
-            <button
-              class="navPickerApp-mainMenu-button"
-              :class="{
-                actived: navBarMainMenuShow,
-              }"
-              @click="clickMainMenu()"
-            >
-              <span></span>
-              <span></span>
-              <span></span>
-            </button>
-            <div
-              class="navPickerApp-mainMenu-content"
-              :class="{
-                actived: navBarMainMenuShow,
-              }"
-            >
-              <div class="navPickerApp-mainMenu-content-profil">
-                <div class="navPickerApp-mainMenu-content-profil-name">
-                  {{ userInfo && userInfo.name }}
-                </div>
-                <div class="navPickerApp-mainMenu-content-profil-role">
-                  {{ userInfo && userInfo.email }}
-                </div>
-              </div>
-              <div class="navPickerApp-mainMenu-content-buttonContainer">
-                <button
-                  v-for="btn in mainbuttons"
-                  :key="btn.name"
-                  class="navPickerApp-mainMenu-content-buttonContainer-button"
-                  :tabindex="mainMenuTabIndexComputed"
-                  @click="btn.action"
-                >
-                  <div
-                    class="navPickerApp-mainMenu-content-buttonContainer-button-icon"
-                  >
-                  </div>
-                  <div
-                    class="navPickerApp-mainMenu-content-buttonContainer-button-title"
-                  >
-                    {{ btn.name }}
-                  </div>
-                </button>
-              </div>
-            </div>
-          </div>
+          <v-btn
+            style="box-shadow: 0 3px 6px #00000033"
+            icon
+            @click="showMenu = !showMenu"
+          >
+            <v-icon v-if="!showMenu">mdi-menu</v-icon>
+            <v-icon v-else>mdi-close</v-icon>
+          </v-btn>
+          <v-menu
+            bottom
+            left
+            offset-y
+            transition="slide-x-transition"
+            v-model="showMenu"
+          >
+            <v-list dense>
+              <v-list-item>
+                <v-list-item-icon>
+                  <v-icon>mdi-account-circle</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title>
+                    {{ userInfo && userInfo.name }}
+                  </v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+              <v-divider></v-divider>
+              <v-list-item
+                v-for="(item, i) in mainbuttons"
+                :key="i"
+                @click="item.action"
+              >
+                <v-list-item-icon>
+                  <v-icon v-text="item.icon"></v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title v-text="item.name"></v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
+          </v-menu>
 
           <div class="navPickerApp-companyLogo">
             <img :src="logoSvg" />
@@ -92,16 +88,14 @@ with this file. If not, see
           <div class="navPickerApp-appMenu">
             <button
               class="navPickerApp-appMenu-button"
-              @click="clickAppMenu()"
+              @click="navBarAppMenuShow = !navBarAppMenuShow"
               :class="{
                 actived: navBarAppMenuShow,
               }"
+              :title="localAppSelected.name"
             >
               <div class="buttonLabel">application</div>
               <div class="navPickerApp-appMenu-iconContainer">
-                <!-- <span class="material-icons">
-                {{ localAppSelected.icon || 'location_city' }}
-              </span> -->
                 <v-icon>{{ localAppSelected.icon || 'mdi-domain' }}</v-icon>
               </div>
               <div class="navPickerApp-appMenu-title">
@@ -109,46 +103,69 @@ with this file. If not, see
               </div>
             </button>
 
-            <div
+            <v-list
               class="navPickerApp-appMenu-content"
               :class="{
                 actived: navBarAppMenuShow,
               }"
+              dense
             >
-              <button
-                class="navPickerApp-appMenu-content-app"
-                :tabindex="appMenuTabIndexComputed"
-                @click="goToHome"
+              <v-list-item
+                :href="homeApp.href"
+                @click="navBarAppMenuShow = false"
+                :title="homeApp.name"
               >
-                <div class="navPickerApp-appMenu-content-app-iconContainer">
-                  <!-- <v-icon>{{homeApp.icon || 'mdi-domain'}}</v-icon> -->
-                  <span class="material-icons">
-                    {{ homeApp.icon || 'location_city' }}
-                  </span>
-                </div>
-                <div class="navPickerApp-appMenu-content-app-title">
-                  {{ homeApp.name }}
-                </div>
-              </button>
+                <v-list-item-icon>
+                  <v-icon class="app-btn-icon">{{
+                    homeApp.icon || 'mdi-city'
+                  }}</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>{{ homeApp.name }}</v-list-item-title>
+              </v-list-item>
+              <template v-for="app in apps">
+                <v-list-item
+                  :key="app.id"
+                  :href="app.href"
+                  @click="navBarAppMenuShow = false"
+                  :title="app.name"
+                  v-if="!app.subApp"
+                >
+                  <v-list-item-icon>
+                    <v-icon class="app-btn-icon">{{
+                      app.icon || 'mdi-city'
+                    }}</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-title>{{ app.name }}</v-list-item-title>
+                </v-list-item>
+                <template v-else>
+                  <v-list-group :value="true" :title="app.name" :key="app.id">
+                    <template v-slot:activator>
+                      <v-list-item-icon>
+                        <v-icon class="app-btn-icon">{{
+                          app.icon || 'mdi-city'
+                        }}</v-icon>
+                      </v-list-item-icon>
+                      <v-list-item-title>{{ app.name }}</v-list-item-title>
+                    </template>
 
-              <button
-                v-for="app in appsDisplayed"
-                :key="app.name"
-                class="navPickerApp-appMenu-content-app"
-                :tabindex="appMenuTabIndexComputed"
-                @click="goToApp(app, $event)"
-              >
-                <div class="navPickerApp-appMenu-content-app-iconContainer">
-                  <v-icon>{{ app.icon || 'mdi-domain' }}</v-icon>
-                  <!-- <span class="material-icons">
-                  {{ app.icon || 'location_city' }}
-                </span> -->
-                </div>
-                <div class="navPickerApp-appMenu-content-app-title">
-                  {{ app.name }}
-                </div>
-              </button>
-            </div>
+                    <v-list-item
+                      v-for="subApp in app.subApp"
+                      :key="subApp.id"
+                      :href="subApp.href"
+                      @click="navBarAppMenuShow = false"
+                      :title="subApp.name"
+                    >
+                      <v-list-item-icon>
+                        <v-icon class="app-btn-icon">{{
+                          subApp.icon || 'mdi-city'
+                        }}</v-icon>
+                      </v-list-item-icon>
+                      <v-list-item-title>{{ subApp.name }}</v-list-item-title>
+                    </v-list-item>
+                  </v-list-group>
+                </template>
+              </template>
+            </v-list>
           </div>
         </div>
       </div>
@@ -178,18 +195,22 @@ export default {
   },
   data() {
     this.homeApp = {
-      path: 'Home',
-      name: 'toutes les applications',
+      href: this.$router.resolve({ name: 'Home' }).href,
+      name: 'Toutes les applications',
     };
     return {
       logoSvg,
+      homeApp: this.homeApp,
       localAppSelected: this.homeApp,
-      navBarMainMenuShow: false,
       navBarAppMenuShow: false,
       apps: [],
+      showMenu: false,
       mainbuttons: [
-        { name: '', action: () => console.log('click Paramètres') },
-        { name: 'Déconnexion', action: () => this.logOut() },
+        {
+          name: 'Déconnexion',
+          icon: 'mdi-logout',
+          action: () => this.logOut(),
+        },
       ],
     };
   },
@@ -197,51 +218,9 @@ export default {
     ...mapActions('logingStore', ['clearLocalStorage']),
     ...mapActions('appDataStore', ['getApps', 'getUserInfo', 'getPortofolios']),
 
-    clickMainMenu() {
-      this.navBarMainMenuShow = !this.navBarMainMenuShow;
-      this.navBarAppMenuShow = false;
-    },
-
-    clickAppMenu() {
-      this.navBarMainMenuShow = false;
-      this.navBarAppMenuShow = !this.navBarAppMenuShow;
-    },
-
     logOut() {
       this.clearLocalStorage();
       this.$router.push({ name: 'Login' });
-    },
-
-    goToHome(event) {
-      if (event.ctrlKey) {
-        let routeData = this.$router.resolve({ name: 'Home' });
-        window.open(routeData.href, '_blank');
-      } else {
-        this.$router.push({ name: 'Home' }).catch(() => {});
-      }
-      this.navBarAppMenuShow = false;
-    },
-
-    goToApp(item, event) {
-      if (item.isExternalApp) {
-        window.open(item.link, '_blank');
-        return;
-      }
-      if (event.ctrlKey) {
-        let routeData = this.$router.resolve({
-          name: 'App',
-          query: { app: item.name },
-        });
-        window.open(routeData.href, '_blank');
-      } else {
-        this.$router
-          .push({
-            name: 'App',
-            query: { app: item.name },
-          })
-          .catch((error) => {});
-      }
-      this.navBarAppMenuShow = false;
     },
 
     setLocalAppSelected() {
@@ -257,26 +236,6 @@ export default {
         (app) => app.name === this.appSelected
       );
     },
-    // setApps() {
-    //   this.apps = [this.homeApp, ...this.appsDisplayed].map(
-    //     ({ id, name, path, icon, action }) => {
-    //       const app = {
-    //         path: path || name || id,
-    //         name,
-    //         id,
-    //         icon,
-    //       };
-
-    //       app.action = action
-    //         ? action
-    //         : () => {
-    //             this.appSelected = app;
-    //             // this.goTo(app.path);
-    //           };
-    //       return app;
-    //     }
-    //   );
-    // },
   },
   computed: {
     ...mapState('appDataStore', [
@@ -285,22 +244,96 @@ export default {
       'appSelected',
       'portofolios',
     ]),
-    mainMenuTabIndexComputed() {
-      return this.navBarMainMenuShow ? '' : '-1';
-    },
 
     appMenuTabIndexComputed() {
       return this.navBarAppMenuShow ? '' : '-1';
     },
-
-    // goTo(path) {
-    //   this.$router.push({ name: path });
-    // },
   },
   watch: {
     appSelected() {
       this.setLocalAppSelected();
     },
+    appsDisplayed: {
+      immediate: true,
+      deep: true,
+      handler() {
+        this.apps = [];
+        for (const app of this.appsDisplayed) {
+          const curr = {
+            name: app.name,
+            href: this.$router.resolve({
+              name: 'App',
+              query: { app: app.name },
+            }).href,
+            icon: app.icon || 'mdi-domain',
+            id: app.id,
+          };
+          if (app.subApps && app.subApps.length > 0) {
+            for (const subApps of app.subApps) {
+              if (curr.subApp === undefined) curr.subApp = [];
+
+              curr.subApp.push({
+                name: subApps.name,
+                href: this.$router.resolve({
+                  name: 'App',
+                  query: { app: app.name, config: subApps.name },
+                }).href,
+                icon: subApps.icon || app.icon || 'mdi-domain',
+                id: subApps.id,
+              });
+            }
+          }
+          this.apps.push(curr);
+        }
+
+        // this.appsDisplayed;
+      },
+    },
   },
 };
 </script>
+
+<style>
+.navPickerApp-mainMenu-content-list {
+  background-color: aquamarine;
+  padding-top: 45px;
+}
+.navPickerApp-appMenu-content
+  .v-list-group
+  .v-list-group__items
+  .v-list-item
+  .v-list-item__icon {
+  margin-left: 14px;
+  margin-right: 16px;
+}
+.navPickerApp-appMenu-content
+  .v-list-group__header
+  .v-list-item__icon:first-child {
+  color: #0000008a;
+  margin-right: 36px;
+}
+</style>
+
+<style scoped>
+.spinal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+}
+.app-btn-icon {
+  width: 25px;
+  height: 25px;
+  margin-right: 12px;
+  box-shadow: 0 3px 6px #00000033;
+  border-radius: 3px;
+  background-color: white;
+}
+.navPickerApp-appMenu-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+</style>

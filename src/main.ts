@@ -35,6 +35,8 @@ import store from './store';
 // import {initAxios} from './requests';
 import VueCookie from 'vue-cookie';
 import App from './App.vue';
+import VueSweetalert2 from 'vue-sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css';
 
 import './events/iframeEventBus';
 import '../assets/css/basic/reset.css';
@@ -44,7 +46,12 @@ import 'material-design-icons-iconfont';
 
 vuetifyInit(Vue);
 routerInit(Vue);
-
+Vue.use(VueSweetalert2, {
+  customClass: {
+    confirmButtonColor: '#41b882',
+    cancelButtonColor: '#ff7674',
+  },
+});
 // initAxios();
 
 Vue.config.productionTip = false;

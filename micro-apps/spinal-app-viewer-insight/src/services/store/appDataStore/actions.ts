@@ -164,7 +164,6 @@ async [ActionTypes.ENABLE_SOCKET]({dispatch ,commit, state, rootState}: any, {en
 
       // Connexion au socket
       socketInstance.connect();
-      console.log('socket connected');
 
 
       //Récupération des nodeId pour la souscription au socket
@@ -668,7 +667,6 @@ async [ActionTypes.WEBSOCKET_CALLBACK]({commit, state, rootState}: any, {data} :
     { commit, dispatch, state },
     dynamicIds: Array<number>
   ) {
-    console.log("SELECT_SPRITES", dynamicIds);
     return SpriteManager.getInstance().selectSprites(dynamicIds);
   },
 

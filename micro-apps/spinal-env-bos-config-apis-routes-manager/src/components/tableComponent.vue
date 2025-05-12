@@ -24,23 +24,26 @@ with this file. If not, see
 
 <template>
   <div class="tableContainer">
-    <v-data-table dense
-                  hide-default-header
-                  disable-pagination
-                  hide-default-footer
-                  :headers="headers"
-                  id="table"
-                  :items="items"
-                  item-key="name"
-                  :expanded="expanded">
-
-      <template v-slot:header="{ props : { headers } }">
+    <v-data-table
+      dense
+      hide-default-header
+      disable-pagination
+      hide-default-footer
+      :headers="headers"
+      id="table"
+      :items="items"
+      item-key="name"
+      :expanded="expanded"
+    >
+      <template v-slot:header="{ props: { headers } }">
         <thead>
           <tr>
-            <th v-for="headerItem in headers"
-                class="tableHeader"
-                :key="headerItem.value">
-              {{headerItem.text}}
+            <th
+              v-for="headerItem in headers"
+              class="tableHeader"
+              :key="headerItem.value"
+            >
+              {{ headerItem.text }}
             </th>
             <th class="expandedColumn"></th>
             <th class="expandedColumn"></th>
@@ -50,22 +53,16 @@ with this file. If not, see
 
       <template v-slot:item="{ item }">
         <tr class="categoryRow">
-          <td @click="expand(item)">{{item.name}}</td>
-          <td @click="expand(item)"></td>
-          <td @click="expand(item)"></td>
+          <td :colspan="3" @click="expand(item)">{{ item.name }}</td>
           <td @click="expand(item)">
-            <v-btn icon
-                   color="pink"
-                   @click.stop="deleteItem(item.children)">
+            <v-btn icon color="pink" @click.stop="deleteItem(item.children)">
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </td>
           <td @click="expand(item)">
-            <v-btn icon
-                   x-small
-                   color="white">
+            <v-btn icon x-small color="white">
               <v-icon>
-                {{IsExpanded(item) ? "mdi-chevron-down" : "mdi-chevron-up"}}
+                {{ IsExpanded(item) ? 'mdi-chevron-down' : 'mdi-chevron-up' }}
               </v-icon>
             </v-btn>
           </td>
@@ -73,9 +70,7 @@ with this file. If not, see
       </template>
 
       <template v-slot:expanded-item="{ item }">
-        <tr class="subItemRow"
-            v-for="child of item.children"
-            :key="child.id">
+        <tr class="subItemRow" v-for="child of item.children" :key="child.id">
           <td>
             {{ child.route }}
           </td>
@@ -87,9 +82,7 @@ with this file. If not, see
           </td>
           <td></td>
           <td>
-            <v-btn icon
-                   color="pink"
-                   @click="deleteItem(child)">
+            <v-btn icon color="pink" @click="deleteItem(child)">
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </td>
@@ -97,16 +90,14 @@ with this file. If not, see
       </template>
     </v-data-table>
   </div>
-
 </template>
 
 <script lang="ts">
-import { IApiRoute } from "@/interfaces";
-import Vue from "vue";
-import { Component, Prop } from "vue-property-decorator";
+import Vue from 'vue';
+import { Component, Prop } from 'vue-property-decorator';
 
 const TableComponentProps = Vue.extend({
-  props: ["headers", "items"],
+  props: ['headers', 'items'],
 });
 
 @Component
@@ -132,7 +123,7 @@ class TableComponent extends TableComponentProps {
   deleteItem(items: IApiRoute | IApiRoute[]) {
     if (!Array.isArray(items)) items = [items];
 
-    this.$emit("delete", items);
+    this.$emit('delete', items);
   }
 }
 

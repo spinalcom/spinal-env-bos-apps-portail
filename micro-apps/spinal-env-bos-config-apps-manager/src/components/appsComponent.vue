@@ -23,50 +23,62 @@ with this file. If not, see
 -->
 
 <template>
-  <div class="_content">
-    <v-card class="cardContent" elevation="4">
-      <v-tabs
-        class="tabsHeader"
-        v-model="tab"
-        background-color="transparent"
-        color="primary"
-        grow
-      >
-        <v-tab v-for="item in tabItems" :key="item">
-          {{ item }}
-        </v-tab>
-      </v-tabs>
+  <!-- <div class="_content"> -->
+  <v-card
+    class="cardContent"
+    elevation="4"
+    :loading="isLoading"
+    :disabled="isLoading"
+  >
+    <v-tabs
+      class="tabsHeader"
+      v-model="tab"
+      background-color="transparent"
+      color="primary"
+      grow
+    >
+      <v-tab v-for="item in tabItems" :key="item">
+        {{ item }}
+      </v-tab>
+    </v-tabs>
 
-      <v-tabs-items v-model="tab" class="tabsItems">
-        <v-tab-item>
-          <app-list-component
-            :apps="buildingApps"
-            @create="createApp"
-            @upload="uploadApp"
-            @edit="editApp"
-            @delete="deleteApp"
-          />
-        </v-tab-item>
+    <v-tabs-items v-model="tab" class="tabsItems">
+      <v-tab-item>
+        <app-list-component
+          :apps="buildingApps"
+          :category="categories.bos"
+          @create="create(categories.bos)"
+          @upload="upload(categories.bos)"
+          @edit="edit($event, categories.bos)"
+          @delete="deleteApp($event, categories.bos)"
+          @create-sub-app="createSubApp($event)"
+          @upload-sub-app="upload(categories.bosConfig)"
+          @edit-sub-app="editSubApp"
+          @delete-sub-app="deleteApp($event, categories.bosConfig)"
+        />
+      </v-tab-item>
 
-        <v-tab-item>
-          <app-list-component
-            :apps="adminApps"
-            @create="createApp"
-            @upload="uploadApp"
-            @edit="editApp"
-            @delete="deleteApp"
-          />
-        </v-tab-item>
-      </v-tabs-items>
-    </v-card>
-  </div>
+      <v-tab-item>
+        <app-list-component
+          :apps="adminApps"
+          :category="categories.admin"
+          @create="create(categories.admin)"
+          @upload="upload(categories.admin)"
+          @edit="edit($event, categories.admin)"
+          @delete="deleteApp($event, categories.admin)"
+        />
+      </v-tab-item>
+    </v-tabs-items>
+  </v-card>
+  <!-- </div> -->
 </template>
 
 <script lang="ts">
-import { IApp } from '../types/interfaces';
-import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
+import type { ISpinalApp } from '../types/ISpinalApp';
+import { Component, Emit, Vue } from 'vue-property-decorator';
 import AppListComponent from '../components/appList.vue';
-import categories from '../store/data';
+import { IAppCategories, IAppCategory, categories } from '../store/categories';
+import { Action, State } from 'vuex-class';
 
 @Component({
   components: {
@@ -74,52 +86,63 @@ import categories from '../store/data';
   },
 })
 class HomeView extends Vue {
-  @Prop() buildingApps!: IApp[];
-  @Prop() adminApps!: IApp[];
+  @State('buildingApps') buildingApps!: ISpinalApp[];
+  @State('adminApps') adminApps!: ISpinalApp[];
+  @Action('getAllBuildingApps') getAllBuildingApps!: () => Promise<void>;
+  @Action('getAllAdminApps') getAllAdminApps!: () => Promise<void>;
+  // @PropSync('loading', { required: true, type: Boolean }) isLoading!: boolean;
 
-  categories: any = categories;
-
-  categorySelected: { name: string; id: string } = categories.bos;
-
-  tabsObject = Object.freeze({
-    Batiments: 'Applications de Bâtiment',
-    Adminstration: "Applications d'adminstration",
-  });
-
-  tabItems: string[] = Object.values(this.tabsObject);
+  isLoading: boolean = false;
+  categories: IAppCategories = categories;
+  categorySelected: IAppCategory = categories.bos;
+  tabsObject = {
+    Batiments: categories.bos.name,
+    Adminstration: categories.admin.name,
+  } as const;
+  tabItems = Object.values(this.tabsObject);
   tab = this.tabsObject.Batiments;
 
-  selectCategory(item: { name: string; id: string }) {
-    this.$emit('select', item);
+  async mounted() {
+    this.isLoading = true;
+    await Promise.all([this.getAllBuildingApps(), this.getAllAdminApps()]);
+    this.isLoading = false;
+  }
+  // @Watch('buildingApps', { deep: true })
+  // onBuildingAppsChange() {
+  //   console.log('buildingApps', this.buildingApps);
+  // }
+
+  @Emit()
+  create(category: IAppCategory) {
+    return { category };
   }
 
-  createApp() {
-    this.$emit('create', { categorySelected: this.categorySelected });
+  @Emit()
+  upload(category: IAppCategory) {
+    return { category };
   }
 
-  uploadApp() {
-    this.$emit('upload', { categorySelected: this.categorySelected });
+  @Emit()
+  edit(app: ISpinalApp, category: IAppCategory) {
+    return { app, category };
   }
 
-  editApp(app: IApp) {
-    this.$emit('edit', { app, categorySelected: this.categorySelected });
+  @Emit()
+  editSubApp({ app, item }) {
+    return { app: item, subApp: app, category: this.categories.bosConfig };
   }
 
-  deleteApp(app: IApp) {
-    this.$emit('delete', { app, categorySelected: this.categorySelected });
+  @Emit('delete')
+  deleteApp(app: ISpinalApp, category: IAppCategory) {
+    return { app, category };
   }
 
-  @Watch('tab')
-  watchTab() {
-    switch (this.tabItems[this.tab]) {
-      case this.tabsObject.Batiments:
-        this.categorySelected = categories.bos;
-        break;
-
-      case this.tabsObject.Adminstration:
-        this.categorySelected = categories.admin;
-        break;
-    }
+  @Emit()
+  createSubApp(app: ISpinalApp) {
+    return {
+      app,
+      category: this.categories.bosConfig,
+    };
   }
 }
 
@@ -128,46 +151,48 @@ export default HomeView;
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss">
-$header-height: 60px;
-$header-margin: 10px;
-$card-background: #f8f9f9;
+// $header-height: 65px;
+// $header-margin: 8px;
+// $card-background: #f8f9f9;
 
-._content {
+//._content {
+//  width: 100%;
+// height: 100%;
+
+// .app_header {
+//   // height: $header-height;
+//   // margin: $header-margin;
+//   display: flex;
+//   align-items: center;
+//   justify-content: flex-end;
+//   .head {
+//     width: 500px;
+//     height: 100%;
+//   }
+// }
+
+.cardContent {
+  // width: calc(100% - #{$header-margin * 2});
+  // height: calc(100% - #{$header-height + ($header-margin * 2)});
+  margin: auto;
+  // margin-top: $header-height + $header-margin;
+  // background: transparent !important;
+  // padding: 10px;
+  border-radius: 10px;
   width: 100%;
   height: 100%;
 
-  .app_header {
-    height: $header-height;
-    margin: $header-margin;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    .head {
-      width: 500px;
-      height: 100%;
-    }
+  .tabsHeader {
+    width: 100%;
+    height: 50px;
   }
 
-  .cardContent {
-    width: 98%;
-    height: calc(100% - #{$header-height+ $header-margin + $header-margin});
-    margin: auto;
-    margin-top: $header-height + $header-margin;
+  .tabsItems {
+    width: 100%;
+    height: calc(100% - 50px);
+    overflow: auto;
     background: transparent !important;
-    padding: 10px;
-    border-radius: 10px;
-
-    .tabsHeader {
-      width: 100%;
-      height: 50px;
-    }
-
-    .tabsItems {
-      width: 100%;
-      height: calc(100% - 50px);
-      overflow: auto;
-      background: transparent !important;
-    }
   }
 }
+//}
 </style>

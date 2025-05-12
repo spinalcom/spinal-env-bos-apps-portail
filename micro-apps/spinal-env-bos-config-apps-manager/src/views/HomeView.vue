@@ -23,330 +23,382 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="mainContent" fluid>
+  <v-card
+    class="mainContent"
+    ref="mainContent"
+    fluid
+    :loading="showLoading"
+    :disabled="showLoading"
+  >
     <AppListComponent
-      :buildingApps="buildingApps"
-      :adminApps="adminApps"
-      @select="selectCategory"
-      @create="goToCreationPage"
       @upload="uploadApp"
-      @edit="goToCreationPage"
+      @create="openCreationPage"
+      @create-sub-app="createSubApp"
+      @edit="openCreationPage"
+      @edit-sub-app="editSubApp"
       @delete="deleteApp"
-      v-if="page === pages.list"
     />
-
-    <CreationComponent
-      v-else-if="page === pages.creation"
-      @create="createApp"
-      @edit="editApp"
-      @cancel="cancelCreation"
-      :edit="edition"
-      :title="title"
-      :appSelected="appSelected"
-    />
-
-    <LoadingComponent v-else-if="page === pages.loading" />
-  </v-container>
+    <div
+      class="creation-dialog"
+      :class="{ 'fade-in': showCreationPage, 'fade-out': !showCreationPage }"
+    >
+      <!-- @click.self="closeCreationPage" -->
+      <CreationComponent
+        @close="closeCreationPage"
+        :edit="edition"
+        :appSelected="appSelected"
+        :sub-app="subApp"
+        :creationCategory="creationCategoryMode"
+      />
+    </div>
+  </v-card>
 </template>
 
 <script lang="ts">
-import { Component, Vue, Watch } from 'vue-property-decorator';
-import { Action, State } from 'vuex-class';
+import { Component, Vue } from 'vue-property-decorator';
+import { Action } from 'vuex-class';
 import AppListComponent from '../components/appsComponent.vue';
-import LoadingComponent from '../components/loading.vue';
-import CreationComponent from '../components/creation.vue';
-import categories from '../store/data';
-import { IApp } from 'global-components/interfaces/IApp';
-import { sendEventToParent } from '../event';
-type updateFunc = ({
-  id,
-  newValue,
-}: {
-  id: string;
-  newValue: IApp;
-}) => Promise<void>;
-
-type creationFunc = (app: IApp) => Promise<void>;
+import CreationComponent from '../components/creation/creation.vue';
+import { categories, type IAppCategory } from '../store/categories';
+import { ISpinalApp } from '../types/ISpinalApp';
+import { ISubApp } from '../types/ISubApp';
+import { OpenFileUpload } from '../utils/OpenFileUpload';
 
 @Component({
   components: {
     AppListComponent,
-    LoadingComponent,
     CreationComponent,
   },
 })
 class HomeView extends Vue {
-  pages = Object.freeze({
-    list: 1,
-    creation: 2,
-    loading: 3,
-  });
-
   edition: boolean = false;
-  appSelected: IApp = null;
+  appSelected: ISpinalApp = null;
+  subApp: ISubApp = null;
 
-  page: number = this.pages.list;
-  categorySelected: any = null;
-  apps: IApp[] = [];
-
-  @State buildingApps!: IApp[];
-  @State adminApps!: IApp[];
-
-  @Action getAllBuildingApps!: () => Promise<void>;
-  @Action getAllAdminApps!: () => Promise<void>;
-
-  @Action createBuildingApps!: creationFunc;
-  @Action createAdminApps!: creationFunc;
+  creationCategoryMode: IAppCategory = null;
+  showLoading: boolean = false;
+  showCreationPage: boolean = false;
 
   @Action deleteBuildingApp!: (id: string) => Promise<void>;
   @Action deleteAdminApp!: (id: string) => Promise<void>;
-
-  @Action updateBuildingApp!: updateFunc;
-  @Action updateAdminApp!: updateFunc;
+  @Action deleteBuildingAppConfig!: (id: string) => Promise<void>;
 
   @Action uploadAdminFile!: (file: FormData) => Promise<void>;
   @Action uploadBuildingFile!: (file: FormData) => Promise<void>;
+  @Action uploadBuildingAppConfigFile!: (file: FormData) => Promise<void>;
 
-  async mounted() {
-    this.page = this.pages.loading;
+  async uploadApp({ category }) {
+    this.showLoading = true;
 
-    await Promise.all([this.getAllBuildingApps(), this.getAllAdminApps()]);
+    try {
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(true);
+        }, 1000);
+      });
 
-    this.page = this.pages.list;
-    const selected = this.categorySelected || categories.bos;
-    this.selectCategory(selected);
-  }
-
-  selectCategory(item?: any) {
-    this.categorySelected = item;
-
-    switch (item.id) {
-      case categories.bos.id:
-        this.apps = this.buildingApps;
-        break;
-
-      case categories.admin.id:
-        this.apps = this.adminApps;
-        break;
-
-      default:
-        this.apps = [];
-        break;
+      const data = await OpenFileUpload();
+      switch (category.id) {
+        case categories.bos.id:
+          await this.uploadBuildingFile(data);
+          break;
+        case categories.admin.id:
+          await this.uploadAdminFile(data);
+          break;
+        case categories.bosConfig.id:
+          await this.uploadBuildingAppConfigFile(data);
+          break;
+      }
+      this.alertNotification(true, 'fichier ajouté');
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      this.alertNotification(false, "erreur lors de l'ajout du fichier");
+    } finally {
+      this.showLoading = false;
     }
   }
-
-  goToCreationPage({ app, categorySelected }) {
-    this.categorySelected = categorySelected;
+  openCreationPage({ app, category }) {
+    this.showCreationPage = true;
+    this.creationCategoryMode = category;
     if (app) {
       this.edition = true;
       this.appSelected = app;
+    } else {
+      this.edition = false;
+      this.appSelected = null;
     }
-
-    this.page = this.pages.creation;
+  }
+  editSubApp({ app, subApp, category }) {
+    this.showCreationPage = true;
+    this.creationCategoryMode = category;
+    this.edition = true;
+    this.appSelected = app;
+    this.subApp = subApp;
   }
 
-  async createApp(app: IApp) {
-    if (typeof app.icon !== 'string' && (<any>app.icon).name)
-      app.icon = `mdi-${(<any>app.icon).name}`;
-
-    let isSuccess;
-    try {
-      this.page = this.pages.loading;
-
-      switch (this.categorySelected.id) {
-        case categories.bos.id:
-          await this.createBuildingApps(app);
-          break;
-
-        case categories.admin.id:
-          await this.createAdminApps(app);
-          break;
-      }
-      isSuccess = true;
-    } catch (error) {
-      isSuccess = false;
-    }
-
-    this.page = this.pages.list;
-    const message = isSuccess
-      ? 'application ajoutée'
-      : "oups, une erreur s'est produite !";
-
-    this.alertNotification(isSuccess, message);
-
-    sendEventToParent('reload_portofolio');
+  createSubApp({ app, category }) {
+    this.showCreationPage = true;
+    this.appSelected = app;
+    this.creationCategoryMode = category;
   }
-
-  uploadApp({ categorySelected }) {
-    this.categorySelected = categorySelected;
-    const maxSize = 25000000;
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.multiple = false;
-    input.click();
-    input.addEventListener(
-      'change',
-      (event: any) => {
-        const [file] = event.target.files;
-        if (file.size >= maxSize) {
-          alert(
-            'The selected file is too large. The maximum size must not exceed 25 MB'
-          );
-          return;
-        }
-        if (!/.*\.xlsx$/.test(file.name)) {
-          alert('The selected file must an excel file');
-          return;
-        }
-        var formData = new FormData();
-        formData.append('file', file);
-        this.uploadFile(formData);
-      },
-      false
-    );
-  }
-
-  async uploadFile(formData: FormData) {
-    let isSuccess;
-    try {
-      this.page = this.pages.loading;
-
-      switch (this.categorySelected.id) {
-        case categories.bos.id:
-          await this.uploadBuildingFile(formData);
-          break;
-
-        case categories.admin.id:
-          await this.uploadAdminFile(formData);
-          break;
-      }
-      isSuccess = true;
-    } catch (error) {
-      isSuccess = false;
-    }
-
-    this.page = this.pages.list;
-    const message = isSuccess
-      ? 'fichier ajouté'
-      : "oups, une erreur s'est produite !";
-    this.alertNotification(isSuccess, message);
-
-    sendEventToParent('reload_portofolio');
-  }
-
-  async editApp(app: IApp) {
-    if (typeof app.icon !== 'string' && (<any>app.icon).name)
-      app.icon = `mdi-${(<any>app.icon).name}`;
-
-    const id: any = this.appSelected.id;
-    let isSuccess;
-    try {
-      this.page = this.pages.loading;
-
-      switch (this.categorySelected.id) {
-        case categories.bos.id:
-          await this.updateBuildingApp({ id, newValue: app });
-          break;
-
-        case categories.admin.id:
-          await this.updateAdminApp({ id, newValue: app });
-          break;
-      }
-      isSuccess = true;
-    } catch (error) {
-      isSuccess = false;
-    }
-
-    this.page = this.pages.list;
-    const message = isSuccess
-      ? 'application modifiée'
-      : "oups, une erreur s'est produite !";
-
-    this.alertNotification(isSuccess, message);
-
-    sendEventToParent('reload_portofolio');
-  }
-
-  deleteApp({ app, categorySelected }) {
-    return this.$swal({
+  async deleteApp({ app, category }) {
+    console.log('app', app);
+    console.log('category', category);
+    const result = await this.$swal({
       title: 'Supprimer',
       text: `Êtes-vous sûre de vouloir supprimer ${app.name} ?`,
-      type: 'warning',
       showCancelButton: true,
-      confirmButtonClass: 'successBtn',
-      cancelButtonClass: 'errorBtn',
       confirmButtonText: 'Oui',
       cancelButtonText: 'Annuler',
       buttonsStyling: false,
+      customClass: {
+        confirmButton: 'successBtn',
+        cancelButton: 'errorBtn',
+      },
       icon: 'warning',
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        this.categorySelected = categorySelected;
-
-        this.page = this.pages.loading;
-        let isSuccess;
-        try {
-          switch (this.categorySelected.id) {
-            case categories.bos.id:
-              await this.deleteBuildingApp(<any>app.id);
-              break;
-
-            case categories.admin.id:
-              await this.deleteAdminApp(<any>app.id);
-              break;
-          }
-          isSuccess = true;
-        } catch (error) {
-          isSuccess = false;
-        }
-
-        this.page = this.pages.list;
-
-        const message = isSuccess
-          ? 'Application supprimée'
-          : "oups, une erreur s'est produite !";
-
-        this.alertNotification(isSuccess, message);
-        sendEventToParent('reload_portofolio');
-      }
     });
+    if (result.isConfirmed) {
+      this.showLoading = true;
+      try {
+        switch (category.id) {
+          case categories.bos.id:
+            await this.deleteBuildingApp(app.id);
+            break;
+          case categories.admin.id:
+            await this.deleteAdminApp(app.id);
+            break;
+          case categories.bosConfig.id:
+            await this.deleteBuildingAppConfig(app.id);
+            break;
+        }
+        this.alertNotification(true, 'Application supprimée');
+      } catch (error) {
+        console.error('Error deleting app:', error);
+        this.alertNotification(
+          false,
+          "erreur lors de la suppression de l'application"
+        );
+      } finally {
+        this.showLoading = false;
+      }
+    }
   }
 
-  cancelCreation() {
+  closeCreationPage() {
+    this.showCreationPage = false;
     this.edition = false;
-    this.page = this.pages.list;
+    this.appSelected = null;
   }
+  // async createApp(app: ISpinalApp) {
+  //   if (typeof app.icon !== 'string' && (<any>app.icon).name)
+  //     app.icon = `mdi-${(<any>app.icon).name}`;
 
-  get title() {
-    if (!this.categorySelected) return '';
+  //   let isSuccess;
+  //   try {
+  //     // this.page = this.pages.loading;
+  //     this.showLoading = true;
 
-    if (this.edition) return 'Modifier une application';
+  //     switch (this.categorySelected.id) {
+  //       case categories.bos.id:
+  //         await this.createBuildingApps(app);
+  //         break;
 
-    const begin = 'Créer une application';
-    switch (this.categorySelected.id) {
-      case categories.bos.id:
-        return `${begin} de batiment`;
+  //       case categories.admin.id:
+  //         await this.createAdminApps(app);
+  //         break;
+  //     }
+  //     isSuccess = true;
+  //   } catch (error) {
+  //     isSuccess = false;
+  //   }
+  //   // this.page = this.pages.list;
+  //   this.showLoading = false;
+  //   const message = isSuccess
+  //     ? 'application ajoutée'
+  //     : "oups, une erreur s'est produite !";
 
-      case categories.admin.id:
-        return `${begin} d'administration`;
-    }
-  }
+  //   this.alertNotification(isSuccess, message);
 
-  @Watch('buildingApps')
-  watch_buildingApps() {
-    if (this.categorySelected && this.categorySelected.id === categories.bos.id)
-      this.apps = this.buildingApps;
-  }
+  //   sendEventToParent('reload_portofolio');
+  // }
 
-  @Watch('adminApps')
-  watch_adminApps() {
-    if (
-      this.categorySelected &&
-      this.categorySelected.id === categories.admin.id
-    ) {
-      this.apps = this.adminApps;
-    }
-  }
+  // uploadApp({ categorySelected }) {
+  //   // this.categorySelected = categorySelected;
+  //   const maxSize = 25000000;
+  //   const input = document.createElement('input');
+  //   input.type = 'file';
+  //   input.accept = '.xlsx, .json';
+  //   input.multiple = false;
+  //   input.click();
+  //   input.addEventListener(
+  //     'change',
+  //     (event: any) => {
+  //       const [file] = event.target.files;
+  //       if (file.size >= maxSize) {
+  //         alert(
+  //           'The selected file is too large. The maximum size must not exceed 25 MB'
+  //         );
+  //         return;
+  //       }
+  //       if (!/.*\.(xlsx|json)$/.test(file.name)) {
+  //         alert('The selected file must an excel or JSON file');
+  //         return;
+  //       }
+  //       var formData = new FormData();
+  //       formData.append('file', file);
+  //       this.uploadFile(formData);
+  //     },
+  //     false
+  //   );
+  // }
+
+  // async uploadFile(formData: FormData) {
+  //   let isSuccess;
+  //   try {
+  //     // this.page = this.pages.loading;
+
+  //     switch (this.categorySelected.id) {
+  //       case categories.bos.id:
+  //         await this.uploadBuildingFile(formData);
+  //         break;
+
+  //       case categories.admin.id:
+  //         await this.uploadAdminFile(formData);
+  //         break;
+  //     }
+  //     isSuccess = true;
+  //   } catch (error) {
+  //     isSuccess = false;
+  //   }
+
+  //   this.page = this.pages.list;
+  //   const message = isSuccess
+  //     ? 'fichier ajouté'
+  //     : "oups, une erreur s'est produite !";
+  //   this.alertNotification(isSuccess, message);
+
+  //   sendEventToParent('reload_portofolio');
+  // }
+
+  // async editApp(app: ISpinalApp) {
+  //   if (typeof app.icon !== 'string' && (<any>app.icon).name)
+  //     app.icon = `mdi-${(<any>app.icon).name}`;
+
+  //   const id: any = this.appSelected.id;
+  //   let isSuccess;
+  //   try {
+  //     this.page = this.pages.loading;
+
+  //     switch (this.categorySelected.id) {
+  //       case categories.bos.id:
+  //         await this.updateBuildingApp({ id, newValue: app });
+  //         break;
+
+  //       case categories.admin.id:
+  //         await this.updateAdminApp({ id, newValue: app });
+  //         break;
+  //     }
+  //     isSuccess = true;
+  //   } catch (error) {
+  //     isSuccess = false;
+  //   }
+
+  //   this.page = this.pages.list;
+  //   const message = isSuccess
+  //     ? 'application modifiée'
+  //     : "oups, une erreur s'est produite !";
+
+  //   this.alertNotification(isSuccess, message);
+
+  //   sendEventToParent('reload_portofolio');
+  // }
+
+  // deleteApp({
+  //   app,
+  //   categorySelected,
+  // }: {
+  //   app: ISpinalApp;
+  //   categorySelected: IAppCategory;
+  // }) {
+  //   return this.$swal({
+  //     title: 'Supprimer',
+  //     text: `Êtes-vous sûre de vouloir supprimer ${app.name} ?`,
+  //     showCancelButton: true,
+  //     // type: 'warning',
+  //     // confirmButtonClass: 'successBtn',
+  //     // cancelButtonClass: 'errorBtn',
+  //     confirmButtonText: 'Oui',
+  //     cancelButtonText: 'Annuler',
+  //     buttonsStyling: false,
+  //     icon: 'warning',
+  //   }).then(async (result) => {
+  //     if (result.isConfirmed) {
+  //       this.categorySelected = categorySelected;
+
+  //       this.page = this.pages.loading;
+  //       let isSuccess;
+  //       try {
+  //         switch (this.categorySelected.id) {
+  //           case categories.bos.id:
+  //             await this.deleteBuildingApp(<any>app.id);
+  //             break;
+
+  //           case categories.admin.id:
+  //             await this.deleteAdminApp(<any>app.id);
+  //             break;
+  //         }
+  //         isSuccess = true;
+  //       } catch (error) {
+  //         isSuccess = false;
+  //       }
+
+  //       this.page = this.pages.list;
+
+  //       const message = isSuccess
+  //         ? 'Application supprimée'
+  //         : "oups, une erreur s'est produite !";
+
+  //       this.alertNotification(isSuccess, message);
+  //       sendEventToParent('reload_portofolio');
+  //     }
+  //   });
+  // }
+
+  // cancelCreation() {
+  //   this.edition = false;
+  //   this.page = this.pages.list;
+  // }
+
+  // get title() {
+  //   if (!this.categorySelected) return '';
+
+  //   if (this.edition) return 'Modifier une application';
+
+  //   const begin = 'Créer une application';
+  //   switch (this.categorySelected.id) {
+  //     case categories.bos.id:
+  //       return `${begin} de batiment`;
+
+  //     case categories.admin.id:
+  //       return `${begin} d'administration`;
+  //   }
+  // }
+
+  // @Watch('buildingApps')
+  // watch_buildingApps() {
+  //   if (this.categorySelected && this.categorySelected.id === categories.bos.id)
+  //     this.apps = this.buildingApps;
+  // }
+
+  // @Watch('adminApps')
+  // watch_adminApps() {
+  //   if (
+  //     this.categorySelected &&
+  //     this.categorySelected.id === categories.admin.id
+  //   ) {
+  //     this.apps = this.adminApps;
+  //   }
+  // }
 
   alertNotification(isSuccess, message) {
     this.$swal({
@@ -365,15 +417,28 @@ export default HomeView;
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss">
-// $header-height: 70px;
-// $header-margin: 10px;
+$header-height: 70px;
+$header-margin: 10px;
 // $card-background: #f8f9f9;
 
 .mainContent {
-  width: 100%;
-  height: 100%;
+  width: calc(100% - #{$header-margin * 2});
+  height: calc(100% - #{$header-height + $header-margin});
+  margin-top: $header-height;
+  margin-left: $header-margin;
+  margin-right: $header-margin;
+  margin-bottom: $header-margin;
   padding: 0 !important;
+  background-color: unset !important;
 }
+// .v-dialog {
+//   width: calc(100% - #{$header-margin * 2});
+//   // height: calc(100% - #{$header-height + $header-margin});
+//   margin-top: $header-height !important;
+//   margin-left: $header-margin;
+//   margin-right: $header-margin;
+//   margin-bottom: $header-margin;
+// }
 </style>
 
 <style>
@@ -393,5 +458,28 @@ export default HomeView;
   color: #ff5252 !important;
   border-radius: 5px;
   margin: 5px;
+}
+.creation-dialog {
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  position: fixed;
+  backdrop-filter: blur(2px);
+  opacity: 0; /* Initially hidden */
+  visibility: hidden; /* Prevent interaction when hidden */
+  transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out; /* Smooth transition for fade */
+}
+
+.creation-dialog.fade-in {
+  opacity: 1; /* Fully visible */
+  visibility: visible; /* Allow interaction */
+}
+
+.creation-dialog.fade-out {
+  opacity: 0; /* Fully hidden */
+  visibility: hidden; /* Prevent interaction */
 }
 </style>

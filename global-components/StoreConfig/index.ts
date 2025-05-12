@@ -25,6 +25,25 @@
 import { SpinalAPI } from 'global-components/requests';
 
 const appConfigIt = getAppConfigGen();
+let windowHook: any = window;
+
+export function setWindowHook(hook: any) {
+  windowHook = hook;
+}
+
+export function subcribeAppConfigChange(callback: (config: any) => void) {
+  let data = null;
+  return setInterval(async () => {
+    const newData = await getAppConfig();
+    if (data !== newData) {
+      data = newData;
+      callback(data);
+    }
+  }, 1000);
+}
+export function unsubscribeAppConfigChange(interval: any) {
+  clearInterval(interval);
+}
 
 export async function getAppConfig() {
   const { value } = await appConfigIt.next();
@@ -42,8 +61,17 @@ async function* getAppConfigGen(): AsyncGenerator<any, never, never> {
   let response = null;
   // get app config from query
   while (true) {
-    const searchParams = new URLSearchParams(window.location.search);
-    const newConfigId = searchParams.get('appConfig');
+    let queryString = '';
+    if (windowHook.location.href.includes('#')) {
+      // Extract the part after the hash (#) and get the query string
+      const hashPart = windowHook.location.href.split('#')[1];
+      queryString = hashPart.split('?')[1] || '';
+    } else {
+      // Extract the query string directly from the URL
+      queryString = windowHook.location.href.split('?')[1] || '';
+    }
+    const searchParams = new URLSearchParams(queryString);
+    const newConfigId = searchParams.get('config');
     const appId = searchParams.get('app');
     if (!appId) {
       response = { data: null };

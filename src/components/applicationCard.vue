@@ -23,8 +23,7 @@ with this file. If not, see
 -->
 
 <template>
-  <v-card class="appCardContainer"
-          @click="goToApplication">
+  <v-card class="appCardContainer" :href="appHref">
     <div class="cardContent">
       <div class="left">
         <v-card class="iconDiv">
@@ -33,79 +32,80 @@ with this file. If not, see
       </div>
 
       <div class="right">
-        <div class="name"
-             :title="data.name">
+        <div class="name" :title="data.name">
           {{ data.name }}
         </div>
 
-        <div class="description"
-             :title="data.description">
+        <div class="description" :title="data.description">
           {{ data.description }}
         </div>
 
-        <div class="tags"
-             :title="getTagsTitle">
-          <v-chip class="chip"
-                  label
-                  color="#6699cc"
-                  v-for="(tag, index) in data.tags"
-                  :key="index"
-                  small>
-            <v-icon left
-                    color="#ffffff"> mdi-circle-small </v-icon>
-            {{ tag.toUpperCase() }}
-          </v-chip>
+        <div class="tags" ref="tagsscroll" :title="getTagsTitle">
+          <div :style="tagsScrollStyle">
+            <v-chip
+              class="chip"
+              label
+              color="#6699cc"
+              v-for="(tag, index) in data.tags"
+              :key="index"
+              small
+            >
+              <v-icon left color="#ffffff"> mdi-circle-small </v-icon>
+              {{ tag.toUpperCase() }}
+            </v-chip>
+          </div>
         </div>
 
         <div class="actions">
           <div>
-            <!-- class="favorisBtn" -->
-            <v-btn icon
-                   class="favorisBtn"
-                   outlined
-                   title="ajouter aux favoris"
-                   :class="{'isFavorite' : isFavorite}"
-                   @click.stop="addAppToFavoris">
+            <v-btn
+              icon
+              class="favorisBtn"
+              outlined
+              title="ajouter aux favoris"
+              :class="{ isFavorite: isFavorite }"
+              @click.stop.prevent="addAppToFavoris"
+            >
               <v-icon>mdi-star</v-icon>
-              <!-- <v-icon>mdi-cards-diamond</v-icon> -->
             </v-btn>
 
-            <v-btn class="favorisBtn"
-                   icon
-                   outlined
-                   title="Aller à la documentation"
-                   v-if="data.documentationLink"
-                   @click.stop="goToDocumentation">
-              <!-- <v-icon>mdi-notebook-outline</v-icon> -->
+            <v-btn
+              class="favorisBtn"
+              icon
+              outlined
+              title="Aller à la documentation"
+              v-if="data.documentationLink"
+              :data="data.documentationLink"
+              target="_blank"
+            >
               <v-icon>mdi-information-variant</v-icon>
             </v-btn>
 
-            <v-btn icon
-                   @click.stop="show = !show">
-              <v-icon>{{ show ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
+            <v-btn icon @click.stop.prevent="show = !show" small>
+              <v-icon
+                >{{ show ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
               </v-icon>
             </v-btn>
           </div>
         </div>
-
       </div>
     </div>
     <v-expand-transition>
       <div v-show="show">
         <v-divider></v-divider>
-
         <v-card-text>
-          {{data.description}}
+          {{ data.description }}
         </v-card-text>
       </div>
     </v-expand-transition>
-
   </v-card>
 </template>
 
 <script>
+import { mapState } from 'vuex';
+
 export default {
-  name: "applicationCard",
+  name: 'applicationCard',
   props: {
     data: {},
     isFavorite: { type: Boolean, default: () => false },
@@ -113,30 +113,63 @@ export default {
   data() {
     return {
       show: false,
+      tagsScrollStyle: {
+        display: 'inline-block',
+        animation: '',
+      },
     };
   },
+  mounted() {
+    if (this.data) this.getTagsScrollStyle();
+  },
   methods: {
-    goToApplication(event) {
-      this.$emit("goToApp", { event, item: this.data });
-    },
-
-    exploreApp() {
-      this.$emit("exploreApp", this.data);
-    },
     addAppToFavoris() {
-      this.$emit("addAppToFavoris", {
+      this.$emit('addAppToFavoris', {
         item: this.data,
         isFavorite: this.isFavorite,
       });
     },
-    goToDocumentation() {
-      if (this.data.documentationLink)
-        return window.open(this.data.documentationLink, "_blank");
+    getTagsScrollStyle() {
+      if (
+        !this.$refs['tagsscroll'] ||
+        this.$refs['tagsscroll'].scrollWidth >
+          this.$refs['tagsscroll'].clientWidth
+      ) {
+        const nbTags = this.data.tags.length;
+        const size = this.getTagsTitle.length * 10 + nbTags * 10;
+        this.tagsScrollStyle.animation = `scroll-text ${
+          size / 50
+        }s linear infinite paused`;
+        return;
+      }
+      this.tagsScrollStyle.animation = '';
     },
   },
   computed: {
+    ...mapState('appDataStore', ['viewportSize']),
     getTagsTitle() {
-      return this.data.tags.join(", ");
+      return this.data.tags.join(', ');
+    },
+    appHref() {
+      let routeData = this.$router.resolve({
+        name: 'App',
+        query: { app: this.data?.name },
+      });
+      return routeData.href;
+    },
+  },
+  watch: {
+    data: {
+      handler() {
+        if (this.data) this.getTagsScrollStyle();
+      },
+      immediate: false,
+    },
+    ['viewportSize.width']: {
+      handler() {
+        if (this.data) this.getTagsScrollStyle();
+      },
+      immediate: false,
     },
   },
 };
@@ -147,7 +180,6 @@ export default {
   width: 100%;
   min-height: 113px;
   background: #ffffff;
-  margin: 10px 0;
   border-radius: 7px;
   display: flex;
   flex-direction: column;
@@ -209,6 +241,7 @@ export default {
 
       .tags {
         height: 25px;
+        position: relative;
         .chip {
           height: 16px;
           color: #ffffff;
@@ -249,8 +282,24 @@ export default {
     }
   }
 }
+@keyframes scroll-text {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
 
 .appCardContainer:hover {
   cursor: pointer;
+}
+</style>
+<style>
+.appCardContainer .cardContent .right .tags > div {
+  animation-play-state: paused !important;
+}
+.appCardContainer:hover .cardContent .right .tags > div {
+  animation-play-state: running !important;
 }
 </style>

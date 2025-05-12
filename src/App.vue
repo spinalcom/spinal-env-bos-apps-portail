@@ -31,10 +31,32 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue } from 'vue-property-decorator';
+import { SET_VIEWPORT } from './store/appDataStore';
+import { debounce } from 'lodash';
 
 @Component
-class App extends Vue {}
+class App extends Vue {
+  resizeHandler = debounce(this.handleResize, 100);
+
+  mounted() {
+    this.handleResize();
+    window.addEventListener('resize', this.resizeHandler);
+  }
+
+  beforeDestroy() {
+    // Clean up any resources or listeners if needed
+    window.removeEventListener('resize', this.resizeHandler);
+  }
+
+  handleResize() {
+    // Handle the resize event here
+    this.$store.commit(`appDataStore/${SET_VIEWPORT}`, {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    });
+  }
+}
 export default App;
 </script>
 

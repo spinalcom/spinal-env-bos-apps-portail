@@ -53,7 +53,7 @@ with this file. If not, see
           v-model="selectedZone"
           label="ESPACE"
           :spaceSelectorItemButtons="spaceSelectorButtons"
-          :viewButtonsType="config.viewButtons"
+          :viewButtonsType="configViewButtons"
           @onActionClick="onActionClick"
         />
       </div>
@@ -65,6 +65,7 @@ with this file. If not, see
         :class="{ active3D: isActive3D }"
       ></viewerApp>
       <InsightApp
+        v-if="config"
         class="appContainer"
         :DActive="isActive3D"
         :ActiveData="isActive"
@@ -133,6 +134,7 @@ import { Vue, Watch } from 'vue-property-decorator';
 import { ActionTypes } from './interfaces/vuexStoreTypes';
 import Component from 'vue-class-component';
 import type { Store } from './services/store';
+import { State } from 'vuex-class';
 import { MutationTypes } from './services/store/appDataStore/mutations';
 import type {
   IButton,
@@ -151,7 +153,6 @@ import {
   EmitterViewerHandler,
   VIEWER_SPRITE_CLICK,
 } from 'spinal-viewer-event-manager';
-import { getLabels, getValues } from './services/calcul/computeChart';
 import moment from 'moment';
 
 moment.locale('fr', {
@@ -213,8 +214,7 @@ class App extends Vue {
   chartTitle: string = '';
   chartLabel = '';
   chartData: any[] = [];
-  config: IConfig = config;
-  spaceSelectorButtons: IButton[] = ViewerButtons[config.viewButtons];
+  spaceSelectorButtons: IButton[] = ViewerButtons[this.configViewButtons];
   isActive: boolean = false;
   isActive3D: boolean = false;
   isMobileDisplay: boolean = false;
@@ -238,10 +238,12 @@ class App extends Vue {
     buildingId: '',
   };
   vueChart: boolean = false;
-
   switchView(item) {
     this.vueChart = item.display;
     this.chartLabel = item.source;
+  }
+  public get config(): IConfig {
+    return this.$store.state.appDataStore.appConfig;
   }
 
   public get selectedChartItems() {
@@ -295,7 +297,6 @@ class App extends Vue {
             moment(begin, 'DD-MM-YYYY HH:mm:ss')
           )
         );
-        console.log(moment(end, 'DD-MM-YYYY HH:mm:ss'), duration);
         if (duration.asMonths() > 2) return moment(date).format('MMM');
         if (duration.asDays() > 1) return moment(date).format('D/M/YY');
         if (duration.asHours() > 1) return moment(date).format('HH[h]');
@@ -309,6 +310,9 @@ class App extends Vue {
     return moment(date).format('DD/MM/YYYY HH:mm');
   }
 
+  get configViewButtons() {
+    return this.config?.viewButtons || 'base';
+  }
   async mounted() {
     try {
       this.pageSate = PAGE_STATES.loading;
@@ -411,7 +415,6 @@ class App extends Vue {
   }
 
   onSourceChange(newVal) {
-    console.log('onSourceChange', newVal);
     this.chartTitle = newVal;
   }
 
@@ -438,7 +441,6 @@ class App extends Vue {
   }
 
   public set temporalitySelected(v: ISpaceSelectorItem) {
-    console.log('temporalitySelected', v);
     this.$store.commit(MutationTypes.SET_TEMPORALITY, v);
   }
 
@@ -481,7 +483,6 @@ class App extends Vue {
               buildingId: null,
             }
           );
-          console.log(building);
           return [
             {
               name: building.name,
@@ -543,7 +544,6 @@ class App extends Vue {
   }
 
   onActionClick({ button, item }) {
-    console.log('onActionClick', button, item);
     const data = {
       buildingId: item.buildingId,
       staticId: item.staticId,

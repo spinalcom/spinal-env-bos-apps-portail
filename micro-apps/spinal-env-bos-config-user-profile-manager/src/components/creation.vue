@@ -23,19 +23,12 @@ with this file. If not, see
 -->
 
 <template>
-  <v-card class="creationContainer"
-          elevation="4">
+  <v-card class="creationContainer" elevation="4">
     <div class="header">
       <div class="leftDiv">
         <div class="back">
-          <v-btn rounded
-                 outlined
-                 color="#14202c"
-                 dark
-                 @click="goBack">
-            <v-icon left>
-              mdi-arrow-left-thin
-            </v-icon>
+          <v-btn rounded outlined color="#14202c" dark @click="goBack">
+            <v-icon left> mdi-arrow-left-thin </v-icon>
             Retour
           </v-btn>
         </div>
@@ -45,24 +38,26 @@ with this file. If not, see
           <p>Sélectionnez son périmètre ci-dessous :</p>
         </div>
         <div class="searchDiv">
-          <v-text-field solo
-                        outlined
-                        dense
-                        flat
-                        label="nom du profil"
-                        hide-details="auto"
-                        v-model.trim="profileName"></v-text-field>
+          <v-text-field
+            solo
+            outlined
+            dense
+            flat
+            label="nom du profil"
+            hide-details="auto"
+            v-model.trim="profileName"
+          ></v-text-field>
         </div>
       </div>
 
       <div class="rightDiv">
-        <v-btn class="button"
-               color="#14202c"
-               @click="saveProfile"
-               :disabled="disableSaveButton">
-          <v-icon class="btnIcon">
-            mdi-content-save-outline
-          </v-icon>
+        <v-btn
+          class="button"
+          color="#14202c"
+          @click="saveProfile"
+          :disabled="disableSaveButton"
+        >
+          <v-icon class="btnIcon"> mdi-content-save-outline </v-icon>
 
           Enregister le profil
         </v-btn>
@@ -70,24 +65,25 @@ with this file. If not, see
     </div>
 
     <div class="profileContent">
-      <StepComponent :contexts="contextsCopy"
-                     :apps="appsCopy"
-                     @selectContext="selectContext"
-                     :contextSelected="contextSelected"
-                     :appSelected="appsSelected"
-                     :profileSelected="profileSelected"
-                     :edit="edit" />
+      {{ appsSelected }}
+      <StepComponent
+        :contexts="contextsCopy"
+        :apps="appsCopy"
+        :contextSelected="contextSelected"
+        :appSelected.sync="appsSelected"
+        :profileSelected="profileSelected"
+        :edit="edit"
+      />
     </div>
   </v-card>
 </template>
 
 <script lang="ts">
-import { json } from "stream/consumers";
-import Vue from "vue";
-import { Component, Prop, Watch } from "vue-property-decorator";
+import Vue from 'vue';
+import { Component, Prop, Watch } from 'vue-property-decorator';
 
-import { State } from "vuex-class";
-import StepComponent from "./stepComponent.vue";
+import { State } from 'vuex-class';
+import StepComponent from './stepComponent.vue';
 
 @Component({
   components: {
@@ -103,7 +99,7 @@ class CreationComponent extends Vue {
   //   Batiments: "Applications de Batiments",
   // });
 
-  profileName = "";
+  profileName = '';
 
   // headers: any = [
   //   {
@@ -119,13 +115,26 @@ class CreationComponent extends Vue {
   contextSelected: any = null;
   contextsCopy: any = null;
 
-  appsSelected: any = null;
+  appsSelected: string[] = [];
   appsCopy: any = null;
 
-  // tabItems: string[] = Object.values(this.tabsObject);
-
-  // tab = this.tabsObject.Applications;
-  // buildingTab = null;
+  @Watch('profileSelected.apps', {
+    immediate: true,
+    deep: true,
+  })
+  watchProfileSelected() {
+    if (!this.profileSelected) return;
+    // get the id of all the apps and subApps
+    this.appsSelected = this.profileSelected.apps.reduce(
+      (liste: any[], item: any) => {
+        if (!item.subApps) {
+          liste.push(item.id);
+        } else liste = liste.concat(item.subApps.map((el: any) => el.id));
+        return liste;
+      },
+      []
+    );
+  }
 
   mounted() {
     this._initProfile();
@@ -136,22 +145,27 @@ class CreationComponent extends Vue {
   }
 
   goBack() {
-    this.$emit("goBack");
+    this.$emit('goBack');
   }
 
   saveProfile() {
     if (!this.edit) {
       const data = this._getProfileCreationData();
-      return this.$emit("create", data);
+      console.log('data edit', data);
+      // return this.$emit('create', data);
     }
-    this.$emit("edit", {
+    const data = this._getDiffBetweenProfile();
+    console.log('data', data);
+
+    return;
+    this.$emit('edit', {
       profileId: this.profileSelected.id,
-      data: this._getDiffBetweenProfile(),
+      data: data,
     });
   }
 
   _initProfile() {
-    this.profileName = !this.edit ? "" : this.profileSelected.name;
+    this.profileName = !this.edit ? '' : this.profileSelected.name;
     this.contextsCopy = this.createCopy(this.contexts);
     this.appsCopy = this.createCopy(this.apps);
   }
@@ -182,17 +196,17 @@ class CreationComponent extends Vue {
     return false;
   }
 
-  @Watch("contexts")
+  @Watch('contexts')
   watchContexts() {
     this._initProfile();
   }
 
-  @Watch("apps")
+  @Watch('apps')
   watchApps() {
     this._initProfile();
   }
 
-  @Watch("edit")
+  @Watch('edit')
   watchEditMode(newValue: boolean) {
     this._initProfile();
   }
@@ -206,11 +220,29 @@ class CreationComponent extends Vue {
   _getProfileCreationData() {
     return {
       name: this.profileName.trim(),
-      appsIds: this._getSelected(this.appsCopy),
+      appsIds: this._addParentIdForSubApps(this.appsSelected),
       contextIds: this._getSelected(this.contextsCopy),
     };
   }
 
+  _addParentIdForSubApps(appsIds: string[]) {
+    const appIdSet = new Set(appsIds);
+    const resultAppIds = this.profileSelected.apps.reduce(
+      (liste: any[], item: any) => {
+        if (item.subApps) {
+          for (const subApp of item.subApps) {
+            if (appsIds.includes(subApp.id)) {
+              appIdSet.add(item.id);
+            }
+          }
+        }
+        return liste;
+      },
+      []
+    );
+
+    return resultAppIds;
+  }
   _getDiffBetweenProfile() {
     const toCreate: any = this._getProfileCreationData();
 

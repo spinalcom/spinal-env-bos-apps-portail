@@ -24,9 +24,9 @@ with this file. If not, see
 
 <template>
   <v-app class="appContainer">
-    <v-main>
-      <HomeView />
-    </v-main>
+    <!-- <v-main> -->
+    <HomeView />
+    <!-- </v-main> -->
   </v-app>
 </template>
 
@@ -48,7 +48,7 @@ export default Vue.extend({
 
 <style>
 .appContainer {
-  width: 99vw;
+  width: 100vw;
   height: 100vh;
   background: linear-gradient(121deg, #f8fafa, #d6e2e6) !important;
 }

@@ -22,10 +22,10 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-import { IConfig, ITemporality, calculTypes } from "./interfaces/IConfig";
+import { IConfig, ITemporality, calculTypes } from './interfaces/IConfig';
 
 export const config: IConfig = {
-  viewButtons: "base",
+  viewButtons: 'base',
   // entryPoint: { context: "Gestion des équipements", category: "Typologie", group: "CVC" },
   // source: [{
   // 	name: "Maintenance CVC",
@@ -46,96 +46,84 @@ export const config: IConfig = {
   //     }
   //   ],
 
-
-
   // Config DEI
   entryPoint: {
-    context: "Gestion des espaces",
-    category: "Typologie",
-    group: "Bureaux",
+    context: 'Gestion des espaces',
+    category: 'Typologie',
+    group: 'Bureaux',
   },
   source: [
     {
       name: "Taux d'occupation",
-      profileName: "Occupation",
-      type: "controlPoint",
-      objectType: "rooms",
-      unit: "%",
+      profileName: 'Occupation',
+      type: 'controlPoint',
+      objectType: 'rooms',
+      unit: '%',
       controllable: {
         on: true,
         type: 'currentValue',
       },
       legend: {
-        min: { value: 0, color: "#24CBD9" },
-        median: { value: 50, color: "#2077CE" },
-        max: { value: 100, color: "#112C9D" },
+        min: { value: 0, color: '#24CBD9' },
+        median: { value: 50, color: '#2077CE' },
+        max: { value: 100, color: '#112C9D' },
       },
     },
     {
-      name: "Présence",
-      profileName: "Occupation",
-      type: "controlPoint",
-      objectType: "rooms",
-      unit: "",
+      name: 'Présence',
+      profileName: 'Occupation',
+      type: 'controlPoint',
+      objectType: 'rooms',
+      unit: '',
       controllable: {
         on: false,
         type: 'controlValue',
       },
       legend: {
-        min: { value: 0, color: "#00FF00" },
-        median: { value: 0.5, color: "#FFFF00" },
-        max: { value: 1, color: "#FF0000" },
+        min: { value: 0, color: '#00FF00' },
+        median: { value: 0.5, color: '#FFFF00' },
+        max: { value: 1, color: '#FF0000' },
       },
     },
     {
-      name: "Nombre de personnes",
-      profileName: "Occupation",
-      type: "controlPoint",
-      objectType: "rooms",
-      unit: "",
+      name: 'Nombre de personnes',
+      profileName: 'Occupation',
+      type: 'controlPoint',
+      objectType: 'rooms',
+      unit: '',
       controllable: {
         on: false,
         type: 'controlValue',
       },
       legend: {
-        min: { value: 0, color: "#00FF00" },
-        median: { value: 10, color: "#FFFF00" },
-        max: { value: 20, color: "#FF0000" },
+        min: { value: 0, color: '#00FF00' },
+        median: { value: 10, color: '#FFFF00' },
+        max: { value: 20, color: '#FF0000' },
       },
     },
-    
   ],
   regroupement: [
     {
-      context: "Gestion des espaces",
-      category: "Typologie"
-    },
-    {	
-      context: "Gestion des espaces",
-      category: "Affectation par entreprise"
+      context: 'Gestion des espaces',
+      category: 'Typologie',
     },
     {
-      context: "Gestion des espaces",
-      category: "Gestion des locations"
+      context: 'Gestion des espaces',
+      category: 'Affectation par entreprise',
     },
     {
-      context: "Gestion des espaces",
-      category: "Affectation par service"
-    }
+      context: 'Gestion des espaces',
+      category: 'Gestion des locations',
+    },
+    {
+      context: 'Gestion des espaces',
+      category: 'Affectation par service',
+    },
   ],
-
-
-
-
-
 
   // FIN Config DEI
 
-
-
-
-
-  title: "Insights sur les multicapteurs",
+  title: 'Insights sur les multicapteurs',
   calculs: [
     calculTypes.Maximum,
     calculTypes.Minimum,
@@ -145,7 +133,7 @@ export const config: IConfig = {
     calculTypes.MeanTime,
   ],
   //sprites: true,
-  viewerInfo: { roomRef: true, floorRef: true, equipments: "all" },
+  viewerInfo: { roomRef: true, floorRef: true, equipments: 'all' },
   temporality: [
     ITemporality.currentValue,
     ITemporality.hour,

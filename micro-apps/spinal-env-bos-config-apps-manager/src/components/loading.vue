@@ -37,7 +37,11 @@ with this file. If not, see
   width: 100%;
   height: 100%;
   display: flex;
+  background-color: #7f7f7f80;
   justify-content: center;
   align-items: center;
+  position: absolute;
+  z-index: 9999;
+  top: 0;
 }
 </style>

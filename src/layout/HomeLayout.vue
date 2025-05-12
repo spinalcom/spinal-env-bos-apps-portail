@@ -23,19 +23,10 @@ with this file. If not, see
 -->
 
 <template>
-  <v-container class="homeContainer" fluid @click.stop="closeSelect">
+  <v-container class="homeContainer" fluid>
     <div class="header">
       <div class="nav">
         <NavBar :isMobile="isMobile" />
-      </div>
-
-      <div class="select">
-        <select-component
-          ref="select-component"
-          :isMobile="isMobile"
-          @selected="changeApps"
-          :portofolios="portofolios"
-        ></select-component>
       </div>
     </div>
 
@@ -44,57 +35,35 @@ with this file. If not, see
 </template>
 
 <script lang="ts">
-import { mapActions, mapState } from 'vuex';
 import NavBar from '../components/nav.vue';
-import SelectComponent from '../components/select.vue';
-export default {
+import { Component, Vue } from 'vue-property-decorator';
+import { Action } from 'vuex-class';
+
+@Component({
   components: {
     NavBar,
-    SelectComponent,
   },
+})
+class HomeLayout extends Vue {
+  @Action('appDataStore/getPortofolios') getPortofolios!: () => Promise<any>;
+  @Action('appDataStore/selectSpace') selectSpace!: (data?: any) => void;
+  @Action('appDataStore/getFavoriteApps') getFavoriteApps!: () => void;
+
   async mounted() {
-    await this.init();
-  },
-  methods: {
-    ...mapActions('appDataStore', [
-      'getPortofolios',
-      'getApps',
-      'getBos',
-      'getUserInfo',
-      'selectSpace',
-      'getFavoriteApps',
-    ] as const),
+    await Promise.all([
+      this.getPortofolios(),
+      this.selectSpace(),
+      this.getFavoriteApps(),
+    ]);
+  }
 
-    init() {
-      return Promise.all([
-        this.getPortofolios(),
-        this.getUserInfo(),
-        this.getFavoriteApps(),
-      ]);
-    },
-
-    closeSelect() {
-      const ref = this.$refs['select-component'];
-      if (ref) ref.close();
-    },
-
-    changeApps(data) {
-      this.selectSpace(data);
-    },
-  },
-  computed: {
-    ...mapState('appDataStore', [
-      'appsDisplayed',
-      'userInfo',
-      'portofolios',
-    ] as const),
-    isMobile() {
-      const breakpoint = this.$vuetify.breakpoint.name;
-      if (['xs', 'sm'].indexOf(breakpoint) !== -1) return true;
-      return false;
-    },
-  },
-};
+  get isMobile() {
+    const breakpoint = this.$vuetify.breakpoint.name;
+    if (['xs', 'sm'].indexOf(breakpoint) !== -1) return true;
+    return false;
+  }
+}
+export default HomeLayout;
 </script>
 
 <style lang="scss">
@@ -129,7 +98,7 @@ export default {
 
   .content {
     width: 100%;
-    padding: 0 10px;
+    padding: 0;
     height: calc(100vh - 80px);
     max-height: calc(100vh - 80px);
   }

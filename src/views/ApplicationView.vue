@@ -24,9 +24,7 @@ with this file. If not, see
 
 <template>
   <v-container class="appLoadContainer" fluid>
-    <!-- <div class="navbar"> -->
     <NavBar class="navbar" :isMobile="isMobile" />
-    <!-- </div> -->
 
     <!-- <iframe viewer  -->
     <ViewerIFrame
@@ -57,7 +55,6 @@ import NavBar from '../components/nav.vue';
 import { SET_SELECTED_APP } from '../store/appDataStore';
 import { Vue, Component, Watch } from 'vue-property-decorator';
 import ViewerIFrame from './ViewerIframe.vue';
-import type { IApp } from 'global-components/interfaces/IApp';
 
 @Component({
   components: {
@@ -76,6 +73,10 @@ class ApplicationView extends Vue {
     await this.initApp();
   }
 
+  test() {
+    console.log('test');
+  }
+
   async initApp() {
     this.appSelected = this.getAppInfo();
 
@@ -90,12 +91,7 @@ class ApplicationView extends Vue {
     try {
       const { query } = this.$route;
       const appId: any = query.app;
-      console.log('getAppInfo appId', appId);
       return appId;
-      // if (!appId) return;
-
-      // const application: any = JSON.parse(atob(appId));
-      // return application;
     } catch (error) {}
   }
 
@@ -136,14 +132,14 @@ export default ApplicationView;
 .appLoadContainer {
   width: 100%;
   height: 100%;
-  padding: 5px !important;
+  padding: 0 !important;
   display: flex;
 
   .navbar {
     // width: 450px;
     // height: 60px;
     position: absolute;
-    top: 5px;
+    // top: 5px;
     left: 0px;
   }
 

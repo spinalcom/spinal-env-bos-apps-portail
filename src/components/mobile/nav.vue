@@ -40,7 +40,12 @@ with this file. If not, see
       </div>
     </div>
 
-    <v-navigation-drawer v-model="drawer" absolute temporary>
+    <v-navigation-drawer
+      class="navPickerApp-drawer"
+      v-model="drawer"
+      absolute
+      temporary
+    >
       <v-list-item>
         <v-list-item-content>
           <v-list-item-title class="text-h6">
@@ -58,31 +63,61 @@ with this file. If not, see
 
       <v-divider></v-divider>
 
-      <v-list nav rounded>
-        <v-list-item link @click="goToHome">
-          <v-list-item-icon>
-            <v-icon>mdi-domain</v-icon>
-          </v-list-item-icon>
-
-          <v-list-item-content>
-            <v-list-item-title>Accueil</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-
+      <v-list nav rounded dense>
         <v-list-item
-          v-for="item in apps"
-          :key="item.id"
-          link
-          @click="goToApp(item, $event)"
+          :href="homeApp.href"
+          @click="navBarAppMenuShow = false"
+          :title="homeApp.name"
         >
           <v-list-item-icon>
-            <v-icon>{{ item.icon || 'mdi-domain' }}</v-icon>
+            <v-icon class="app-btn-icon">{{
+              homeApp.icon || 'mdi-city'
+            }}</v-icon>
           </v-list-item-icon>
-
-          <v-list-item-content>
-            <v-list-item-title>{{ item.name }}</v-list-item-title>
-          </v-list-item-content>
+          <v-list-item-title>{{ homeApp.name }}</v-list-item-title>
         </v-list-item>
+
+        <template v-for="app in apps">
+          <v-list-item
+            :key="app.id"
+            :href="app.href"
+            @click="navBarAppMenuShow = false"
+            :title="app.name"
+            v-if="!app.subApp"
+          >
+            <v-list-item-icon>
+              <v-icon class="app-btn-icon">{{ app.icon || 'mdi-city' }}</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>{{ app.name }}</v-list-item-title>
+          </v-list-item>
+          <template v-else>
+            <v-list-group :value="true" :title="app.name" :key="app.id">
+              <template v-slot:activator>
+                <v-list-item-icon>
+                  <v-icon class="app-btn-icon">{{
+                    app.icon || 'mdi-city'
+                  }}</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>{{ app.name }}</v-list-item-title>
+              </template>
+
+              <v-list-item
+                v-for="subApp in app.subApp"
+                :key="subApp.id"
+                :href="subApp.href"
+                @click="navBarAppMenuShow = false"
+                :title="subApp.name"
+              >
+                <v-list-item-icon>
+                  <v-icon class="app-btn-icon">{{
+                    subApp.icon || 'mdi-city'
+                  }}</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>{{ subApp.name }}</v-list-item-title>
+              </v-list-item>
+            </v-list-group>
+          </template>
+        </template>
       </v-list>
 
       <template v-slot:append>
@@ -100,28 +135,27 @@ with this file. If not, see
 <script>
 const logo = require('../../../assets/img/favicon.png');
 export default {
+  name: 'nav-mobile',
   props: {
     logoSvg: {},
     userInfo: {},
     apps: {},
   },
-  data: () => ({
-    drawer: false,
-    group: null,
-    logo,
-  }),
+  data() {
+    return {
+      homeApp: {
+        href: this.$router.resolve({ name: 'Home' }).href,
+        name: 'Toutes les applications',
+      },
+      drawer: false,
+      group: null,
+      logo,
+    };
+  },
 
   methods: {
     logOut() {
       this.$emit('logout');
-    },
-
-    goToHome(event) {
-      this.$emit('home', event);
-    },
-
-    goToApp(item, event) {
-      this.$emit('goToApp', { item, event });
     },
   },
   watch: {
@@ -132,12 +166,10 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 .mobile-nav-container {
   position: absolute;
-  // width: 450px !important;
-  // height: 60px !important;
-  top: 5px;
+  top: 0px;
   left: 0px;
 }
 
@@ -145,32 +177,11 @@ export default {
   width: 100vw !important;
   height: 100vh !important;
 }
+</style>
 
-// .menu {
-//   width: 100%;
-//   height: 100%;
-//   display: flex;
-//   align-items: center;
-
-//   div.icon {
-//     width: 50px;
-//     height: 50px;
-//     display: flex;
-//     align-items: center;
-//     justify-content: center;
-//     margin-right: 10px;
-//   }
-
-//   div.username {
-//     width: calc(100% - 50px);
-//     height: 100%;
-//     max-width: 200px;
-//     font-size: 1.3em;
-//     display: flex;
-//     align-items: center;
-//     overflow: hidden;
-//     white-space: nowrap;
-//     text-overflow: ellipsis;
-//   }
-// }
+<style>
+.v-list-group .v-list-group__items .v-list-item .v-list-item__icon {
+  margin-left: 14px;
+  margin-right: 16px;
+}
 </style>

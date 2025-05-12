@@ -27,6 +27,7 @@ import {
   addAppToFavorite,
   removeAppFromFavorite,
   getFavoriteApps,
+  SpinalAPI,
 } from 'global-components';
 
 export const SET_USER_APPS = 'SET_USER_APPS';
@@ -39,6 +40,7 @@ export const SELECT_PORTOFOLIO = 'SELECT_PORTOFOLIO';
 export const ADD_FAVORITE_APP = 'ADD_FAVORITE_APP';
 export const SET_FAVORITE_APP = 'SET_FAVORITE_APP';
 export const DELETE_FAVORITE_APP = 'DELETE_FAVORITE_APP';
+export const SET_VIEWPORT = 'SET_VIEWPORT';
 
 const names = {
   apps: 'Applications',
@@ -100,8 +102,7 @@ function reinitFavoris(old_list: any[], newList: any[]) {
 }
 
 const appsFormattedMap = new Map();
-let inProcess = false;
-
+const requestSave: Record<string, AsyncGenerator> = {};
 export const appDataStore = {
   namespaced: true,
   state: {
@@ -110,14 +111,20 @@ export const appDataStore = {
     spaceSelected: '',
     appSelected: '',
     appsDisplayed: [],
-    pamApps: [],
-    bos: [],
     appsFormatted: undefined,
     userInfo: {},
     _privateData: { userInfoIsSet: false, appsIsSet: false },
     favoriteApps: [],
+    viewportSize: {
+      width: 0,
+      height: 0,
+    },
   },
   mutations: {
+    [SET_VIEWPORT](state: any, { width, height }: any) {
+      state.viewportSize.width = width;
+      state.viewportSize.height = height;
+    },
     [SELECT_PORTOFOLIO](state: any, playload) {
       state.selectedPortofolio = playload;
     },
@@ -147,7 +154,7 @@ export const appDataStore = {
     },
 
     [ADD_FAVORITE_APP](state: any, playload: any) {
-      state.favoriteApps = [...state.favoriteApps, ...playload];
+      state.favoriteApps = playload;
       // re-init favorites
       if (state.appsFormatted?.data)
         state.appsFormatted.data = reinitFavoris(
@@ -167,10 +174,11 @@ export const appDataStore = {
     },
 
     [DELETE_FAVORITE_APP](state: any, playload: any) {
-      const obj = {};
-      playload.forEach((el) => (obj[el.id] = el));
+      state.favoriteApps = playload;
+      // const obj = {};
+      // playload.forEach((el) => (obj[el.id] = el));
 
-      state.favoriteApps = state.favoriteApps.filter((el) => !obj[el.id]);
+      // state.favoriteApps = state.favoriteApps.filter((el) => !obj[el.id]);
       if (state.appsFormatted?.data)
         state.appsFormatted.data = reinitFavoris(
           state.appsFormatted.data,
@@ -181,9 +189,14 @@ export const appDataStore = {
   actions: {
     async getPortofolios({ commit, dispatch, state }: any) {
       try {
-        const profileId = await dispatch('getProfileId');
-        const profile = await getUserProfile();
-        commit(SET_PORTOFOLIO, profile);
+        await dispatch('getProfileId');
+        if (!requestSave['getUserProfile'])
+          requestSave['getUserProfile'] =
+            SpinalAPI.getInstance().createIteratorCall(getUserProfile);
+        commit(
+          SET_PORTOFOLIO,
+          (await requestSave['getUserProfile'].next()).value
+        );
       } catch (error) {}
     },
 
@@ -272,5 +285,3 @@ export const appDataStore = {
     },
   },
 };
-
-window['appDataStore'] = appDataStore;

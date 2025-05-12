@@ -26,36 +26,36 @@ import type {
   IEquipmentItem,
   IZoneItem,
   ISpaceSelectorItem,
-} from "../../../../../../global-components/SpaceSelector";
-import type { IGetAllBuildingsRes } from "../../../interfaces/IGetAllBuildingsRes";
-import { IViewInfoItemRes } from "../../../services/spinalAPI/GeographicContext/getViewInfo";
-import type { MutationTree } from "vuex";
-import type { StateAppData } from "./state";
-import { INodeItemTree } from "../../../interfaces/INodeItem";
-import { getContextId, getCurrentData } from "../../websocket/Current";
+} from '../../../../../../global-components/SpaceSelector';
+import type { IGetAllBuildingsRes } from '../../../interfaces/IGetAllBuildingsRes';
+import { IViewInfoItemRes } from '../../../services/spinalAPI/GeographicContext/getViewInfo';
+import type { MutationTree } from 'vuex';
+import type { StateAppData } from './state';
+import { INodeItemTree } from '../../../interfaces/INodeItem';
 
 export enum MutationTypes {
-  SET_BUILDINGS = "SET_BUILDINGS",
-  SET_SELECTED_ZONE = "SET_SELECTED_ZONE",
-  SET_FLOORS = "SET_FLOORS",
-  SET_ROOMS = "SET_ROOMS",
-  SET_EQUIPMENTS = "SET_EQUIPMENTS",
-  SET_VIEWINFO = "SET_VIEWINFO",
-  SET_TEMPORALITY = "SET_TEMPORALITY",
-  ADD_VIEWER_LOADED = "ADD_VIEWER_LOADED",
-  REMOVE_VIEWER_LOADED = "REMOVE_VIEWER_LOADED",
-  SET_ITEM_SELECTED = "SET_ITEM_SELECTED",
-  SET_DATA = "SET_DATA",
-  ADD_CHART_ITEM = "ADD_ITEM",
-  REMOVE_CHART_ITEM = "REMOVE_ITEM",
-  UPDATE_CHART_ITEM = "UPDATE_ITEM",
-  SET_SOURCE = "SET_SOURCE",
-  SET_T_INDEX= "SET_T_INDEX",
-  SET_ENDPOINT = "SET_ENDPOINT",
-  SET_SOCKET = "SET_SOCKET",
-  SET_SUBSCRIBED = "SET_SUBSCRIBED",
-  SET_REAL_TIME_DATA = "SET_REAL_TIME_DATA",
-  SET_ENABLERELOAD = "SET_ENABLERELOAD",
+  SET_BUILDINGS = 'SET_BUILDINGS',
+  SET_SELECTED_ZONE = 'SET_SELECTED_ZONE',
+  SET_FLOORS = 'SET_FLOORS',
+  SET_ROOMS = 'SET_ROOMS',
+  SET_EQUIPMENTS = 'SET_EQUIPMENTS',
+  SET_VIEWINFO = 'SET_VIEWINFO',
+  SET_TEMPORALITY = 'SET_TEMPORALITY',
+  ADD_VIEWER_LOADED = 'ADD_VIEWER_LOADED',
+  REMOVE_VIEWER_LOADED = 'REMOVE_VIEWER_LOADED',
+  SET_ITEM_SELECTED = 'SET_ITEM_SELECTED',
+  SET_DATA = 'SET_DATA',
+  ADD_CHART_ITEM = 'ADD_ITEM',
+  REMOVE_CHART_ITEM = 'REMOVE_ITEM',
+  UPDATE_CHART_ITEM = 'UPDATE_ITEM',
+  SET_SOURCE = 'SET_SOURCE',
+  SET_T_INDEX = 'SET_T_INDEX',
+  SET_ENDPOINT = 'SET_ENDPOINT',
+  SET_SOCKET = 'SET_SOCKET',
+  SET_SUBSCRIBED = 'SET_SUBSCRIBED',
+  SET_REAL_TIME_DATA = 'SET_REAL_TIME_DATA',
+  SET_ENABLERELOAD = 'SET_ENABLERELOAD',
+  SET_APP_CONFIG = 'SET_APP_CONFIG',
 }
 
 export type MutationsAppData<S = StateAppData> = {
@@ -89,9 +89,16 @@ export type MutationsAppData<S = StateAppData> = {
   [MutationTypes.SET_DATA](state: StateAppData, data: INodeItemTree[]): void;
   [MutationTypes.SET_ENDPOINT](state: StateAppData, children: any[]): void;
   [MutationTypes.SET_SOCKET](state: StateAppData, socket: any): void;
-  [MutationTypes.SET_SUBSCRIBED](state: StateAppData, subscribed: boolean): void;
+  [MutationTypes.SET_SUBSCRIBED](
+    state: StateAppData,
+    subscribed: boolean
+  ): void;
   [MutationTypes.SET_REAL_TIME_DATA](state: StateAppData, data: any[]): void;
-  [MutationTypes.SET_ENABLERELOAD](state: StateAppData, enablereload: boolean): void;
+  [MutationTypes.SET_ENABLERELOAD](
+    state: StateAppData,
+    enablereload: boolean
+  ): void;
+  [MutationTypes.SET_APP_CONFIG](state: StateAppData, payload: any): void;
 };
 
 export const mutations: MutationTree<StateAppData> & MutationsAppData = {
@@ -176,9 +183,10 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
   [MutationTypes.SET_SOURCE](state: StateAppData, source): void {
     state.selectedSource = source;
   },
-  [MutationTypes.SET_ENDPOINT]: async function (state: StateAppData, children): Promise<void> {
-  
-  },
+  [MutationTypes.SET_ENDPOINT]: async function (
+    state: StateAppData,
+    children
+  ): Promise<void> {},
   [MutationTypes.SET_SOCKET](state: StateAppData, socket): void {
     state.socket = socket;
   },
@@ -188,9 +196,13 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
   [MutationTypes.SET_REAL_TIME_DATA](state: StateAppData, data): void {
     state.realTimeData = data;
   },
-  [MutationTypes.SET_ENABLERELOAD](state: StateAppData, enablereload: boolean): void {
+  [MutationTypes.SET_ENABLERELOAD](
+    state: StateAppData,
+    enablereload: boolean
+  ): void {
     state.enablereload = enablereload;
   },
- 
-
+  [MutationTypes.SET_APP_CONFIG](state: StateAppData, payload: any): void {
+    state.appConfig = payload;
+  },
 };

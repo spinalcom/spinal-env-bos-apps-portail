@@ -21,27 +21,14 @@
  * with this file. If not, see
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
+import JSONWorker from 'url:monaco-editor/esm/vs/language/json/json.worker.js';
+import EditorWorker from 'url:monaco-editor/esm/vs/editor/editor.worker.js';
 
-export interface ISubApp {
-  id?: string;
-  type?: string;
-  name: string;
-  icon?: string;
-  description?: string;
-  tags?: string[];
-  categoryName?: string;
-  groupName?: string;
-  hasViewer?: boolean;
-  documentationLink?: string;
-  appConfig?: any; // JSON object only for send to api
-}
-
-export interface ISubAppExel extends Partial<ISubApp> {
-  name: string;
-  /**
-   * @type {string} can be appId or appName
-   * @memberof ISubAppExel
-   */
-  parentApp: string;
-  appConfig: any; // JSON object
-}
+self.MonacoEnvironment = {
+  getWorkerUrl: function (moduleId, label) {
+    if (label === 'json') {
+      return JSONWorker;
+    }
+    return EditorWorker;
+  },
+};

@@ -22,70 +22,78 @@ with this file. If not, see
 <http://resources.spinalcom.com/licenses.pdf>.
 -->
 
-<template >
+<template>
   <div class="tabsContent">
-
-    <v-stepper v-model="stepSelected"
-               elevation="0"
-               vertical
-               non-linear
-               class="stepperDiv">
-
-      <v-stepper-step editable
-                      :step="stepObject.contexts"
-                      class="stepperNames">
+    <v-stepper
+      v-model="stepSelected"
+      elevation="0"
+      vertical
+      non-linear
+      class="stepperDiv"
+    >
+      <v-stepper-step editable :step="stepObject.contexts" class="stepperNames">
         Autoriser des contextes
       </v-stepper-step>
-      <v-stepper-content :step="stepObject.contexts"
-                         class="stepperContent"
-                         :class="{'selected' : stepSelected == stepObject.contexts}">
-        <simple-table-component :edit="edit"
-                                :title="'selectionnez les contextes à autoriser'"
-                                :items="contexts"
-                                :headers="headers"
-                                :itemToSelect="getItemToSelect('contexts')">
+      <v-stepper-content
+        :step="stepObject.contexts"
+        class="stepperContent"
+        :class="{ selected: stepSelected == stepObject.contexts }"
+      >
+        <simple-table-component
+          :edit="edit"
+          :title="'selectionnez les contextes à autoriser'"
+          :items="contexts"
+          :headers="headers"
+          :itemToSelect="getItemToSelect('contexts')"
+        >
         </simple-table-component>
       </v-stepper-content>
 
       <!-- -------------------------------------- -->
 
-      <v-stepper-step editable
-                      :step="stepObject.applications"
-                      class="stepperNames">
+      <v-stepper-step
+        editable
+        :step="stepObject.applications"
+        class="stepperNames"
+      >
         Autoriser des applications
       </v-stepper-step>
-      <v-stepper-content :step="stepObject.applications"
-                         class="stepperContent"
-                         :class="{'selected' : stepSelected == stepObject.applications}">
-        <simple-table-component :edit="edit"
-                                :title="'selectionnez les applications à autoriser'"
-                                :items="apps"
-                                :headers="headers"
-                                :itemToSelect="getItemToSelect('apps')">
-        </simple-table-component>
+      <v-stepper-content
+        :step="stepObject.applications"
+        class="stepperContent"
+        :class="{ selected: stepSelected == stepObject.applications }"
+      >
+        <table-app-extends
+          :title="'selectionnez les applications à autoriser'"
+          :items="apps"
+          v-model="_appSelected"
+        >
+        </table-app-extends>
       </v-stepper-content>
-
     </v-stepper>
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Prop, Watch } from "vue-property-decorator";
-import DoubleTableComponent from "./tableComponent.vue";
-import SimpleTableComponent from "./simpleTable.vue";
-
+import { Component, Prop, PropSync, Vue } from 'vue-property-decorator';
+import SimpleTableComponent from './simpleTable.vue';
+import TableAppExtends from './TableAppExtends.vue';
 @Component({
   components: {
-    DoubleTableComponent,
     SimpleTableComponent,
+    TableAppExtends,
   },
 })
-class TabsComponent {
+class StepComponent extends Vue {
   @Prop() contexts!: any[];
   @Prop() contextSelected!: any;
 
   @Prop() apps!: any[];
-  @Prop() appSelected!: any;
+  @PropSync('appSelected', {
+    required: true,
+    type: Array,
+  })
+  _appSelected!: string[];
 
   @Prop() edit!: boolean;
   @Prop() profileSelected!: any;
@@ -99,9 +107,9 @@ class TabsComponent {
 
   headers: any = [
     {
-      text: "Nom",
+      text: 'Nom',
       sortable: false,
-      value: "name",
+      value: 'name',
     },
   ];
 
@@ -112,17 +120,16 @@ class TabsComponent {
   getItemToSelect(type) {
     if (!this.edit) return [];
     switch (type) {
-      case "contexts":
+      case 'contexts':
         return this.profileSelected.contexts;
-      case "apps":
+      case 'apps':
         return this.profileSelected.apps;
     }
   }
 }
 
-export default TabsComponent;
+export default StepComponent;
 </script>
-
 
 <style scoped lang="scss">
 .tabsContent {

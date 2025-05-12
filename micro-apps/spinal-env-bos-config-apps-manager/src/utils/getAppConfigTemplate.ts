@@ -22,26 +22,18 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-export interface ISubApp {
-  id?: string;
-  type?: string;
-  name: string;
-  icon?: string;
-  description?: string;
-  tags?: string[];
-  categoryName?: string;
-  groupName?: string;
-  hasViewer?: boolean;
-  documentationLink?: string;
-  appConfig?: any; // JSON object only for send to api
-}
+import axios from 'axios';
 
-export interface ISubAppExel extends Partial<ISubApp> {
-  name: string;
-  /**
-   * @type {string} can be appId or appName
-   * @memberof ISubAppExel
-   */
-  parentApp: string;
-  appConfig: any; // JSON object
+export function getAppConfigTemplate(appName: string): Promise<string> {
+  return axios
+    .get(`/configs/${appName}.jsonc`, {
+      responseType: 'text', // Ensure the response is treated as plain text
+    })
+    .then((response) => {
+      if (response.status === 200) {
+        return response.data;
+      } else {
+        throw new Error(`Failed to fetch schema for ${appName}`);
+      }
+    });
 }

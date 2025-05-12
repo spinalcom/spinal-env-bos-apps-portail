@@ -24,8 +24,17 @@
 import Vue from 'vue';
 import Vuex, { Store as VuexStore, CommitOptions, DispatchOptions } from 'vuex';
 import { StateAppData, state } from './appDataStore/state';
-import { MutationsAppData, mutations } from './appDataStore/mutations';
+import {
+  MutationTypes,
+  MutationsAppData,
+  mutations,
+} from './appDataStore/mutations';
 import { Actions, actions } from './appDataStore/actions';
+import {
+  getAppConfig,
+  setWindowHook,
+  subcribeAppConfigChange,
+} from 'global-components/StoreConfig';
 Vue.use(Vuex);
 
 export const store = new Vuex.Store({
@@ -60,3 +69,12 @@ export type Store = Omit<VuexStore<IStoreModules>, 'commit' | 'dispatch'> & {
     options?: DispatchOptions
   ): ReturnType<Actions[K]>;
 };
+
+export async function initStoreConfig() {
+  setWindowHook(window.parent);
+  const cfg = await getAppConfig();
+  store.commit(`${MutationTypes.SET_APP_CONFIG}`, cfg);
+  subcribeAppConfigChange((config) => {
+    store.commit(`${MutationTypes.SET_APP_CONFIG}`, config);
+  });
+}

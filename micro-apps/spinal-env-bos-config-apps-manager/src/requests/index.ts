@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 SpinalCom - www.spinalcom.com
+ * Copyright 2025 SpinalCom - www.spinalcom.com
  *
  * This file is part of SpinalCore.
  *
@@ -22,18 +22,6 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-// import axios from "axios";
-// const endpoint = "/api/v1";
-// const host = (process.env.SPINAL_API_URL || "").replace(`/\/$/`, el => "");
-// const baseURL = host.match(new RegExp(endpoint)) ? host : host + endpoint;
-
-// export const HTTP = axios.create({ baseURL });
-// HTTP.interceptors.request.use((request: any) => {
-//     const t = localStorage.getItem('token');
-//     if (t) request.headers.common.Authorization = `Bearer ${t}`;
-//     return request;
-// });
-
 import { SpinalAPI } from 'global-components';
 const baseURL = '/api/v1';
 
@@ -46,6 +34,13 @@ export function createBuildingAppsRequest(data: any) {
 export function createAdminAppsRequest(data: any) {
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrl(`${baseURL}/create_admin_app`);
+  return spinalAPI.post(url, data);
+}
+export function createBuildingSubAppsRequest(appId: string, data: any) {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrl(
+    `${baseURL}/create_building_sub_app/${appId}`
+  );
   return spinalAPI.post(url, data);
 }
 
@@ -98,6 +93,13 @@ export function deleteBuildingAppRequest(appId: string) {
   const url = spinalAPI.createUrl(`${baseURL}/delete_building_app/${appId}`);
   return spinalAPI.delete(url);
 }
+export function deleteBuildingSubAppRequest(appId: string, configId: string) {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrl(
+    `${baseURL}/delete_building_sub_app/${appId}/${configId}`
+  );
+  return spinalAPI.delete(url);
+}
 
 export function deleteAdminAppRequest(appId: string) {
   const spinalAPI = SpinalAPI.getInstance();
@@ -117,6 +119,30 @@ export function updateAdminAppRequest(appId: string, newData: any) {
   return spinalAPI.put(url, newData);
 }
 
+export function updateBuildingSubAppRequest(
+  appId: string,
+  subAppId: string,
+  newData: any
+) {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrl(
+    `${baseURL}/update_building_sub_app/${appId}/${subAppId}`
+  );
+  return spinalAPI.put(url, newData);
+}
+
+export async function getBuildingAppConfigRequest(
+  appId: string,
+  subAppId: string
+) {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrl(
+    `${baseURL}/get_building_sub_app/${appId}/${subAppId}`
+  );
+  const res = await spinalAPI.get(url);
+  return res.data;
+}
+
 export function uploadAdminFileRequest(fileData: any) {
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrl(`${baseURL}/upload_admin_apps`);
@@ -128,6 +154,14 @@ export function uploadAdminFileRequest(fileData: any) {
 export function uploadBuildingFileRequest(fileData: any) {
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrl(`${baseURL}/upload_building_apps`);
+  return spinalAPI.post(url, fileData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+}
+
+export function uploadBuildingAppConfigFileRequest(fileData: any) {
+  const spinalAPI = SpinalAPI.getInstance();
+  const url = spinalAPI.createUrl(`${baseURL}/upload_building_sub_apps`);
   return spinalAPI.post(url, fileData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });

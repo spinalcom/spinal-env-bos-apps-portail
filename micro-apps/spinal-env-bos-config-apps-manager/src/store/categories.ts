@@ -1,10 +1,10 @@
 /*
- * Copyright 2025 SpinalCom - www.spinalcom.com
+ * Copyright 2022 SpinalCom - www.spinalcom.com
  *
  * This file is part of SpinalCore.
  *
  * Please read all of the following terms and conditions
- * of the Software license Agreement ("Agreement")
+ * of the Free Software license Agreement ("Agreement")
  * carefully.
  *
  * This Agreement is a legally binding contract between
@@ -22,26 +22,21 @@
  * <http://resources.spinalcom.com/licenses.pdf>.
  */
 
-export interface ISubApp {
-  id?: string;
-  type?: string;
-  name: string;
-  icon?: string;
-  description?: string;
-  tags?: string[];
-  categoryName?: string;
-  groupName?: string;
-  hasViewer?: boolean;
-  documentationLink?: string;
-  appConfig?: any; // JSON object only for send to api
-}
+export const categories = {
+  bos: {
+    name: 'Applications du Bâtiment',
+    id: 'bos',
+  },
+  admin: {
+    name: "Applications d'administration",
+    id: 'admin',
+  },
+  bosConfig: {
+    name: 'Configuration d\'applications du Bâtiment',
+    id: 'bosConfig',
+  },
+} as const;
 
-export interface ISubAppExel extends Partial<ISubApp> {
-  name: string;
-  /**
-   * @type {string} can be appId or appName
-   * @memberof ISubAppExel
-   */
-  parentApp: string;
-  appConfig: any; // JSON object
-}
+export type IAppCategory = (typeof categories)[keyof typeof categories];
+export type IAppCategories = typeof categories;
+export default categories;
