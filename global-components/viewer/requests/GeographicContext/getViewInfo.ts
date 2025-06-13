@@ -26,6 +26,7 @@ import { SpinalAPI } from '../SpinalAPI';
 import { getSceneList, sceneDefaut } from '../BIM/sceneDefault';
 import { getBIMFileContext } from '../BIM/BIMFileContext';
 import { IPlayload } from '../../interfaces/IPlayload';
+import { setViewInfo } from './ViewInfoMemory';
 export interface IViewInfoBody {
   dynamicId: number | number[];
   floorRef?: boolean;
@@ -50,9 +51,11 @@ export interface IViewInfoTmpRes {
 const buildingDefaultScenes = {};
 
 export async function getViewInfo(buildingId: string, options: IViewInfoBody): Promise<IViewInfoRes[]> {
+  
   const spinalAPI = SpinalAPI.getInstance();
   const url = spinalAPI.createUrlWithPlatformId(buildingId, 'api/v1/geographicContext/viewInfo');
   let result = await spinalAPI.post<IViewInfoRes[]>(url, options);
+  setViewInfo(result.data);
   return result.data;
 }
 

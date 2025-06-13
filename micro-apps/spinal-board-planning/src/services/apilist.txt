@@ -1,0 +1,26 @@
+
+# 
+Request: /workflow/list
+Response: [
+  {
+    "dynamicId": 74211712,
+    "staticId": "SpinalContext-ef6c3e62-e409-af20-f919-8eaef7691f9e-187236d8b1d",
+    "name": "Demande d'intervention",
+    "type": "SpinalSystemServiceTicket"
+  },
+  {
+    "dynamicId": 474573040,
+    "staticId": "5ab0-b105-355a-190ea88533f",
+    "name": "Tickets Otis",
+    "type": "SpinalSystemServiceTicket"
+    # 
+    # 
+    # 
+    # 
+    # 
+    # 
+# 
+  }
+]
+
+

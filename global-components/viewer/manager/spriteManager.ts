@@ -74,20 +74,59 @@ export class SpriteManager {
 
 	public async addComponentAsSprite(viewer: Autodesk.Viewing.Viewer3D, data: ISpriteData | ISpriteData[]) {
 		data = Array.isArray(data) ? data : [data];
-	
+
 		for (const d of data) {
 			const VueComponent = Vue.extend(d.component);
 			const vueInstance = new VueComponent({ propsData: d });
-	
+
 			const label = new Autodesk.Edit3D.Label3D(viewer, d.position, "");
 			label.viewer.container.appendChild(label.container);
 			label.container.style.pointerEvents = "auto";
 			label.container.appendChild(vueInstance.$mount().$el);
-	
+			label.container.addEventListener('wheel', (event) => {
+				let el = event.target as HTMLElement | null;
+				let scrollableFound = false;
+				while (el && el !== label.container) {
+					const style = getComputedStyle(el);
+
+					const isScrollable = style.overflowY === 'auto' || style.overflowY === 'scroll';
+					const canScroll = el.scrollHeight > el.clientHeight;
+
+					if (isScrollable && canScroll) {
+						scrollableFound = true;
+						break;
+					}
+
+					el = el.parentElement;
+				}
+
+				if (scrollableFound) {
+					return;
+				}
+
+				event.preventDefault();
+				const nav = viewer.navigation;
+				const camera = nav.getCamera();
+				const direction = new THREE.Vector3();
+				camera.getWorldDirection(direction);
+				const delta = event.deltaY > 0 ? 1 : -1;
+				const zoomSpeed = 4;
+				const newPos = camera.position.clone().add(direction.multiplyScalar(delta * zoomSpeed));
+				camera.position.copy(newPos);
+				viewer.impl.invalidate(true);
+
+				for (const label of this.label3Ds) {
+					label.label?.update();
+				}
+				console.log('[Viewer Zoom] Aucun scroll possible, zoom 3D appliqué');
+			}, { passive: false });
+
+
+
 			if (d.data?.z_index != null) {
 				label.container.style.zIndex = d.data.z_index.toString();
 			}
-	
+
 			const viewable = {
 				dynamicId: d.data.dynamicId,
 				label: label,
@@ -95,17 +134,16 @@ export class SpriteManager {
 				group: d.data.group,
 				z_index: d.data.z_index
 			};
-	
+
 			this.label3Ds.push(viewable);
-	
+
 			if (!this.viewableDataMap[d.data.group]) this.viewableDataMap[d.data.group] = [];
 			this.viewableDataMap[d.data.group].push(viewable);
 		}
-	
-		console.log('Map des viewables après ajout :', this.viewableDataMap);
+
 	}
-	
-	
+
+
 
 
 	public removeViewablesByGroup(group: string) {

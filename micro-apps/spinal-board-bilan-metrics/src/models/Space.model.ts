@@ -1,0 +1,15 @@
+export interface SpaceModel {
+  name: string,
+  staticId: string,
+  next?: string,
+  prev?: string,
+  dynamicId?: number,
+  level?: number,
+  isOpen?: boolean,
+  loading?: boolean,
+  patrimoineId?: string,
+  parents?: any[],
+  isLastInGrp?: boolean,
+  drawLink?: any[],
+  haveChildren?: boolean,
+}

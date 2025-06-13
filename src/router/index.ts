@@ -77,7 +77,9 @@ const router: any = new VueRouter({
   routes,
 });
 
+
 router.beforeEach(async (to, from, next) => {
+
   if (to.name === 'Error') return next();
 
   let token, userInfo;
@@ -87,11 +89,9 @@ router.beforeEach(async (to, from, next) => {
     token = d?.token;
     userInfo = d?.userInfo;
   }
-
+  
   let comeFromPam = token ? true : false;
-
   const auth = await isAuthenticate(token, userInfo);
-
   if (!auth && comeFromPam) return next({ name: 'Error' });
   if (to.name === 'Login' && auth) return next({ name: 'Home' });
   if (!auth && to.name !== 'Login') return next({ name: 'Login' });
@@ -101,6 +101,12 @@ router.beforeEach(async (to, from, next) => {
 router.customReplace = function (path, query) {
   this.replace({ path, query });
 };
+
+router.customPush = function (path, query) {
+  this.push({ path, query });
+};
+
+
 
 (window as any).router = router;
 (window as any).routerFunction = router;

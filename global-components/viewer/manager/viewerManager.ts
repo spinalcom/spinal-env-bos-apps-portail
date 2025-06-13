@@ -82,6 +82,7 @@ export class ViewerManager {
 
 
 		localStorage.setItem("viewer_loaded", 'unload');
+		sessionStorage.setItem("viewer_loaded", 'unload');
 		// if (this._viewerStartedList[item.staticId]) return;
 		if (this._viewerStartedList[item.dynamicId]) {
 			this.showAllObjects();
@@ -110,66 +111,83 @@ export class ViewerManager {
 		});
 	}
 
-	public async getViewerInfoMerged(argItem: IPlayload | IPlayload[], body?: IViewInfoBody & { dbIdsToAdd?: { bimFileId: string; dbIds: number[] }[] }): Promise<IViewInfoItemRes[]> {
+	public async getViewerInfoMerged(
+		argItem: IPlayload | IPlayload[],
+		body?: IViewInfoBody & { dbIdsToAdd?: { bimFileId: string; dbIds: number[] }[] }
+	): Promise<IViewInfoItemRes[]> {
 
-		const datas = await this.getViewerInfo(argItem, undefined, body);
-		const res = [];
+		const items = Array.isArray(argItem) ? argItem : [argItem];
 
-		for (const _item of datas) {
-			mergeIViewInfo(res, _item.data);
+		// If argItem already has bimFileId and dbid, no need for the expensive call
+		const canSkipApiCall = items.every(item => item.bimFileId && item.dbid && item.type === "BIMObject");
+
+		const res: IViewInfoTmpRes[] = [];
+
+		if (canSkipApiCall) {
+			items.forEach(item => {
+				mergeIViewInfo(res, [{ bimFileId: item.bimFileId, dbIds: [item.dbid] }]);
+			});
+		} else {
+			const datas = await this.getViewerInfo(argItem, undefined, body);
+
+			for (const _item of datas) {
+				mergeIViewInfo(res, _item.data);
+			}
+
+
 		}
 
+		// Merge additional dbIds if provided
 		mergeIViewInfo(res, body?.dbIdsToAdd || []);
 
-		return res.map((it: IViewInfoTmpRes): IViewInfoItemRes => {
-			return { bimFileId: it.bimFileId, dbIds: Array.from(it.dbIds) };
-		});
+		return res.map((it: IViewInfoTmpRes): IViewInfoItemRes => ({
+			bimFileId: it.bimFileId,
+			dbIds: Array.from(it.dbIds)
+		}));
 	}
 
+	// public async getViewerInfoMerged(argItem: IPlayload | IPlayload[], body?: IViewInfoBody & { dbIdsToAdd?: { bimFileId: string; dbIds: number[] }[] }): Promise<IViewInfoItemRes[]> {
+	// 	const datas = await this.getViewerInfo(argItem, undefined, body);
+	// 	const res = [];
+
+	// 	for (const _item of datas) {
+	// 		mergeIViewInfo(res, _item.data);
+	// 	}
+
+	// 	mergeIViewInfo(res, body?.dbIdsToAdd || []);
+
+	// 	return res.map((it: IViewInfoTmpRes): IViewInfoItemRes => {
+	// 		return { bimFileId: it.bimFileId, dbIds: Array.from(it.dbIds) };
+	// 	});
+	// }
+
 	public async getViewerInfo(argItem: IPlayload | IPlayload[], argBuildingId?: string, body?: IViewInfoBody): Promise<any[]> {
+		// console.log("getViewerInfo called with arg ", argItem);
 		if (typeof this._viewerStores["GET_VIEWER_INFO"] === "undefined") {
 			this._viewerStores["GET_VIEWER_INFO"] = {};
 		}
+
 		const items = Array.isArray(argItem) ? argItem : [argItem];
 		const buildingId = argBuildingId || items[0]?.buildingId;
 		const ids = items.map((el) => el.dynamicId);
 		const res: any[] = [];
 		const nodeTofetech: number[] = [];
-		
+
 		for (let dynId of ids) {
-			if (this._viewerStores["GET_VIEWER_INFO"][dynId]) {
+			if (this._viewerStores["GET_VIEWER_INFO"][dynId]) { // si on a déjà enregistré le view info pour ce dynamicId
 				const itemData = (await this._viewerStores["GET_VIEWER_INFO"][dynId].next())?.value;
 				if (itemData) res.push(itemData);
 			} else {
-				if(!dynId){
+				if (!dynId) {
 					dynId = body?.dynamicId
 				}
+
 				this._viewerStores["GET_VIEWER_INFO"][dynId] = generator(dynId, body?.floorRef!, body?.roomRef!, body?.equipements!);
 				const itemData = (await this._viewerStores["GET_VIEWER_INFO"][dynId].next())?.value;
+				// console.log("itemData received from calling view info", itemData);
 				if (itemData) res.push(itemData);
 			}
 		}
-		// const itemstacked = this._viewerIdStocked;
-
-		// if (nodeTofetech.length > 0) {
-		// 	if (!body) body = { dynamicId: nodeTofetech, floorRef: true, roomRef: true, equipements: true };
-		// 	const dynIds = Array.isArray(body.dynamicId) ? body.dynamicId : [body.dynamicId];
-		// 	// const datas = await getViewInfo(buildingId, body);
-
-		// 	for (const dnyid of dynIds) {
-		// 		this._viewerStores["GET_VIEWER_INFO"][dnyid] = generator(dnyid, body.floorRef!, body.roomRef!, body.equipements!);
-		// 		// res.push(dnyid);
-		// 		const itemData = (await this._viewerStores["GET_VIEWER_INFO"][dnyid].next())?.value;
-		// 		if (itemData) res.push(itemData);
-		// 	}
-		// }
-		// const idsToAdd = ids.filter(id => !itemstacked.includes(id));
-
-
-		// if (idsToAdd.length > 0) {
-		// 	itemstacked.push(...idsToAdd);
-		// }
-		// console.log(itemstacked, 'stacked ');
 
 		return res;
 
@@ -194,8 +212,11 @@ export class ViewerManager {
 	}
 
 	public select(item: IPlayload) {
+		console.log('rain', item);
+
 		return this._fctViewerIteract(VIEWER_OBJ_SELECT, item);
 	}
+
 
 
 
@@ -203,7 +224,6 @@ export class ViewerManager {
 		emitterHandler.emit(VIEWER_REM_SPHERE, item.items);
 		// return this._fctViewerIteract(VIEWER_REM_SPHERE, item.items, item.config);
 	}
-
 
 
 	public isolate(item: IPlayload) {
@@ -243,14 +263,14 @@ export class ViewerManager {
 		emitter.emit(<any>VIEWER_EVENTS.VIEWER_ADD_COMPONENT_SPRITE, formatted as any);
 	}
 
-	public async getObjectProperties(dbId : number) {
-		return ViewerUtils.getInstance().getObjectProperties(this.viewer,dbId)
+	public async getObjectProperties(dbId: number) {
+		return ViewerUtils.getInstance().getObjectProperties(this.viewer, dbId)
 	}
 
 	public async addCardomponent(item: IPlayloadWithComponent | IPlayloadWithComponent[], buildingId: string, component?: Vue) {
 		// console.log("addCardomponent", item);
 		const formatted = await this._getAndFormatViewerInfos(item, buildingId, component);
-		
+
 		const emitter = EmitterViewerHandler.getInstance();
 		emitter.emit(<any>VIEWER_EVENTS.VIEWER_ADD_CARD_COMPONENT, formatted as any);
 	}
@@ -258,25 +278,28 @@ export class ViewerManager {
 	//////////////////////////////////////////////////////////////////////////////
 
 	private async _getAndFormatViewerInfos(item: IPlayloadWithComponent | IPlayloadWithComponent[], buildingId?: string, component?: Vue) {
+
+
 		item = Array.isArray(item) ? item : [item];
-		const data :any = []
+		const data: any = []
 		// The following code is specifically for the case where item is an array of BimObjects and we already have their bimFileId, dbid and position
-		const toFetch : IPlayloadWithComponent [] = []
+		const toFetch: IPlayloadWithComponent[] = []
+
 		for (const it of item) {
-			if(it.dynamicId && it.bimFileId && it.dbid){ 
-				data.push({dynamicId: it.dynamicId, data: [{bimFileId: it.bimFileId, dbIds: [it.dbid]}]})
+			if (it.dynamicId && it.bimFileId && it.dbid && (!it.type || it.type === 'BIMObject')) {
+				data.push({ dynamicId: it.dynamicId, data: [{ bimFileId: it.bimFileId, dbIds: [it.dbid] }] })
 			}
 			else {
-				toFetch.push(it)	
+				toFetch.push(it)
 			}
 		}
+
 		const lst = await this.getViewerInfo(toFetch, buildingId);
 		data.push(...lst)
 		//const data = await this.getViewerInfo(item, buildingId);
 		const obj = convertToObj(data);
-		return item.map((i) => ({
-			// dbIds: obj[i.dynamicId]?.dbIds ||[],
-			// bimFileId: obj[i.dynamicId]?.bimFileId,
+
+		const result = item.map((i) => ({
 			data: obj[i.dynamicId],
 			color: i.color,
 			value: i.displayValue,
@@ -285,12 +308,16 @@ export class ViewerManager {
 			position: (i as any).position,
 			component: i.component || component,
 		}));
+
+		return result;
 	}
 
 	private async _fctViewerIteract(eventName: keyof ViewerEventWithData, playload: (IPlayload | string) | (IPlayload | string)[], isolateConfig?: any,): Promise<any> {
+		console.log('on voit ici ???');
 
 		const emitter = EmitterViewerHandler.getInstance();
 		if (eventName === (VIEWER_EVENTS.UNLOAD as any)) {
+
 
 			playload = Array.isArray(playload) ? playload : [playload];
 			const obj = {};
@@ -308,6 +335,7 @@ export class ViewerManager {
 
 
 		let data: IViewInfoItemRes[];
+
 		if (isolateConfig) {
 
 			const body = {
@@ -318,8 +346,12 @@ export class ViewerManager {
 			};
 			data = await this.getViewerInfoMerged(playload as IPlayload, body);
 		} else {
+
 			data = await this.getViewerInfoMerged(playload as IPlayload);
+
+
 		}
+
 
 		const res = data.map((it) => {
 			return {
@@ -331,7 +363,11 @@ export class ViewerManager {
 
 
 		try {
+			console.log('aaa', res, eventName);
+			// console.log(emitter.emit)
 			emitter.emit(eventName, res);
+			console.log('bbb', eventName);
+
 		} catch (error) {
 			console.error('Erreur dans emitter.emit :', error);
 		}

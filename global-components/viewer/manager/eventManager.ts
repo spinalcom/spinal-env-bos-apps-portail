@@ -27,7 +27,11 @@ import ModelManager from "./modelManager";
 import { VIEWER_EVENTS } from "../events";
 // import { store } from "../../../services/store";
 const emitterHandler = EmitterViewerHandler.getInstance();
-emitterHandler.setTarget(window.parent, "viewer");
+
+const myTarget: any = {};
+
+// emitterHandler.setTarget(window.parent, "viewer");
+emitterHandler.setTarget(myTarget, "viewer");
 
 if (process.env.DEBUG_EVENT_VIEWER) {
 	emitterHandler.loging = true;
@@ -56,6 +60,7 @@ export class EventManager {
 				emitterHandler.emit(<any>VIEWER_EVENTS.LOADED, { id: data.item.dynamicId, models });
 
 				localStorage.setItem("viewer_loaded", 'loaded');
+				sessionStorage.setItem("viewer_loaded", 'loaded');
 			});
 
 			emitterHandler.on(VIEWER_OBJ_ISOLATE, (data: any) => {
@@ -63,6 +68,7 @@ export class EventManager {
 				if (data && data.length > 0) return viewerUtils.viewerIsolation(viewer, data);
 				viewerUtils.showAllObject(viewer);
 				localStorage.setItem("viewer_loaded", 'loaded');
+				sessionStorage.setItem("viewer_loaded", 'loaded');
 			});
 
 			// emitterHandler.on(VIEWER_HIDE_ELEMENT, (data: any) => {
@@ -73,7 +79,8 @@ export class EventManager {
 			// });
 
 
-			emitterHandler.on(VIEWER_OBJ_SELECT, (data: any) => {
+			emitterHandler.on(VIEWER_OBJ_SELECT, (data: any) => {	
+				console.log('on reçoit l envent ??');
 				viewerUtils.viewerSelect(viewer, data);
 			});
 

@@ -1,0 +1,24 @@
+{
+  //i
+  "viewButtons": "base",
+  "entryPoint": {
+    "context": "Gestion des espaces",
+    "category": "Typologie",
+    "group": "Bureaux"
+  },
+  "sprites": true,
+  "viewerInfo": {
+    "roomRef": true,
+    "floorRef": true,
+    "equipments": "all"
+  },
+  "temporality": [
+    "Valeur courante",
+    "Heure",
+    "Journée",
+    "Semaine",
+    "Mois",
+    "Année",
+    "Personnalisé"
+  ]
+}

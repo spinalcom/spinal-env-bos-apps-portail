@@ -185,24 +185,25 @@ class SpaceSelector extends Vue {
 
   @Watch("selectedZone")
   async onSelectedChange() {
+
+    if (!this.selectedZone) return; // Vérifie que selectedZone est défini
+
     for (let idx = 0; idx < this.buildingStructure.length; idx++) {
       const item = this.buildingStructure[idx];
       let found = false;
+
       if (
         item.platformId === this.selectedZone.platformId &&
         item.dynamicId === this.selectedZone.dynamicId &&
         item.staticId === this.selectedZone.staticId
       ) {
         found = true;
-        // if (!item.isOpen) {
-        //   await this.openItem(item, idx);
-        // }
       } else {
-        for (const parentId of this.selectedZone.parents) {
+        const parents = Array.isArray(this.selectedZone.parents) ? this.selectedZone.parents : []; // Assure que parents est un tableau
+        for (const parentId of parents) {
           if (
             parentId === item.staticId &&
-            (this.selectedZone.platformId === item.platformId ||
-              item.type === "patrimoine")
+            (this.selectedZone.platformId === item.platformId || item.type === "patrimoine")
           ) {
             found = true;
             if (!item.isOpen) {
@@ -212,13 +213,16 @@ class SpaceSelector extends Vue {
             break;
           }
         }
-        if (found === false) {
+
+        if (!found) {
           // await this.closeItem(item);
         }
       }
     }
+
     this.checkingOverflow();
   }
+
 
 
   @Watch("date")

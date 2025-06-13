@@ -33,6 +33,7 @@ import { IViewerColorData } from "../interfaces/IViewerColorData";
 import { getPosition } from "./getObjectPos";
 import SpriteManager from "../manager/spriteManager";
 import Vue from "vue";
+import { resolve } from "path";
 
 export class ViewerUtils {
 	private static _instance: ViewerUtils;
@@ -120,14 +121,16 @@ export class ViewerUtils {
 
 	public viewerSelect(viewer: Autodesk.Viewing.Viewer3D, data: IDbIdModelAggregate[]): void {
 		//this.clearSelect(viewer);
+		console.log('viewer objet select du moment');
 
 		const datas = this._classifyDbIdsByModel(data);
 
 		const res = datas.map(el => {
-			return { model : el.model , ids: el.dbIds}
+			return { model: el.model, ids: el.dbIds }
 		})
-		viewer.setAggregateSelection(res)
 
+
+		viewer.setAggregateSelection(res)
 		// for (const { model, dbIds } of datas) {
 		// 	model.selector.setSelection(dbIds, "selectOnly");
 		// }
@@ -157,18 +160,38 @@ export class ViewerUtils {
 		// }
 	}
 
-	public viewerIsolation(viewer: Autodesk.Viewing.Viewer3D, data: (IDbIdModelAggregate & { bimFileId: string })[]): void {
+	public async viewerIsolation(viewer: Autodesk.Viewing.Viewer3D, data: (IDbIdModelAggregate & { bimFileId: string })[]): Promise<void> {
 		this.setWaitBeforeDisplaySprites(true);
 
+
 		const datas = this._classifyDbIdsByModel(data);
-		const res = datas.map(el => {
-			return { model : el.model , selection: el.dbIds}
-		})
+		// const res = datas.map(el => {
+		// 	return { model: el.model, ids: [] }
+		// 	// return { model: el.model, ids: el.dbIds }
+		// })
 
 		// @ts-ignore
-		viewer.impl.visibilityManager.aggregateIsolate(res)
+		// viewer.impl.visibilityManager.aggregateIsolate(res)
+		const res = datas.map(async el => {
+			if (el.dbIds.length > 0)
+				return {
+					model: el.model,
+					ids:
+						el.dbIds
+				}
+			else {
+				const dbid = await getRootDbId(el.model)
+				return {
+					model: el.model,
+					ids:
+						[dbid]
+				}
+			}
+		})
+		const r = await Promise.all(res)
 
-
+		// @ts-ignore
+		viewer.impl.visibilityManager.aggregateIsolate(r)
 
 		// for (const { model, dbIds } of datas) {
 		// 	if (dbIds.length > 0) {
@@ -183,6 +206,16 @@ export class ViewerUtils {
 		this.setWaitBeforeDisplaySprites(false);
 
 		this.viewerFitToView(viewer, data);
+		function getRootDbId(m: Autodesk.Viewing.Model) {
+			return new Promise(resolve => {
+				let rootId = m.getRootId();
+				m.getObjectTree((tree) => {
+					let dbidRoot = tree.nodeAccess.dbIdToIndex[rootId];
+
+					resolve(dbidRoot)
+				});
+			})
+		}
 
 		// function isolateAll(m: Autodesk.Viewing.Model) {
 		// 	let rootId = m.getRootId();
@@ -297,29 +330,87 @@ export class ViewerUtils {
 			SpriteManager.getInstance().addComponentAsSprite(viewer, result);
 		});
 	}
+	public async addCardComponent(viewer: Autodesk.Viewing.Viewer3D, data: any) {
+		await this._waitModelIsLoading();
+
+		const promises = data.map(async (item) => {
+			const data = item.data.map(({ bimFileId, dbIds }) => ({
+				dbIds,
+				model: this._getModel(item.modelId, bimFileId),
+			}));
+
+			return {
+				modelId: null,
+				color: item.color,
+				value: null,
+				models: null,
+				dbId: 0,
+				position: item.position || (await getPosition(data)),
+				// position: await getPosition(data),
+				data: item.parent,
+				component: item.component,
+			};
+		});
+
+		Promise.all(promises).then((result) => {
+			SpriteManager.getInstance().addCardComponent(viewer, result);
+		});
+	}
+
 
 	public async hideElementsByDbIds(viewer: Autodesk.Viewing.Viewer3D, dbIdObject: any) {
 		await this._waitModelIsLoading();
-	
+
 		const models = viewer.getVisibleModels();
-		
+
 		models.forEach((model) => {
-			const bimFileId = model.bimFileId;
-	
-			if (dbIdObject[bimFileId]) {
+			try {
+				const bimFileId = model.bimFileId;
+
+				if (!bimFileId || !dbIdObject[bimFileId]) return;
+
 				const dbIds = dbIdObject[bimFileId];
+				if (!Array.isArray(dbIds)) return;
+
 				dbIds.forEach((dbId) => {
-					if (viewer.isNodeVisible(dbId, model)) {
-						viewer.hide(dbId, model);
-					} else {
-						viewer.show(dbId, model);
+					try {
+						if (viewer.isNodeVisible(dbId, model)) {
+							viewer.hide(dbId, model);
+						} else {
+							viewer.show(dbId, model);
+						}
+					} catch (innerErr) {
+						console.warn(`Erreur lors du hide/show du dbId ${dbId} dans le modèle ${bimFileId}:`, innerErr);
 					}
 				});
+			} catch (err) {
+				console.warn(`Erreur lors du traitement du modèle:`, err);
 			}
 		});
 	}
-	
-	
+
+
+	public async getObjectProperties(viewer: Autodesk.Viewing.Viewer3D, dbId: number) {
+		try {
+			const properties = await new Promise<Autodesk.Viewing.PropertyResult | null>((resolve, reject) => {
+				viewer.getProperties(
+					dbId,
+					(success) => {
+						resolve(success);
+					},
+					(error) => {
+						reject(error);
+					}
+				);
+			});
+
+			return properties;
+		} catch (error) {
+			console.error('Failed to get object properties', error);
+			return null;
+		}
+	}
+
 
 	// public removeSprite(viewer: Autodesk.Viewing.Viewer3D, data: any) { }
 
@@ -343,7 +434,7 @@ export class ViewerUtils {
 	//                            PRIVATE                            //
 	///////////////////////////////////////////////////////////////////
 
-	private async _loadBimFile(viewer: Autodesk.Viewing.Viewer3D,sceneAlignMethod: number, modelData : IloadModelTask, buildingId?: string): Promise<Autodesk.Viewing.Model> {
+	private async _loadBimFile(viewer: Autodesk.Viewing.Viewer3D, sceneAlignMethod: number, modelData: IloadModelTask, buildingId?: string): Promise<Autodesk.Viewing.Model> {
 		try {
 			const option: {
 				globalOffset?: THREE.Vector3;
@@ -358,15 +449,14 @@ export class ViewerUtils {
 			if (modelData.dbids) {
 				option.ids = modelData.dbids;
 			}
-			console.log("modelData.offset", modelData.offset)
 
-			if(modelData.offset) {
-				if(sceneAlignMethod === SceneAlignMethod.ShareCoordinates) option.applyRefPoint = true;
+			if (modelData.offset) {
+				if (sceneAlignMethod === SceneAlignMethod.ShareCoordinates) option.applyRefPoint = true;
 				option.globalOffset = modelData.offset;
 
 			} else if (sceneAlignMethod === SceneAlignMethod.OriginToOrigin) {
-				option.globalOffset = await getGlobalOffset(viewer, buildingId as any, modelData.aecPath);				
-			
+				option.globalOffset = await getGlobalOffset(viewer, buildingId as any, modelData.aecPath);
+
 			} else if (sceneAlignMethod === SceneAlignMethod.ShareCoordinates && modelData.aecPath) {
 				option.applyRefPoint = true;
 				option.globalOffset = await addOffsetFromAEC(modelData.aecPath, viewer, buildingId as any);
@@ -377,7 +467,7 @@ export class ViewerUtils {
 			if (this._isFirstModel) this._isFirstModel = false;
 
 			return model;
-		} catch (error) {}
+		} catch (error) { }
 	}
 	private _addSlash(path: string): string {
 		if (path) return path[0] === "/" ? path : "/" + path;
@@ -521,7 +611,12 @@ export class ViewerUtils {
 			return o;
 		}, {});
 
+
+
 		const modelList = ModelManager.getInstance().getModelList();
+		console.error('le modelList', modelList);
+
+
 		const list: { model: Autodesk.Viewing.Model; dbIds: number[] }[] = [];
 
 		for (const [modelId, models] of modelList) {
@@ -531,13 +626,13 @@ export class ViewerUtils {
 			}
 		}
 
+
 		return list;
 	}
 
 	private _getModel(modelId: string | number, bimFileId: string): Autodesk.Viewing.Model | void {
 		const models = ModelManager.getInstance().getModelById(modelId.toString());
 		if (!models) return;
-
 		return models.find((model) => (model as any).bimFileId === bimFileId);
 	}
 
