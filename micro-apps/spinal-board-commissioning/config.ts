@@ -1,0 +1,130 @@
+import { IConfig } from "./src/interfaces/IConfig";
+
+
+
+
+
+export const  config: IConfig = {
+    entryPoint:{
+        context: "Gestion des équipements",
+        category: "Typologie",
+        group: ["Multicapteurs", "Luminaire"],
+        type: "equipement" // | equipments
+    },
+    sources:[
+        {
+            id: 1,
+            type: "attribute",
+            categoryName: "GTB",
+            name: "Convention nommage",
+            unit: "",
+            
+        },
+        {
+            id: 2,
+            type: "controlPoint",
+            profileName: "multicapteur commisonning",
+            name: "Taux de disponibilité",
+            unit: "%",
+            legend: {
+                min: { value: 12, color: "#24CBD9" },
+                median: { value: 37, color: "#2077CE"},
+                max: { value: 75, color: "#112C9D" },
+            },
+        },
+        {
+            id: 3,
+            type: "controlPoint",
+            profileName: "multicapteur commisonning",
+            name: "Taux de données en défaut reçues",
+            unit: "%",
+            legend:{
+                min: { value: 12, color: "#24CBD9" },
+                median: { value: 37, color: "#2077CE" },
+                max: { value: 75, color: "#112C9D" },
+            }
+        },
+        {
+            id: 4,
+            type: "controlPoint",
+            profileName: "multicapteur commisonning",
+            name: "Taux de données exploitables",
+            unit: "%",
+            legend:{
+                min: { value: 12, color: "#24CBD9" },
+                median: { value: 37, color: "#2077CE" },
+                max: { value: 75, color: "#112C9D" },
+            }
+        }
+    ],
+    bilan: {
+        timeline: {
+            sourceId: 1,
+            setup:{
+                type: "regex",
+                value: "/^AUT-\\d{3}-MCA-\\d{3}$/",
+                legend: [
+                    { name: 'correspond', color: '#14202C',   type: "success"},
+                    { name: 'incorrect',  color: '#FF000B', type: "warning" },
+                    { name: 'non défini', color: '#9830F2', type: "missing" },
+                    { name: 'doublons', color: '#EF8BC5',  type: "dual" },
+
+
+
+                ]
+            }
+        },
+        // dotsGrid: {
+        //     sourceId: 4,
+        //     setup:{
+        //         type: "threshold_below",
+        //         value: 70,
+        //     }
+        // }
+
+    }
+}
+
+// export const config: IConfig = {
+//     // entryPoint: {
+//     //     context: "Synchronisation équipements GMAO",
+//     //     category: "CFO",
+//     //     group: "Luminaires",
+//     //     type: "equipement" // | equipments
+//     // },
+//     sources: [
+//         {
+//             id: 1,
+//             type: "attribute",
+//             categoryName: "GMAO",
+//             name: "LO_Nom_Référence",
+//             unit: "",
+
+//         },
+
+//     ],
+//     bilan: {
+//         timeline: {
+//             sourceId: 1,
+//             setup: {
+//                 type: "regex",
+//                 // value: /^[A-Za-z]{3,4}-[A-Za-z]\d{3,4}$/,
+//                 value: "^ECLF-[A-Za-z]\\d{4}$",
+//                 legend: [
+//                     { name: 'correspond', color: 'green',  type: "success" },
+//                     { name: 'doublons', color: 'purple', type: "dual" },
+//                     { name: 'incorrect', color: 'red', type: "warning" },
+//                     { name: 'non défini', color: 'pink', type: "missing" },
+//                 ]
+//             }
+//         },
+//         // dotsGrid: {
+//         //     sourceId: 4,
+//         //     setup: {
+//         //         type: "threshold_below",
+//         //         value: 70,
+//         //     }
+//         // }
+
+//     }
+// }
