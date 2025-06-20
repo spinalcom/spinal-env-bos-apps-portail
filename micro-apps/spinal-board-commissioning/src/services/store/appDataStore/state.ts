@@ -51,7 +51,7 @@ export const state = {
   itemSelected: undefined,
   selectedChartItems: [] as any[],
   selectedSource: {},
-  StripeDataList: [] as any[],
+  StripeDataList:  {} as any,
   DotsGridList: [] as any[],  
   data: [] as any[],
   context: {} as any,

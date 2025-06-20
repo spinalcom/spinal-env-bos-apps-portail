@@ -80,39 +80,21 @@ export default {
 
 
 watch: {
- data: {
-  handler(newData) {
-    if (newData.length > 0) {
-      this.configLegend = newData[0].data;
-      
-
-    }
-  }
- },
 
  stripeData: {
   handler(newData) {
-    if( newData && newData.length > 0) {
-      this.headeLegend = newData;
+    console.log("StripeData changed", newData);
+    if( newData) {
+      if(newData.type === 'number') {
+        this.headeLegend = newData.range;
+        this.configLegend = newData.range;
+      }
+      else {
+        this.headeLegend = newData.data;
+        this.configLegend = newData.data;
+      }
     }
-    // this.headeLegend = newData.map((el) => {
-    //   return {
-    //     name: el.name,
-    //     color: el.color,
-    //     data: el.data,
-    //     percent: 0,
-    //     isActive: false
-    //   }
-    // });
-    // this.configLegend = newData.map((el) => {
-    //   return {
-    //     name: el.name,
-    //     color: el.color,
-    //     data: el.data,
-    //     percent: 0,
-    //     isActive: false
-    //   }
-    // });
+    
   }
  },
 
@@ -222,7 +204,7 @@ filterBysource (dataStore: any[], sourceName: string) {
       (values: any[]) => JSON.stringify([...values].sort())
    ),
 
-   async filterReverse(item: { name: string; color: string; data: any[]; percent: number; isActive: boolean }) {
+   async filterReverse(item: { name: string; color: string; data?: any[]; range?: any[], percent: number; isActive: boolean }) {
     this.$store.commit(MutationTypes.SET_LOADER, true);
     this.$store.commit(MutationTypes.SET_LOADING, {
       completed: 0,
@@ -303,42 +285,6 @@ filterBysource (dataStore: any[], sourceName: string) {
       }
 
     }
-    // if(item.isActive === false) {
-    //   item.isActive = true;
-    //   item.percent = 0;
-    //   const dataFilter = this.configLegend.filter((el) => el.isActive !== true);
-    //   const totalDatafilter = dataFilter.flatMap((el) => el.data);
-    //   this.configLegend.forEach((el: { name: string; color: string; data: any[]; percent: number; isActive: boolean }) => {
-    //     if(el.isActive === false) {
-    //       el.percent = parseFloat(((el.data.length / totalDatafilter.length ) * 100).toFixed(2));
-    //     }
-    //   });
-    //   let updateDataFilter = this.configLegend.filter((el) => el.isActive !== true);
-    //   updateDataFilter = updateDataFilter.flatMap((el) => el.data);
-
-    //   const data = {
-    //     data: updateDataFilter,
-    //     sources: this.$store.state.appDataStore.data.sources,
-    //   }
-    //   this.$store.commit(MutationTypes.SET_DATA, data); 
-    // }
-    // else {
-    //   item.isActive = false;
-    //    const dataFilter = this.configLegend.filter((el) => el.isActive !== true);
-    //   const totalDatafilter = dataFilter.flatMap((el) => el.data);
-    //   this.configLegend.forEach((el: { name: string; color: string; data: any[]; percent: number; isActive: boolean }) => {
-    //     if(el.isActive === false) {
-    //       el.percent = parseFloat(((el.data.length / totalDatafilter.length ) * 100).toFixed(2));
-    //     }
-    //   });
-    //   let updateDataFilter = this.configLegend.filter((el) => el.isActive !== true);
-    //   updateDataFilter = updateDataFilter.flatMap((el) => el.data);
-    //   const data = {
-    //     data: updateDataFilter,
-    //     sources: this.$store.state.appDataStore.data.sources,
-    //   }
-    //   this.$store.commit(MutationTypes.SET_CONFIG_LABEL, data); 
-    // }
   },
 
 

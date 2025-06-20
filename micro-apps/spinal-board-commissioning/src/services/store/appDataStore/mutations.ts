@@ -101,7 +101,7 @@ export type MutationsAppData<S = StateAppData> = {
   [MutationTypes.SET_ITEM_SELECTED](state: StateAppData, item): void;
   [MutationTypes.SET_DATA](state: StateAppData, data: INodeItemTree[]): void;
   [MutationTypes.SET_ENDPOINT](state: StateAppData, children: any[]): void;
-  [MutationTypes.SET_STRIPE_DATA](state: StateAppData, dataStripe: any[]): void;
+  [MutationTypes.SET_STRIPE_DATA](state: StateAppData, dataStripe: any): void;
   [MutationTypes.SET_CONTEXT](state: StateAppData, context: any): void;
   [MutationTypes.SET_CATEGORIES_CONTEXT](state: StateAppData, categoriesContext: any): any;
   [MutationTypes.SET_GROUP_EQUIP](state: StateAppData, groupEquipement: any[]): any;
@@ -206,7 +206,7 @@ export const mutations: MutationTree<StateAppData> & MutationsAppData = {
   [MutationTypes.SET_ENDPOINT]: async function (state: StateAppData, children): Promise<void> {
   
   },
-  [MutationTypes.SET_STRIPE_DATA](state: StateAppData, dataStripe: any[]): void {
+  [MutationTypes.SET_STRIPE_DATA](state: StateAppData, dataStripe: any): void {
     state.StripeDataList = dataStripe;
   },
 
