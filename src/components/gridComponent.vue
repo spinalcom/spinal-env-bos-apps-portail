@@ -25,38 +25,22 @@ with this file. If not, see
 <template>
   <div class="grid-component-container">
     <template v-if="categories && categories.length > 0">
+
       <div v-for="item in appsCompu" :key="item.id">
         <div class="grid-component-item-header"> {{ item.name }}</div>
         <hr class="grid-component-item-header-separator" />
         <div class="grid-component-item" :key="item.id + '_item'">
           <template v-for="applicationData in item.Applications">
-            <div
-              v-if="!applicationData.subApps"
-              class="grid-component-item-card"
-              :key="applicationData.id"
-              :class="cardClass"
-            >
-              <ApplicationCard
-                :data="applicationData"
-                :isFavorite="isFavorite(applicationData)"
-                @exploreApp="exploreApp"
-                @addAppToFavoris="addAppToFavoris"
-              />
+            <div v-if="!applicationData.subApps" class="grid-component-item-card" :key="applicationData.id"
+              :class="cardClass">
+              <ApplicationCard :data="applicationData" :isFavorite="isFavorite(applicationData)"
+                @exploreApp="exploreApp" @addAppToFavoris="addAppToFavoris" />
             </div>
             <template v-else>
-              <div
-                class="grid-component-item-card"
-                v-for="subApp in applicationData.subApps"
-                :key="subApp.id"
-                :class="cardClass"
-              >
-                <ApplicationConfigCard
-                  :app="applicationData"
-                  :appConfig="subApp"
-                  :isFavorite="isFavorite(subApp)"
-                  @exploreApp="exploreApp"
-                  @addAppToFavoris="addAppConfigToFavoris"
-                />
+              <div class="grid-component-item-card" v-for="subApp in applicationData.subApps" :key="subApp.id"
+                :class="cardClass">
+                <ApplicationConfigCard :app="applicationData" :appConfig="subApp" :isFavorite="isFavorite(subApp)"
+                  @exploreApp="exploreApp" @addAppToFavoris="addAppConfigToFavoris" />
               </div>
             </template>
           </template>
@@ -88,10 +72,97 @@ class GridComponent extends Vue {
 
   @Watch('categories', { immediate: true, deep: true })
   onCategoriesChange(newVal: IGridCategoryApp) {
-    this.appsCompu = newVal.filter(
-      (category) => category.Applications?.length > 0
-    );
+    const categoryMap = new Map<string, IGridCategoryApp>();
+
+    // Pré-créer la catégorie Favoris
+    categoryMap.set('Favoris', {
+      id: 'favoris',
+      name: 'Favoris',
+      Applications: [],
+    });
+
+    const addedSubAppIdsToFavoris = new Set<string>();
+
+    // Préparer toutes les catégories de base
+    for (const category of newVal) {
+      if (!categoryMap.has(category.name)) {
+        categoryMap.set(category.name, {
+          ...category,
+          Applications: [],
+        });
+      }
+    }
+
+    for (const category of newVal) {
+      if (!Array.isArray(category.Applications)) continue;
+
+      for (const app of category.Applications) {
+        const isAppFavorite = this.isFavorite(app);
+
+        // === CAS : App sans subApps ===
+        if (!Array.isArray(app.subApps) || app.subApps.length === 0) {
+          // Ajout dans la catégorie normale
+          categoryMap.get(category.name)!.Applications.push({ ...app });
+
+          // Si favorite => aussi dans Favoris
+          if (isAppFavorite) {
+            categoryMap.get('Favoris')!.Applications.push({ ...app });
+          }
+          continue;
+        }
+
+        // === CAS : App avec subApps ===
+        for (const subApp of app.subApps) {
+          const subCatName = subApp.categoryName || category.name;
+          const isSubAppFavorite = this.isFavorite(subApp);
+
+          const targetCategory = isSubAppFavorite ? 'Favoris' : subCatName;
+
+          if (!categoryMap.has(targetCategory)) {
+            categoryMap.set(targetCategory, {
+              id: targetCategory,
+              name: targetCategory,
+              Applications: [],
+            });
+          }
+
+          // Évite les doublons dans Favoris
+          if (isSubAppFavorite) {
+            if (addedSubAppIdsToFavoris.has(subApp.id)) continue;
+            addedSubAppIdsToFavoris.add(subApp.id);
+          }
+
+          // Ajoute la subApp dans la bonne catégorie
+          categoryMap.get(targetCategory)!.Applications.push({
+            ...app,
+            subApps: [subApp],
+          });
+        }
+      }
+    }
+
+    // Tri final
+    this.appsCompu = Array.from(categoryMap.values())
+      .filter((c) => Array.isArray(c.Applications) && c.Applications.length > 0)
+      .sort((a, b) => {
+        const order = (name: string) => {
+          if (name === 'Favoris') return 0;
+          if (name === 'Administration') return 1;
+          if (name === '') return 99;
+          return 2;
+        };
+
+        const orderA = order(a.name);
+        const orderB = order(b.name);
+
+        if (orderA !== orderB) return orderA - orderB;
+        return a.name.localeCompare(b.name);
+      });
   }
+
+
+
+
 
   get cardClass() {
     return {
@@ -142,9 +213,11 @@ export default GridComponent;
   display: flex;
   justify-content: center;
 }
+
 .grid-component-container {
   padding: 0 16px 16px 16px;
 }
+
 .grid-component-item-header {
   text-transform: uppercase;
   font-size: 0.8em;
@@ -159,7 +232,8 @@ export default GridComponent;
   width: 30%;
   min-width: 100px;
   border: none;
-  border-top: 2px solid #6aa0ad; /* Adjust thickness and color */
+  border-top: 2px solid #6aa0ad;
+  /* Adjust thickness and color */
 }
 
 .grid-component-item {
@@ -167,6 +241,7 @@ export default GridComponent;
   flex-wrap: wrap;
   align-content: center;
 }
+
 .grid-component-item-card {
   padding: 5px;
   width: 33%;

@@ -31,96 +31,61 @@ with this file. If not, see
         <v-tab-item class="app-config-form-tab-item">
           <v-card class="app-form-card">
             <v-card-text class="app-form-content">
-              <v-form
-                class="app-form"
-                ref="form"
-                @submit.prevent="onSubmit"
-                v-model="isFormValid"
-              >
+              <v-form class="app-form" ref="form" @submit.prevent="onSubmit" v-model="isFormValid">
                 <v-row class="app-form-row app-select-box-container">
                   <v-col class="colonnes">
-                    <v-checkbox
-                      v-model="appInfo.hasViewer"
-                      label="Cette application utilise de la 3D"
-                      :hide-details="true"
-                    ></v-checkbox>
+                    <v-checkbox v-model="appInfo.hasViewer" label="Cette application utilise de la 3D"
+                      :hide-details="true"></v-checkbox>
                   </v-col>
                 </v-row>
                 <v-row class="app-form-row">
                   <v-col class="colonnes" cols="4">
-                    <v-combobox
-                      :items="icons"
-                      v-model="currentIcon"
-                      label="Icone"
-                      item-value="name"
-                      item-text="name"
-                      :hide-details="true"
-                      outlined
-                    >
+                    <v-combobox :items="icons" v-model="currentIcon" label="Icone" item-value="name" item-text="name"
+                      :hide-details="true" outlined>
                       <template v-slot:item="{ item }">
-                        <v-icon style="margin-right: 10px"
-                          >{{ 'mdi-' + item.name }}
+                        <v-icon style="margin-right: 10px">{{ 'mdi-' + item.name }}
                         </v-icon>
                         {{ item.name }}
                       </template>
 
                       <template v-slot:selection="{ item }">
-                        <span class="ellipsis"
-                          ><v-icon style="margin-right: 10px"
-                            >{{ 'mdi-' + item.name }}
+                        <span class="ellipsis"><v-icon style="margin-right: 10px">{{ 'mdi-' + item.name }}
                           </v-icon>
-                          {{ item.name }}</span
-                        >
+                          {{ item.name }}</span>
                       </template>
                     </v-combobox>
                   </v-col>
                   <v-col class="colonnes" cols="8">
-                    <v-text-field
-                      class="app-form-validation"
-                      v-model="appInfo.name"
-                      label="Nom de l'application"
+                    <v-text-field class="app-form-validation" v-model="appInfo.name" label="Nom de l'application"
                       :rules="[
                         (v) => !!v || 'Le nom de l\'application est requis',
-                      ]"
-                      outlined
-                    ></v-text-field>
+                      ]" outlined></v-text-field>
+                  </v-col>
+                </v-row>
+                <v-row class="app-form-row">
+                  <v-col class="colonnes" cols="12">
+                    <v-text-field v-model="appInfo.categoryName" label="catégorie de l'application" :hide-details="true"
+                      outlined></v-text-field>
                   </v-col>
                 </v-row>
 
                 <v-row class="app-form-row">
                   <v-col class="colonnes" cols="12">
-                    <v-text-field
-                      v-model="appInfo.documentationLink"
-                      label="Lien vers la documentation de l'application"
-                      :hide-details="true"
-                      outlined
-                    ></v-text-field>
+                    <v-text-field v-model="appInfo.documentationLink"
+                      label="Lien vers la documentation de l'application" :hide-details="true" outlined></v-text-field>
                   </v-col>
                 </v-row>
                 <v-row class="app-form-row">
                   <v-col class="colonnes" cols="12">
-                    <v-combobox
-                      small-chips
-                      deletable-chips
-                      multiple
-                      append-icon="none"
-                      v-model="appInfo.tags"
-                      label="Tags"
-                      :hide-details="true"
-                      outlined
-                    ></v-combobox>
+                    <v-combobox small-chips deletable-chips multiple append-icon="none" v-model="appInfo.tags"
+                      label="Tags" :hide-details="true" outlined></v-combobox>
                   </v-col>
                 </v-row>
 
                 <v-row class="app-form-row">
                   <v-col class="colonnes" cols="12">
-                    <v-textarea
-                      v-model="appInfo.description"
-                      :hide-details="true"
-                      outlined
-                      name="input-7-4"
-                      label="Description"
-                    >
+                    <v-textarea v-model="appInfo.description" :hide-details="true" outlined name="input-7-4"
+                      label="Description">
                     </v-textarea>
                   </v-col>
                 </v-row>
@@ -131,29 +96,15 @@ with this file. If not, see
         <v-tab-item class="app-config-form-tab-item">
           <v-card class="app-form-card">
             <v-card-text class="app-form-content">
-              <MonacoEditorJSON
-                v-model="appInfo.appConfig"
-                :app-name="appName"
-              ></MonacoEditorJSON>
+              <MonacoEditorJSON v-model="appInfo.appConfig" :app-name="appName"></MonacoEditorJSON>
               <v-tooltip left>
                 <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    v-bind="attrs"
-                    v-on="on"
-                    fab
-                    dark
-                    bottom
-                    left
-                    small
-                    class="app-config-form-btn-get-config"
-                    @click="getDefaultConfig"
-                  >
+                  <v-btn v-bind="attrs" v-on="on" fab dark bottom left small class="app-config-form-btn-get-config"
+                    @click="getDefaultConfig">
                     <v-icon>mdi-file-download-outline</v-icon>
                   </v-btn>
                 </template>
-                <span
-                  >Récupéré la configuration par défaut de l'application</span
-                >
+                <span>Récupéré la configuration par défaut de l'application</span>
               </v-tooltip>
             </v-card-text>
           </v-card>
@@ -207,6 +158,7 @@ class AppConfigForm extends Vue {
     tags: [],
     hasViewer: false,
     appConfig: '',
+    categoryName: ''
   };
 
   async mounted() {
@@ -263,11 +215,14 @@ class AppConfigForm extends Vue {
       tags: this.appSelected?.tags || [],
       hasViewer: this.appSelected?.hasViewer || false,
       documentationLink: this.appSelected?.documentationLink || '',
+      categoryName: this.appSelected?.categoryName || '',
       appConfig: '',
     };
     this.resetValidation();
   }
   async copyAppInfo() {
+    console.log('les info son récup ?', this.appSelected);
+
     this.appInfo = {
       name: this.subApp?.name || '',
       icon: this.subApp?.icon || this.appSelected?.icon || '',
@@ -279,6 +234,7 @@ class AppConfigForm extends Vue {
         this.subApp?.documentationLink ||
         this.appSelected?.documentationLink ||
         '',
+      categoryName: '',
       appConfig: '',
     };
     this.resetValidation();
@@ -340,7 +296,7 @@ class AppConfigForm extends Vue {
     this.$refs.form?.resetValidation();
   }
   @Emit('close')
-  close() {}
+  close() { }
 
   @Emit('submit')
   onSubmit() {
@@ -352,6 +308,7 @@ class AppConfigForm extends Vue {
       'tags',
       'hasViewer',
       'documentationLink',
+      'categoryName'
     ];
     for (const key of keys) {
       if (this.appInfo[key]) {
@@ -371,16 +328,19 @@ export default AppConfigForm;
   width: 100%;
   height: 100%;
 }
+
 .app-config-form-content {
   padding-top: 0;
   height: 100%;
   position: relative;
 }
+
 .app-config-form-tab {
   width: 100%;
   height: 100%;
   position: relative;
 }
+
 .app-config-form-tab-item {
   height: calc(100vh - 260px);
 }
@@ -391,12 +351,14 @@ export default AppConfigForm;
   border: 1px solid #ccc;
   margin-top: 20px;
 }
+
 .app-form-card {
   width: 100%;
   height: 100%;
   overflow-y: auto !important;
   overflow-x: hidden;
 }
+
 .app-form-content {
   position: relative;
   padding: 8px 0 0 0;
@@ -408,6 +370,7 @@ export default AppConfigForm;
   flex-direction: column;
   width: 100%;
 }
+
 .app-select-box-container {
   display: flex;
   justify-content: space-between;
@@ -417,20 +380,28 @@ export default AppConfigForm;
 .app-form-row:first-child {
   margin-top: 0 !important;
 }
-.app-form-row:has(.app-form-validation) + .app-form-row {
+
+.app-form-row:has(.app-form-validation)+.app-form-row {
   margin-top: -12px !important;
 }
+
 .app-config-form-btn-get-config {
   position: absolute;
   z-index: 6;
   bottom: 8px;
   right: 16px;
 }
+
 .ellipsis {
-  display: inline-block; /* Ensure the span behaves like a block for width */
-  max-width: 100%; /* Set the maximum width */
-  white-space: nowrap; /* Prevent text from wrapping to the next line */
-  overflow: hidden; /* Hide the overflowing text */
-  text-overflow: ellipsis; /* Add the ellipsis (...) */
+  display: inline-block;
+  /* Ensure the span behaves like a block for width */
+  max-width: 100%;
+  /* Set the maximum width */
+  white-space: nowrap;
+  /* Prevent text from wrapping to the next line */
+  overflow: hidden;
+  /* Hide the overflowing text */
+  text-overflow: ellipsis;
+  /* Add the ellipsis (...) */
 }
 </style>

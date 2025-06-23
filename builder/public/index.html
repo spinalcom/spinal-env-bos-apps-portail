@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Build Micro-Apps</title>
+</head>
+<body>
+  <h1>Sélectionner les Micro-Apps à builder</h1>
+
+  <label for="apiUrl"><strong>SPINAL_API_URL :</strong></label>
+  <input type="text" id="apiUrl" value="http://localhost:3000" style="width: 300px; margin-bottom: 10px;"><br><br>
+
+  <form id="buildForm">
+    <div id="appsList"></div>
+    <button type="submit">Lancer le build</button>
+  </form>
+
+  <p id="status"></p>
+
+  <script src="script.js"></script>
+</body>
+</html>

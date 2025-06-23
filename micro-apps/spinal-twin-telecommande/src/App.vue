@@ -39,7 +39,7 @@ with this file. If not, see
       :selectedItem="selectedItem" :typeTelecommande="typeTelecommande" :data="''">
     </Télécommande>
 
-    <div  v-if="config && config.SelectionType == 'button' || config.SelectionType == 'multiple'"
+    <div v-if="config && config.SelectionType == 'button' || config.SelectionType == 'multiple'"
       @click="displayTelecommande = true" class="btn_pilotage">
       PILOTAGE PIÈCE
     </div>
@@ -469,15 +469,15 @@ class App extends Vue {
 
 
   async mounted() {
-    console.log('aaaa' , window.parent.routerFontion.apps[0]._route.query);
-    
+    console.log('aaaa', window.parent.routerFontion.apps[0]._route.query);
+
     // if (window.parent.routerFontion.apps[0]._route.query?.buildingId != undefined) {
-    
+
     //   localStorage.setItem('idBuilding', window.parent.routerFontion.apps[0]._route.query.buildingId)
     // }
     // else {
     //   console.log('ccc');
-    
+
     //   console.log('le building n est pas declaré ');
     //   localStorage.setItem('idBuilding', this.config.idBuilding || '0')
     // }
@@ -721,6 +721,9 @@ class App extends Vue {
     for (const [cmdKey, entries] of Object.entries(commandItem)) {
       result[cmdKey] = [];
 
+      console.log('je ne entries ', entries);
+      
+
       for (const { context, category, group: groupNames } of entries) {
         const contextId = dynamicContextMap[context];
         if (!contextId) continue;
@@ -736,6 +739,8 @@ class App extends Vue {
           contextId,
           categoryDynId: categoryObj.dynamicId,
         });
+
+        console.log(groupList, groupNames , 'je ne sais pas !!!!!!!!!!!!');
 
         for (const groupName of groupNames) {
           const matchingGroup = groupList.find((grp) => grp.name === groupName);

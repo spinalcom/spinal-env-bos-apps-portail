@@ -26,27 +26,10 @@ with this file. If not, see
   <v-card class="creationContent" elevation="4" loading="isLoading">
     <v-card-title class="creationContent-title">{{ title }}</v-card-title>
     <v-card-text class="creationContent-content">
-      <AppForm
-        v-if="!isBosConfigApp"
-        :app-selected="appSelected"
-        ref="appForm"
-        :title="title"
-        :edit="edit"
-        :form-validation.sync="isFormValid"
-        @close="closeApp"
-        @submit="onSubmitApp"
-      ></AppForm>
-      <AppConfigForm
-        v-else
-        ref="appForm"
-        :app-selected="appSelected"
-        :form-validation.sync="isFormValid"
-        :sub-app="subApp"
-        :title="title"
-        :edit="edit"
-        @close="closeApp"
-        @submit="onSubmitAppConfig"
-      ></AppConfigForm>
+      <AppForm v-if="!isBosConfigApp" :app-selected="appSelected" ref="appForm" :title="title" :edit="edit"
+        :form-validation.sync="isFormValid" @close="closeApp" @submit="onSubmitApp"></AppForm>
+      <AppConfigForm v-else ref="appForm" :app-selected="appSelected" :form-validation.sync="isFormValid"
+        :sub-app="subApp" :title="title" :edit="edit" @close="closeApp" @submit="onSubmitAppConfig"></AppConfigForm>
     </v-card-text>
     <v-card-actions class="creationContent-actions">
       <v-btn class="button" color="error" @click="closeApp">
@@ -106,7 +89,7 @@ class CreationComponent extends Vue {
     appId: string;
   }) => Promise<void>;
 
-  mounted() {}
+  mounted() { }
 
   get isBosConfigApp() {
     return this.creationCategory?.id === categories.bosConfig.id;
@@ -151,6 +134,8 @@ class CreationComponent extends Vue {
 
   @Emit('close')
   async onSubmitAppConfig(app: ISubApp) {
+    console.log('je submit la config form' , app);
+
     try {
       this.isLoading = true;
       if (this.creationCategory.id === categories.bosConfig.id) {
@@ -175,7 +160,7 @@ class CreationComponent extends Vue {
   }
 
   @Emit('close')
-  closeApp() {}
+  closeApp() { }
 
   get title() {
     const appCat = this.creationCategory?.name;
@@ -191,6 +176,7 @@ export default CreationComponent;
 <style lang="scss" scoped>
 $header-height: 70px;
 $margin-size: 10px;
+
 .creationContent {
   height: calc(100% - #{$header-height + $margin-size});
   width: calc(100% - ($margin-size * 2));
@@ -203,9 +189,11 @@ $margin-size: 10px;
 
   $title-height: 64px;
   $footer-height: 52px;
+
   .creationContent-title {
     background-color: #f5f5f5;
   }
+
   .creationContent-content {
     background-color: #f5f5f5;
     height: calc(100% - #{$title-height + $footer-height});
@@ -216,6 +204,7 @@ $margin-size: 10px;
     overflow: hidden;
     position: relative;
   }
+
   .creationContent-actions {
     background-color: #f5f5f5;
     height: $footer-height;

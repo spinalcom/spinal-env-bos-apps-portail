@@ -61,7 +61,7 @@ export const config: IConfig = {
 			equipementContext: "Gestion des équipements",
 			equipementCat: "Typologie",
 			equipementsGroup: "Lavabo",
-			isControlable: false
+			isControlable: true
 		}
 	],
 

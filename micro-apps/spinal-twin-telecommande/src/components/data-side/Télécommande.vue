@@ -223,20 +223,75 @@ export default {
 
     async handleSelectedEquipement(newVal) {
       const buildingId = localStorage.getItem("idBuilding");
-      const promises = [
-        this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
-          buildingId,
-          referenceIds: [newVal]
-        }),
-      ];
-      const result = await Promise.all(promises);
-      this.postion_name = result[0].name
-      this.postion_id = result[0].dynamicId
-      this.activable = !this.getIfActivable(result[0].controlEndpoint);
-      this.extractCommandValues(result[0].controlEndpoint);
-      this.show_command = true
-    },
 
+      // 1. Récupérer les détails de l’équipement
+      const equipement = await this.$store.dispatch(ActionTypes.GET_STATIC_DETAILS_EQUIPEMENT, {
+        buildingId,
+        referenceIds: [newVal]
+      });
+
+      this.postion_name = equipement.name;
+      this.postion_id = equipement.dynamicId;
+      this.activable = !this.getIfActivable(equipement.controlEndpoint);
+      this.extractCommandValues(equipement.controlEndpoint);
+
+      try {
+        // 2. Récupérer la position pour obtenir la room associée
+        const position = await this.$store.dispatch(ActionTypes.GET_POSITION, {
+          buildingId,
+          referenceIds: newVal
+        });
+
+        console.log('555 la room trouvé :', position);
+
+        const room = position?.info?.room;
+        const roomId = room?.dynamicId;
+
+        console.log('555 la room id :', roomId);
+        if (!roomId) {
+          console.warn("⚠️ Aucun room trouvé pour cet équipement.");
+          this.matchedCommandKeys = [];
+          this.show_command = true;
+          return;
+        }
+
+        // 3. Comme pour les rooms, on récupère les groupes liés à cette pièce
+        const groupResult = await this.$store.dispatch(ActionTypes.POST_PARENT_LIST_MULTIPLE, {
+          buildingId,
+          inputList: [
+            {
+              dynamicId: roomId,
+              relations: ['groupHasgeographicRoom'],
+            },
+          ],
+        });
+
+        console.log('555 grp result:', groupResult);
+
+        const groupNodes = groupResult?.[0]?.nodes || [];
+        const availableGroupNames = groupNodes.map(g => g.name);
+
+        const commandMap = this.$store.state.appDataStore.telecommandeType;
+        const matchingCommandKeys = [];
+
+        for (const [cmdKey, dynamicIds] of Object.entries(commandMap)) {
+          const matchedGroup = groupNodes.find(g => dynamicIds.includes(g.dynamicId));
+          if (matchedGroup && availableGroupNames.includes(matchedGroup.name)) {
+            matchingCommandKeys.push(cmdKey);
+          }
+        }
+
+        console.log("✅  555 Commandes correspondantes à la pièce de l’équipement :", matchingCommandKeys);
+        this.matchedCommandKeys = matchingCommandKeys;
+
+      } catch (err) {
+        console.error('❌ Erreur lors du traitement des groupes de l’équipement :', err);
+        this.matchedCommandKeys = [];
+      }
+
+      this.show_command = true;
+    }
+    ,
     async handleSelectedMultipleRoom() {
       this.multirooms = true
       const buildingId = localStorage.getItem("idBuilding");
