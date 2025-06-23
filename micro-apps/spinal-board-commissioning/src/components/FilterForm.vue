@@ -2,13 +2,21 @@
 
 
  <div class="filter-form">
-   <div>
-        <v-btn depressed small color="primary"  @click="showFilter = true">
-        <v-icon left>{{ iconFilter }}</v-icon>    
-           <span style="font-size: 14px; font-weight: 500; text-transform: lowercase; font-family: 'Charlevoix', sans-serif;">
-               {{ buttonName }}
-           </span>
+   <div style="display: flex; align-items: center; gap: 10px;">
+    <div>
+
+        <v-btn depressed small style="background-color: #14202C; color: #ffffff;"  @click="showFilter = true; showFilterValue = false">
+            <v-icon left>{{ iconFilter }}</v-icon>    
+            <span style="font-size: 14px; font-weight: 500; text-transform: lowercase; font-family: 'Charlevoix', sans-serif;">
+                {{ buttonName }}
+            </span>
         </v-btn>
+    </div>
+    <div>
+        <!-- Legend -->
+<!-- Legend -->
+        <Legend :legend="configLabel" />
+    </div>
    </div>
      
      <div
@@ -27,15 +35,21 @@
                 Sélectionner une colonne
             </span>
             <ul>
-                <li class="column" v-for="(col, index) in column" :key="index" @click="showForm(col)" :style="{ backgroundColor: columnSelected === col.text ? '#f0f0f0' : '#ffffff', boxShadow: columnSelected === col.text ? '0 4px 8px rgba(0, 0, 0, 0.1)' : 'none', transform: columnSelected === col.text ? 'scale(1.02)' : 'scale(1)' }">
-                    <span>
+                <li class="column" v-for="(col, index) in column" :key="index" @click="showForm(col)" :style="{ backgroundColor: columnSelected === col.text ? '#14202C' : '#ffffff', boxShadow: columnSelected === col.text ? '0 4px 8px rgba(0, 0, 0, 0.1)' : 'none', transform: columnSelected === col.text ? 'scale(1.02)' : 'scale(1)', color: columnSelected === col.text ? '#ffffff' : '#14202C' }">
+                    <div class="applied-filter" v-if="filterapplied(col.text)"></div>
+                    <span style="padding-inline: 25px;">
                         {{ col.text }}
                     </span>
-                    <div v-if="filterapplied(col.text)">filtre appliqué</div>
 
                     <div>
-                        <div v-if="columnSelected === col.text" class="selected-column"></div>
-                        <v-icon>mdi-chevron-right</v-icon>
+                                <input
+                                :checked="mainFilterColumn === col.text"
+                                @click.stop="toggleMainFilter(col.text)"
+                                v-if="filterapplied(col.text)"
+                                title="assigner le filtre à la frise"
+                                type="checkbox"
+                                />
+                        <v-icon :style="{color: columnSelected === col.text ? '#ffffff': '#14202C'}">mdi-chevron-right</v-icon>
                     </div>
                 </li>
             </ul>
@@ -110,7 +124,7 @@
                     </div>
 
                 <div class="box">
-                    <input type="number" name="" id="" v-model="item.value">
+                    <input v-if="item.name !== 'non défini'" type="number" name="" id="" v-model="item.value">
                 </div>
                 <div class="box">
                     <div style="width: 20px; height: 20px; border-radius: 5px; position: relative;" :style="{ backgroundColor: item.color }" @click.stop="ShowBoxcolor(item)">
@@ -152,10 +166,14 @@
 
 <script lang="ts">
 import { MutationTypes } from '../services/store/appDataStore/mutations';
+import Legend from './legend.vue';
 
 
  export default {
     name: 'FilterForm',
+    components: {
+        Legend
+    },
     props: {
         buttonName: {
             type: String,
@@ -184,6 +202,14 @@ import { MutationTypes } from '../services/store/appDataStore/mutations';
             isText: false,
             filterValue: '',
             filterData: [],
+            dataAlt: [] as any[],
+            mainFilterColumn: '',
+            mainFilter: {
+                column:'' as string,
+                type: '' as string,
+                data: [] as { name: string; value: number; color: string }[],
+                
+            },
             filterNumber : [
                 {
                     name: 'max',
@@ -191,15 +217,17 @@ import { MutationTypes } from '../services/store/appDataStore/mutations';
                     showBoxColor: false,
                     value: 50,
                     color: '#14202C',
-                    isActive: false
+                    isActive: false,
+                    percent: 0
                 },
                 {
-                    name: 'moyen',
+                    name: 'median',
                     data: [] as any[],
                     showBoxColor: false,
                     value: 0,
                     color: '#e6af30',
-                    isActive: false
+                    isActive: false,
+                    percent: 0
                 },
                 {
                     name: 'min',
@@ -207,14 +235,24 @@ import { MutationTypes } from '../services/store/appDataStore/mutations';
                     showBoxColor: false,
                     value: 12,
                     color: '#6e60e6',
-                    isActive: false
+                    isActive: false,
+                    percent: 0
                 },
+                {
+                    name: 'non défini',
+                    data: [] as any[],
+                    showBoxColor: false,
+                    value: 0,
+                    color: '#ab0322',
+                    isActive: false,
+                    percent: 0
+                }
             ],
             filterRegex: [
                 {
                     name: 'correspond',
                     data: [] as any[],
-                    color: '#2eff38',
+                    color: '#17641B',
                     showBoxColor: false,
                     percent: 0,
                     isActive: false,
@@ -298,27 +336,40 @@ import { MutationTypes } from '../services/store/appDataStore/mutations';
         const column = this.columnSelected;
         
         if (this.isNumber) {
+            console.log('isNumber');
+            const filterData = this.filterDataWithNumber(
+            this.filterDataConfig,
+            column,
+            this.filterNumber
+            );
+
             const numberFilter = {
             column,
             type: 'number',
-            range: this.filterNumber.map(f => ({
-                name: f.name,
-                value: f.value,
-                color: f.color,
-            }))
+            range: filterData
             };
 
             const index = this.valueFilters.findIndex(f => f.column === column && f.type === 'number');
-            if (index !== -1) this.valueFilters[index] = numberFilter;
-            else this.valueFilters.push(numberFilter);
+            if (index !== -1) {
+                this.valueFilters[index] = numberFilter
+                if( this.mainFilterColumn === column) {
+                    this.mainFilter = numberFilter;
+                    this.$store.commit(MutationTypes.SET_STRIPE_DATA, this.mainFilter);
+                }
+            }
             
+            else {
+                this.valueFilters.push(numberFilter)
+            };
+
+            this.$store.commit(MutationTypes.SET_CONFIG_LABEL, this.valueFilters);            
             // this.$store.commit(MutationTypes.SET_VALUE_FILTERS, this.valueFilters);
         }
 
-        if (this.isText) {
-            console.log('valueFilters:', this.valueFilters);
+       else if (this.isText) {
+            console.log('isText');
             const filtered = this.filterDataWithRegex(
-            this.$store.state.appDataStore.filterDataConfig.data,
+            this.filterDataConfig,
             this.filterValue,
             column
             );
@@ -329,75 +380,82 @@ import { MutationTypes } from '../services/store/appDataStore/mutations';
             data: filtered
             }
 
-            const value = this.valueFilters.find(f => f.column === column && f.type === 'regex');
-            if (value) {
-                value.regex = this.filterValue;
-                value.data = filtered;
+            const index = this.valueFilters.findIndex(f => f.column === column && f.type === 'regex');
+            if (index !== -1) {
+                this.valueFilters[index] = regexFilter;
+                if( this.mainFilterColumn === column) {
+                    this.mainFilter = regexFilter;
+                    this.$store.commit(MutationTypes.SET_STRIPE_DATA, this.mainFilter);
+                }
             } else {
                 this.valueFilters.push(regexFilter);
             }
 
             
 
-            // console.log('columnSelected:', column);
-            // for(const filter  of this.valueFilters) {
-            //     if(filter.column === column && filter.type === 'regex') {
-            //         filter.data = filtered;  // Met à jour les données filtrées pour la colonne sélectionnée
-            //     }
-            // }
+            this.$store.commit(MutationTypes.SET_CONFIG_LABEL, this.valueFilters);
 
-            this.$store.commit(MutationTypes.SET_STRIPE_DATA, filtered);
         }
-        this.$store.commit(MutationTypes.SET_CONFIG_LABEL, this.valueFilters);
+        // this.$store.commit(MutationTypes.SET_CONFIG_LABEL, this.valueFilters);
+
+        this.columnSelected = null;
 
         },
 
-filterDataWithRegex(data: any[], regex: string, columnSelected: string) {
-    const columnName = this.column.find(col => col.text === this.columnSelected)?.value || this.$store.state.appDataStore.ValueRegex.column;
+filterDataWithNumber(data: any[], selectedColumn: string, filter: any[]) {
+  let columnName = this.column.find(col => col.text === selectedColumn)?.value || this.$store.state.appDataStore.StripeDataList.column
+    || this.$store.state.appDataStore.ValueRegex.column;
+  if (!columnName) return [];
+
+  const groupesFiltres = JSON.parse(JSON.stringify(this.filterNumber || []));
+
+  const { maxValue, minValue } = filter.reduce((acc, filtre) => {
+    if (filtre.name === 'max') acc.maxValue = parseFloat(filtre.value);
+    if (filtre.name === 'min') acc.minValue = parseFloat(filtre.value);
+    return acc;
+  }, { maxValue: 0, minValue: 0 });
+    columnName = columnName.replace(/ /g, '_'); // Replace spaces with underscores if needed
+  for (const item of data) {
+    const rawValue = item[columnName];
+    if (rawValue === undefined || rawValue === null || rawValue === 'non défini' ) {
+      groupesFiltres.find(g => g.name === 'non défini')?.data.push(item);
+      continue;
+    }
+
+    const valeur = parseFloat(rawValue);
+    if (isNaN(valeur)) {
+      groupesFiltres.find(g => g.name === 'non défini')?.data.push(item);
+      continue;
+    }
+
+    if (valeur <= minValue) {
+      groupesFiltres.find(g => g.name === 'min')?.data.push(item);
+    } else if (valeur >= maxValue) {
+      groupesFiltres.find(g => g.name === 'max')?.data.push(item);
+    } else {
+        groupesFiltres.find(g => g.name === 'median')?.data.push(item);
+    }
+  }
+
+  const total = data.length;
+    groupesFiltres.forEach(g => {
+        g.percent = total > 0 ? +(g.data.length * 100 / total).toFixed(2) : 0;
+    });
+
+  return groupesFiltres;
+},
+ 
+
+    filterDataWithRegex(data: any[], regex: string, columnSelected: string) {
+    let columnName = this.column.find(col => col.text === this.columnSelected)?.value || this.$store.state.appDataStore.StripeDataList.column;
     if (!columnName) return [];
 
-    // Création d’une copie isolée de la structure de regroupement
-    // const localFilterGroups = [
-    //             {
-    //                 name: 'correspond',
-    //                 data: [] as any[],
-    //                 color: '#2eff38',
-    //                 showBoxColor: false,
-    //                 percent: 0,
-    //                 isActive: false,
-
-    //             },
-    //             {
-    //                 name: 'ne correspond pas',
-    //                 data: [],
-    //                 color: '#ff0f73',
-    //                 showBoxColor: false,
-    //                 percent: 0,
-    //                 isActive: false,
-    //             },
-                
-    //             {
-    //                 name: 'doublon',
-    //                 data: [],
-    //                 color: '#7b03ab',
-    //                 showBoxColor: false,
-    //                 percent: 0,
-    //                 isActive: false,
-    //             },
-    //             {
-    //                 name: 'non défini',
-    //                 data: [],
-    //                 color: '#ab0322',
-    //                 showBoxColor: false,
-    //                 percent: 0,
-    //                 isActive: false,
-    //             }
-    //         ]
+   
     const localFilterGroups = JSON.parse(JSON.stringify(this.filterRegex));
 
     const regexPattern = regex ? new RegExp(regex, 'i') : this.$store.state.appDataStore.ValueRegex.regex;
     const seen = new Map<string, any[]>();
-
+    columnName = columnName.replace(/ /g, '_'); // Replace spaces with underscores if needed
     for (const item of data) {
         const value = item[columnName];
         const strValue = String(value);
@@ -427,16 +485,23 @@ filterDataWithRegex(data: any[], regex: string, columnSelected: string) {
     localFilterGroups.forEach(g => {
         g.percent = total > 0 ? +(g.data.length * 100 / total).toFixed(2) : 0;
     });
-
     return localFilterGroups;
 },
-
-    filterapplied(column: string) {
-            return this.valueFilters.some(filter => filter.column === column);
-        }
-
-
+filterapplied(column: string) {
+        return this.valueFilters.some(filter => filter.column === column);
     },
+
+    toggleMainFilter(col: string) {
+        this.mainFilterColumn = this.mainFilterColumn === col ? '' : col;
+        this.mainFilter = this.$store.state.appDataStore.configLabel    .find(filter => filter.column === this.mainFilterColumn);
+        if(this.mainFilter) {
+            this.$store.commit(MutationTypes.SET_STRIPE_DATA, this.mainFilter)
+        }
+    }
+
+
+},
+
 
     computed: {
         selectedZone() {
@@ -448,6 +513,9 @@ filterDataWithRegex(data: any[], regex: string, columnSelected: string) {
         spaceSelected() {
             return this.$store.state.appDataStore.zoneSelected;
         },
+         configLabel() {
+  return this.$store.state.appDataStore.configLabel.filter(filter => filter.column != "");
+}
         
     },
     
@@ -464,8 +532,64 @@ filterDataWithRegex(data: any[], regex: string, columnSelected: string) {
 
         filterDataConfig: {
             handler(newData) {
-                this.SaveFilter();
+                const stripeData = this.$store.state.appDataStore.StripeDataList;
+                if(stripeData.type === 'regex') {
+                    this.isText = true;
+                    this.isNumber = false;
+                    const filterData = this.filterDataWithRegex(newData, stripeData.regex, stripeData.column);
+                    const regexFilter = {
+                        column: stripeData.column,
+                        type: 'regex',
+                        regex: stripeData.regex,
+                        data: filterData
+                    };
+                    const index = this.valueFilters.findIndex(f => f.column === stripeData.column && f.type === 'regex');
+                    if (index !== -1) {
+                        this.valueFilters[index] = regexFilter;
+                    } else {
+                        this.valueFilters.push(regexFilter);
+
+                    }
+                    this.$store.commit(MutationTypes.SET_CONFIG_LABEL, this.valueFilters);
+                    this.mainFilter = this.$store.state.appDataStore.configLabel.find(filter => filter.column === stripeData.column);
+                    if(this.mainFilter) {
+                        this.$store.commit(MutationTypes.SET_STRIPE_DATA, this.mainFilter);
+                    }
+                }
+                else if(stripeData.type === 'number') {
+                    this.isText = false;
+                    this.isNumber = true;
+                    const filterData = this.filterDataWithNumber(newData, stripeData.column, this.filterNumber);
+                    const numberFilter = {
+                        column: stripeData.column,
+                        type: 'number',
+                        range: filterData
+                    };
+                    const index = this.valueFilters.findIndex(f => f.column === stripeData.column && f.type === 'number');
+                    if (index !== -1) {
+                        this.valueFilters[index] = numberFilter;
+                    } else {
+                        this.valueFilters.push(numberFilter);
+                    }
+                    this.$store.commit(MutationTypes.SET_CONFIG_LABEL, this.valueFilters);
+                    this.mainFilter = this.$store.state.appDataStore.configLabel.find(filter => filter.column === stripeData.column);
+                    if(this.mainFilter) {
+                        this.$store.commit(MutationTypes.SET_STRIPE_DATA, this.mainFilter);
+                    }
+                }
+                
+                
+               
             }
+        },
+
+        mainFilterColumn: {
+            handler(newData) {
+                if (newData.column) {
+                    this.appliedMainFilter(newData.column);
+                }
+            },
+            immediate: true
         }
     }
     
@@ -749,5 +873,15 @@ filterDataWithRegex(data: any[], regex: string, columnSelected: string) {
     text-align: center;
     font-weight: 600;
 }
-
+.applied-filter{
+    position: absolute;
+    left: 10px;
+   width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #2e7200;
+    margin-right: 10px;
+    border: 2px solid #ffffff;
+    outline: 4px solid #2e7200c4;
+}
 </style>

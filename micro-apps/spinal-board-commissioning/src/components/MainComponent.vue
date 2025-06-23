@@ -1,5 +1,6 @@
 <template>
   <div class="main-container" style="min-height: 480px">
+  
     <div class="content">
       <div class="header">
         <div class="title">
@@ -7,8 +8,8 @@
             <span style="display: inline; width: 750px; display: flex; align-items: center;">Détails des éléments connectés sur </span>
             <SpinalbreadCrumb @loadData="loadDataContext" v-if="!sconfig.entryPoint"  :contextList="context" :categoryList="selectedZone.categoryList" :groupList="selectedZone.groupList" />
           </div>
-          <div v-else>sconfig
-            <span style="display: flex; align-items: center;">Détails des éléments connectés sur  {{ sconfig.entryPoint.context }} / {{  sconfig.entryPoint.category }} / {{ sconfig.entryPoint.group }}</span>
+          <div v-else>
+            <span style="display: flex; align-items: center; font-size: 14px; text-transform: lowercase;">Détails des éléments connectés sur  {{ sconfig.entryPoint.context }} / {{  sconfig.entryPoint.category }} / {{ sconfig.entryPoint.group }}</span>
           </div>
           </div>
           <!-- <div class="legend">
@@ -28,7 +29,7 @@
           <div class="right-box" :style="showLeftBox ? 'width: 70%' : 'width: 100%'">
             <div class="header-left">
               <div style="display: flex; align-items: center;">
-
+     
                 <FilterForm :column="dynamicHeaders" />
               
  
@@ -68,6 +69,8 @@ import SpinalbreadCrumb from './SpinalbreadCrumb.vue';
 import { getAllDataInContextSpatial, getContext, getDataInContextSpatial } from '../services';
 import SelectSource from './SelectSource.vue';
 import FilterForm from './FilterForm.vue';
+import Legend from './legend.vue'
+import Legend from './legend.vue';
 @Component({
   components: {
     SmallLegend,
@@ -76,7 +79,8 @@ import FilterForm from './FilterForm.vue';
     DotsGrid,
     SpinalbreadCrumb,
     SelectSource,
-    FilterForm
+    FilterForm,
+    Legend
   }
 })
 class App extends Vue {
@@ -98,7 +102,13 @@ class App extends Vue {
   sconfig = this.config;
   context = [];
   showLoader = true;
-
+legend = [
+    { label: 'Connecté et fonctionnel', color: '#14202C' },
+    { label: 'Pas de convention de nommage', color: '#9830F2' },
+    { label: 'Convention de nommage incorrect', color: '#EF8BC5' },
+    { label: 'Données incohérentes', color: '#FF000B' },
+    { label: 'Données non remontées / champ indéfini', color: '#898F95' },
+  ];
 
 
   async mounted (){
@@ -366,6 +376,10 @@ SetCancelFilter(value: boolean) {
 }
 public get filterData() {
   return this.$store.state.appDataStore.filterData ;
+}
+
+public get configLabel() {
+  return this.$store.state.appDataStore.configLabel;
 }
 
 

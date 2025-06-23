@@ -1,5 +1,6 @@
 <template>
   <div style="width: 100%; height: 100%;" >
+
     <div  v-show="showLoader" class="flex-column" style="width: 100%; height: 100%; position: absolute; top: 0; left:0; background-color: red; z-index: 9999;"></div>
     <v-data-table
     style="height: 100% !important; overflow: hidden; overflow-y: auto;"
@@ -73,7 +74,8 @@ export default {
     name: 'SpinalTable',
     components: {
         SmallLegend,
-        Loader
+        Loader,
+        
     },
     props: {
         item: {
@@ -221,6 +223,12 @@ getColor(value: any, header: string) {
 }
 else if (DataColumn.type === "number") {
   const column = DataColumn.column?.replace(' ', '_');
+
+  if(value === "undefined" || value === "" || value === "non défini" || value === "N/A" || value === null) {
+    return DataColumn.range.find((el) => el.name === "non défini")?.color || '#14202C'; // Retourne une couleur par défaut si la valeur est indéfinie
+  }
+
+
   const numValue = Number(value);
   // Clone + tri décroissant
   const sortedRange = [...DataColumn.range].sort((a, b) => Number(b.value) - Number(a.value));
@@ -240,7 +248,7 @@ else if (DataColumn.type === "number") {
       return sortedRange[i].color;
     }
   }
-  return '#cccccc'; // Si aucune correspondance trouvée, retourner une couleur par défaut
+  
  
 }
 
