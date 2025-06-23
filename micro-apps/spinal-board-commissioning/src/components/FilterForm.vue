@@ -5,7 +5,7 @@
    <div style="display: flex; align-items: center; gap: 10px;">
     <div>
 
-        <v-btn depressed small style="background-color: #14202C; color: #ffffff;"  @click="showFilter = true">
+        <v-btn depressed small style="background-color: #14202C; color: #ffffff;"  @click="showFilter = true; showFilterValue = false">
             <v-icon left>{{ iconFilter }}</v-icon>    
             <span style="font-size: 14px; font-weight: 500; text-transform: lowercase; font-family: 'Charlevoix', sans-serif;">
                 {{ buttonName }}
@@ -350,8 +350,17 @@ import Legend from './legend.vue';
             };
 
             const index = this.valueFilters.findIndex(f => f.column === column && f.type === 'number');
-            if (index !== -1) this.valueFilters[index] = numberFilter;
-            else this.valueFilters.push(numberFilter);
+            if (index !== -1) {
+                this.valueFilters[index] = numberFilter
+                if( this.mainFilterColumn === column) {
+                    this.mainFilter = numberFilter;
+                    this.$store.commit(MutationTypes.SET_STRIPE_DATA, this.mainFilter);
+                }
+            }
+            
+            else {
+                this.valueFilters.push(numberFilter)
+            };
 
             this.$store.commit(MutationTypes.SET_CONFIG_LABEL, this.valueFilters);            
             // this.$store.commit(MutationTypes.SET_VALUE_FILTERS, this.valueFilters);
@@ -371,10 +380,13 @@ import Legend from './legend.vue';
             data: filtered
             }
 
-            const value = this.valueFilters.find(f => f.column === column && f.type === 'regex');
-            if (value) {
-                value.regex = this.filterValue;
-                value.data = filtered;
+            const index = this.valueFilters.findIndex(f => f.column === column && f.type === 'regex');
+            if (index !== -1) {
+                this.valueFilters[index] = regexFilter;
+                if( this.mainFilterColumn === column) {
+                    this.mainFilter = regexFilter;
+                    this.$store.commit(MutationTypes.SET_STRIPE_DATA, this.mainFilter);
+                }
             } else {
                 this.valueFilters.push(regexFilter);
             }
@@ -502,7 +514,7 @@ filterapplied(column: string) {
             return this.$store.state.appDataStore.zoneSelected;
         },
          configLabel() {
-  return this.$store.state.appDataStore.configLabel;
+  return this.$store.state.appDataStore.configLabel.filter(filter => filter.column != "");
 }
         
     },

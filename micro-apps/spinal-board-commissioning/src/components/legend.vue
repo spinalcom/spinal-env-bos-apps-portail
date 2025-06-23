@@ -38,7 +38,7 @@
                  class="legend-item"
                 >
                  <span class="spin-color" :style="{ backgroundColor: data.color }"></span>
-                    <span class="legend-label">{{ data.name }} ({{ data.value }})</span>
+                    <span class="legend-label">{{ data.name }}</span>
                  </li>
 
             </div>
@@ -156,6 +156,12 @@ export default defineComponent({
 
 .legend-label {
   margin-left: 5px;
+  font-size: 12px;
+  text-transform: lowercase;
+}
+.legend-label::first-letter {
+  text-transform: uppercase;
+  font-weight: bold;
 }
 
 .spin-color {
