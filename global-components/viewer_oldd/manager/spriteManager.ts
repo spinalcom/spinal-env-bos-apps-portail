@@ -226,6 +226,7 @@ export class SpriteManager {
 	}
 
 	private _onSpriteClicked(event) {
+		console.log("Sprite clicked", event);
 		this._sendSpriteEvent(event.dbId, VIEWER_SPRITE_CLICK);
 	}
 

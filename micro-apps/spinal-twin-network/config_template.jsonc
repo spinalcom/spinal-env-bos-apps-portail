@@ -1,0 +1,19 @@
+
+
+{
+    "viewButtons": "base", // "base" | "full" | "none"
+    "sprites": false,
+    "statusClignote": true,
+    "viewerInfo": { "roomRef": true, "floorRef": true, "equipments": "all" },
+    "typologiesSource": {
+    "context": "Gestion des équipements",
+    "category": "Typologie",
+  },
+  "source": [
+    {
+      "name": "Présence",
+      "type": "controlPoint",
+      "objectType": "equipments",
+    }
+]
+}

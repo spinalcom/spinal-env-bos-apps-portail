@@ -26,8 +26,8 @@ import { ModelManager } from "./modelManager";
 import { getViewInfo, getViewInfoFormatted, IViewInfoBody, IViewInfoItemRes, IViewInfoRes, IViewInfoTmpRes, mergeIViewInfo } from "../requests/GeographicContext/getViewInfo";
 import { IPlayload, IPlayloadWithComponent } from "../interfaces/IPlayload";
 import { EmitterViewerHandler, VIEWER_ADD_SPRITE, VIEWER_INITIALIZED, VIEWER_OBJ_COLOR, VIEWER_OBJ_FIT_TO_VIEW, VIEWER_OBJ_ISOLATE, VIEWER_OBJ_SELECT, VIEWER_START_LOAD_MODEL, ViewerEventWithData, VIEWER_REM_SPHERE } from "spinal-viewer-event-manager";
-import { VIEWER_EVENTS } from "../events";
-import { ViewerUtils } from "../utils/viewerUtils";
+import { VIEWER_EVENTS } from "../../../global-components/viewer/events";
+import { ViewerUtils } from "../../../global-components/viewer/utils/viewerUtils";
 import Vue from "vue";
 import { log, warn } from "console";
 const emitterHandler = EmitterViewerHandler.getInstance();
@@ -262,6 +262,12 @@ export class ViewerManager {
 		const emitter = EmitterViewerHandler.getInstance();
 		emitter.emit(<any>VIEWER_EVENTS.VIEWER_ADD_COMPONENT_SPRITE, formatted as any);
 	}
+	public async addComponentNetworkAsSprite(item: IPlayloadWithComponent | IPlayloadWithComponent[], buildingId: string, component?: Vue) {
+		const formatted = await this._getAndFormatViewerInfos(item, buildingId, component);
+		console.log("addComponentNetworkAsSprite", formatted, 'buildingId', buildingId, 'component', component);
+		const emitter = EmitterViewerHandler.getInstance();
+		emitter.emit(<any>VIEWER_EVENTS.VIEWER_ADD_COMPONENT_NETWORK_SPRITE, formatted as any);
+	}
 
 	public async getObjectProperties(dbId: number) {
 		return ViewerUtils.getInstance().getObjectProperties(this.viewer, dbId)
@@ -382,6 +388,11 @@ export class ViewerManager {
 
 	private _removeViewLoaded(nodeId: string | number) {
 		delete this._viewerStartedList[nodeId];
+	}
+	public async removeAllLines() {
+			// const formatted = await this._getAndFormatViewerInfos(item, buildingId, component);
+			const emitter = EmitterViewerHandler.getInstance();
+			emitter.emit(<any>VIEWER_EVENTS.VIEWER_REMOVE_ALL_LINES);
 	}
 
 	private _removeToolbarControl() {

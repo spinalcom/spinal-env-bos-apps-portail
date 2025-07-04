@@ -47,7 +47,10 @@ export class SpriteManager {
 	private viewableDataMap: { [group: string]: any[] } = {};
 	private label3Ds = [];
 	private cards3Ds = [];
-
+	private linesGlobal: { source: any; destination: any; line: THREE.Line, color: string }[] = [];
+	private drawedlines: number = 0;
+	private colorMap: Map<number, string> = new Map();
+	private data: any [] = [];
 	private constructor() { }
 
 	public static getInstance(): SpriteManager {
@@ -282,6 +285,248 @@ export class SpriteManager {
 			} as any);
 		}
 	}
+
+
+
+
+
+	  public async addComponentNetworkAsSprite(
+    viewer: Autodesk.Viewing.Viewer3D,
+    data: any | any[]
+  ) {
+	// if(data.length == 0 ) {
+	// 	this.removeSprites();
+	// 	this.removeAllLines(viewer);
+	// }
+    data = Array.isArray(data) ? data : [data];
+	this.drawedlines = 0;
+    for (const d of data) {
+      if (!d.component) continue;
+      //if last object of data
+      // console.log(d.data.dynamicId);
+      // console.log("parentData",d.data.parent);
+      const VueComponent = Vue.extend(d.component);
+      const vueInstance = new VueComponent({ propsData: d });
+
+      const label = new Autodesk.Edit3D.Label3D(viewer, d.position, "");
+      // Get parent data if it exists
+
+      const parentPosition = this.getParentPosition(data, d.data.parent);
+	  
+				this.colorMap.set(d.data.data.dynamicId, d.data.data.color);
+	
+		
+	  
+
+      if (this.drawedlines < data.length) {
+        // console.log("drawing all lines");
+        if (parentPosition) {
+          this.drawLineBetweenPositions(
+            viewer,
+            d.data.parent,
+            d.data.dynamicId,
+            parentPosition,
+            d.position,
+          );
+          this.drawedlines++;
+        }
+      }
+
+      viewer.overlays.impl.invalidate(true, true, true);
+      // if (d.data.last == true) {
+      // 	this.drawedlines = true;
+      // 	console.log("drawedlines true", this.drawedlines)
+      // }
+
+
+
+      label.container.appendChild(vueInstance.$mount().$el);
+      const exists = this.label3Ds.some(
+        (item) => item.dynamicId === d.data.dynamicId
+      );
+      if (!exists) {
+        this.label3Ds.push({
+          dynamicId: d.data.dynamicId,
+          label: label,
+          component: vueInstance,
+        });
+      }
+    }
+  }
+
+
+
+
+    public removeAllLines(viewer: Autodesk.Viewing.Viewer3D) {
+    // console.log("Removing all lines");
+    this.drawedlines = 0;
+    const sceneName = "LinesScene";
+    if (viewer.overlays && viewer.overlays.hasScene(sceneName)) {
+      viewer.overlays.clearScene(sceneName);
+    } else {
+      // console.warn("No overlays found or scene does not exist.");
+    }
+  }
+
+
+  public removeLinesFormDynamic(viewer: Autodesk.Viewing.Viewer3D, dynamicId: number) {
+	const scenName = "LineScene";
+	if(!viewer || !viewer.overlays || !viewer.overlays.hasScene(scenName)) return;
+
+	this.linesGlobal = this.linesGlobal.filter(lineObj =>   {
+		 const shouldRemove = lineObj.source === dynamicId || lineObj.destination === dynamicId;
+    if (shouldRemove) {
+      viewer.overlays.removeMesh(lineObj.line, sceneName);
+    }
+    return !shouldRemove;
+  });
+
+  	viewer.overlays.impl.invalidate(true, true, true)
+
+  }
+
+
+
+
+	// Draws a line between sprite and its parent
+	public async drawLineBetweenPositions(
+  viewer,
+  source,
+  destination,
+  sourcePosition,
+  destinationPosition,
+) {
+  const color = this.colorMap.get(source) || '#ffb30f'; // fallback au cas où
+
+  const geometryLine = new THREE.Geometry();
+  geometryLine.vertices.push(new THREE.Vector3(sourcePosition.x, sourcePosition.y, sourcePosition.z));
+  geometryLine.vertices.push(new THREE.Vector3(destinationPosition.x, destinationPosition.y, destinationPosition.z));
+
+  const material = new THREE.LineBasicMaterial({
+    color: new THREE.Color(color),
+    transparent: true,
+    depthWrite: false,
+    depthTest: false,
+    linewidth: 4,
+    opacity: 1.0,
+    blending: THREE.NoBlending,
+  });
+
+  const line = new THREE.Line(geometryLine, material);
+
+  const sceneName = "LinesScene";
+  if (!viewer.overlays.hasScene(sceneName)) {
+    viewer.overlays.addScene(sceneName);
+  }
+
+  viewer.overlays.addMesh(line, sceneName);
+
+  // 🟢 Sauvegarde avec couleur incluse
+  this.linesGlobal.push({
+    source,
+    destination,
+    line,
+    color: color, // << ajout ici
+  });
+
+  return null;
+}
+
+
+	public getParentPosition(data, parentId) {
+    for (const item of data) {
+      if (item.modelId === parentId) {
+        return item.position;
+      }
+    }
+    return null;
+  }
+
+
+   public async updateLine(line: THREE.Line, color: THREE.Color, width: number) {
+
+    line.material.color.set(color);
+    line.material.linewidth = width;
+    line.material.needsUpdate = true;
+
+    if (line.geometry instanceof THREE.BufferGeometry) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      line.geometry.attributes.position.needsUpdate = true;
+    } else {
+      line.geometry.verticesNeedUpdate = true;
+    }
+
+    // console.log("end");
+  }
+
+    public removeStyleLine(dynamicIds: Array<number>) {
+    for (let i = 0; i < dynamicIds.length; i++) {
+      for (let line of this.linesGlobal) {
+        if (dynamicIds[i] == line.source) {
+          this.updateLine(line.line, new THREE.Color(0xffb30f), 4); //selected line vers fils
+        } else if (dynamicIds[i] == line.destination) {
+          this.updateLine(line.line, new THREE.Color(0xffb30f), 4); // vers parent
+        }
+      }
+    }
+  }
+
+
+
+   public deselectSprites(dynamicIds: Array<number>) {
+	   for (let i = 0; i < dynamicIds.length; i++) {
+		   for (let label of this.label3Ds) {
+        if (dynamicIds[i] == label.dynamicId) {
+			label.component._isNotSelected();
+        }
+	}
+}
+  }
+public async selecNetworktSprites(dynamicIds: Array<number>) {
+  const updatedLines = new Set<THREE.Line>(); 
+
+updatedLines.clear();
+  for (let i = 0; i < dynamicIds.length; i++) {
+    const dynamicId: number = dynamicIds[i];
+
+    // Gérer la sélection visuelle des sprites
+    for (let label of this.label3Ds) {
+      if (dynamicId === label.dynamicId) {
+        label.component._isSelected();
+      } else {
+        label.component._isNotSelected();
+      }
+    }
+
+    // Mise à jour des lignes connectées
+	for (let lineObj of this.linesGlobal) {
+	  const { line, source, destination } = lineObj;
+	  // Ignore si déjà traité
+	  if (updatedLines.has(lineObj.line)) continue;
+
+	  if (dynamicId == lineObj.source) {
+		this.updateLine(lineObj.line, new THREE.Color(0x00ff00), 10); // vers enfants
+		updatedLines.add(lineObj.line);
+	  } else if (dynamicId == lineObj.destination) {
+		this.updateLine(lineObj.line, new THREE.Color(0x0000ff), 10); // vers parent
+		updatedLines.add(lineObj.line);
+	  }
+	}
+  }
+
+  // Mettre à jour les lignes non sélectionnées avec leur couleur par défaut
+  for (let lineObj of this.linesGlobal) {
+    const { line, source, destination, color } = lineObj;
+    if (updatedLines.has(line)) continue;
+
+  
+    this.updateLine(line, new THREE.Color(color), 4);
+    updatedLines.add(line);
+  }
+}
+
+
 }
 
 export default SpriteManager;

@@ -1,0 +1,11 @@
+<svg width="184" height="206" viewBox="0 0 184 206" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 103H174" stroke="#14202C" stroke-width="10"/>
+<rect x="83.9341" y="109.664" width="10" height="30.9461" rx="5" transform="rotate(-133.9 83.9341 109.664)" fill="#14202C"/>
+<rect width="10" height="30.9461" rx="5" transform="matrix(-0.718612 0.695411 0.695411 0.718612 84.2324 95.4712)" fill="#14202C"/>
+<rect width="10" height="30.9461" rx="5" transform="matrix(0.162162 0.986764 0.986764 -0.162162 70.2761 54.923)" fill="#14202C"/>
+<rect x="81.6924" y="63.1265" width="10" height="30.9461" rx="5" transform="rotate(170.828 81.6924 63.1265)" fill="#14202C"/>
+<rect x="70.2761" y="148.712" width="10" height="30.9461" rx="5" transform="rotate(-80.6676 70.2761 148.712)" fill="#14202C"/>
+<rect width="10" height="30.9461" rx="5" transform="matrix(-0.987213 -0.159406 -0.159406 0.987213 81.6924 140.508)" fill="#14202C"/>
+<path d="M12.1185 102.862C87.1187 102.862 56.4235 12.862 174.425 12.8621" stroke="#14202C" stroke-width="10"/>
+<path d="M12.1185 103.138C87.1187 103.138 56.4235 193.138 174.425 193.138" stroke="#14202C" stroke-width="10"/>
+</svg>

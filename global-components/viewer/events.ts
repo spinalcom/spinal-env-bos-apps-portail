@@ -30,6 +30,9 @@ export const enum VIEWER_EVENTS {
 	LOADED = "loaded",
 	VIEWER_ADD_COMPONENT_SPRITE = "viewer add component as sprite",
 	VIEWER_ADD_CARD_COMPONENT = "viewer add card component",
+	VIEWER_REMOVE_ALL_LINES = "viewer remove all lines",
+	VIEWER_ADD_COMPONENT_NETWORK_SPRITE = "viewer add component network as sprite",
+
 }
 
 export const EventBus = new Vue();

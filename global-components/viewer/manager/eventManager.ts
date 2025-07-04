@@ -111,6 +111,9 @@ export class EventManager {
 			emitterHandler.on(<any>VIEWER_EVENTS.VIEWER_ADD_COMPONENT_SPRITE, (data: any) => {
 				viewerUtils.addComponentAsSprite(viewer, data);
 			});
+			emitterHandler.on(<any>VIEWER_EVENTS.VIEWER_ADD_COMPONENT_NETWORK_SPRITE, (data: any) => {
+				viewerUtils.addComponentNetworkAsSprite(viewer, data)
+			});
 			emitterHandler.on(<any>VIEWER_EVENTS.VIEWER_ADD_CARD_COMPONENT, (data: any) => {
 				viewerUtils.addCardComponent(viewer, data);
 			});
@@ -143,6 +146,10 @@ export class EventManager {
 
 			emitterHandler.on(VIEWER_ADD_SPHERE, (data: any) => {
 				viewerUtils.addSphere(viewer, data);
+			});
+			
+			emitterHandler.on(<any>VIEWER_EVENTS.VIEWER_REMOVE_ALL_LINES,() =>{
+				viewerUtils.removeAllLines(viewer);
 			});
 
 			emitterHandler.on(VIEWER_REM_SPHERE, (data: any) => {
